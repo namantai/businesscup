@@ -2,7 +2,7 @@
 
 Локальный каркас B2C-сервиса подбора сочетаний AI-подписок и агентов по нескольким потребностям, бюджету и ограничениям — без ввода конкретного задания.
 
-Реализован только P01: frontend shell, backend health/readiness, PostgreSQL и первая техническая миграция. Каталог, анкета, Recommendation Engine, аккаунты и платежи ещё не реализованы. HTML в `reference/` — только референс, не проверенная база цен.
+Реализованы каркас P01 и схема/предметные типы P02: frontend shell, backend health/readiness, PostgreSQL/Flyway, версионируемый каталог и проверяемый внутренний импорт. Публичный каталог, реальные рыночные данные, анкета, Recommendation Engine, аккаунты и платежи ещё не реализованы. HTML в `reference/` — только референс, не проверенная база цен.
 
 ## Требования
 
@@ -20,7 +20,7 @@ bash scripts/dev-up.sh --no-build
 
 `setup.sh` скачивает закреплённые Node и JDK в `.tools/`, проверяет SHA-256 и создаёт `.env` с новым случайным паролем PostgreSQL и правами 0600. Существующий `.env` не перезаписывается. Кеши зависимостей находятся в `.cache/`. Нужен сетевой доступ к официальным реестрам; платные ключи не нужны.
 
-`check.sh` выполняет clean backend verify, включая отдельный PostgreSQL Testcontainers, затем `npm ci`, format/lint/typecheck, компонентные тесты и frontend build. Недоступный Docker означает ошибку, а не пропуск интеграционных тестов.
+`check.sh` выполняет clean backend verify, включая отдельный PostgreSQL Testcontainers, затем `npm ci`, format/lint/typecheck, компонентные тесты, frontend build и JSON Schema checks синтетического каталога. Недоступный Docker означает ошибку, а не пропуск интеграционных тестов.
 
 Открыть **http://127.0.0.1:5173**. На странице должно появиться «Сервис доступен» после настоящего запроса через Vite proxy к backend readiness, включающему проверку БД.
 
@@ -47,7 +47,7 @@ bash scripts/dev-down.sh
 
 Compose project: `ai-compass-p01`, volume: `ai-compass-p01_postgres_data`. Остановка сохраняет контейнер и volume. Не использовать `down -v`. Логи приложения и сведения о собственных PID находятся в `.runtime/` и не входят в Git.
 
-`LLM_MODE=OFF`, `PAYMENTS_MODE=OFF`, `EMAIL_MODE=LOCAL`, `SOURCE_FETCH_ENABLED=false`. Попытка включить интеграцию на P01 блокирует запуск. Почтового адаптера пока нет: `LOCAL` означает отсутствие внешней отправки, а не уже работающий Mailpit.
+`LLM_MODE=OFF`, `PAYMENTS_MODE=OFF`, `EMAIL_MODE=LOCAL`, `SOURCE_FETCH_ENABLED=false`. Попытка включить интеграцию в текущем каркасе блокирует запуск. Почтового адаптера пока нет: `LOCAL` означает отсутствие внешней отправки, а не уже работающий Mailpit.
 
 ## Проверки
 
@@ -57,6 +57,7 @@ bash scripts/smoke.sh
 bash scripts/test-e2e.sh
 bash scripts/test-persistence.sh
 bash scripts/check-secrets.sh
+bash scripts/check-catalog.sh
 ```
 
 `smoke.sh`, `test-e2e.sh` и `test-persistence.sh` требуют работающего локального приложения. `smoke.sh` проверяет backend readiness, proxy readiness и frontend HTML. `test-e2e.sh` скачивает Chromium фиксированной ревизии из установленного Playwright в `.cache/playwright` (если его ещё нет), посещает только локальный frontend и проверяет ширины 360/768/1440 px. Системные пакеты не устанавливаются. Скриншоты — `frontend/test-results/`.
@@ -73,6 +74,8 @@ CI-файл создан только с ручным `workflow_dispatch`; уд�
 
 Локальный HTTP использует session cookie без `Secure` только в запуске через dev-скрипт; конфигурация backend по умолчанию требует `Secure`. HttpOnly, SameSite и CSRF сохраняются. Аккаунтов нет, генерируемого admin-пароля нет, административные и прочие закрытые маршруты недоступны.
 
-Testcontainers использует отдельную временную БД и случайный loopback-порт. Ryuk отключён, чтобы не монтировать Docker socket в контейнер; тесты останавливают свой контейнер через `AfterAll` и shutdown hook. При принудительном завершении JVM контейнер может остаться с меткой `com.aicompass.scope=p01-integration`; удаление чужих ресурсов запрещено.
+Testcontainers использует отдельную временную БД и случайный loopback-порт. Ryuk отключён, чтобы не монтировать Docker socket в контейнер; тесты останавливают свой контейнер через `AfterAll` и shutdown hook. При принудительном завершении JVM контейнер может остаться с меткой `com.aicompass.scope=p01-integration` или `p02-integration`; удаление чужих ресурсов запрещено.
 
-Текущее состояние и фактические результаты: [docs/PROGRESS.md](docs/PROGRESS.md). Переход к P02 требует отдельной приёмки владельцем.
+Текущее состояние и фактические результаты: [docs/PROGRESS.md](docs/PROGRESS.md). P02 закрыт по поручению владельца. Переход к P03 требует отдельного разрешения.
+
+Миграции V2/V3 создают пустой каталог: демотарифы при запуске не импортируются. Синтетические сценарии и ограничения: [data/fixtures/README.md](data/fixtures/README.md); модель и правила импорта: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).

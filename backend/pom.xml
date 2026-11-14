@@ -28,6 +28,10 @@
     <dependency><groupId>org.testcontainers</groupId><artifactId>testcontainers-postgresql</artifactId><scope>test</scope></dependency>
   </dependencies>
   <build>
+    <testResources>
+      <testResource><directory>src/test/resources</directory></testResource>
+      <testResource><directory>../data</directory><targetPath>data</targetPath><includes><include>fixtures/*.json</include><include>schema/*.json</include></includes></testResource>
+    </testResources>
     <plugins>
       <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
       <plugin>

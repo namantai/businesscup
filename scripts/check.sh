@@ -12,3 +12,5 @@ npm run lint
 npm run typecheck
 npm test
 npm run build
+cd "$COMPASS_ROOT"
+bash scripts/check-catalog.sh

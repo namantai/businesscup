@@ -42,6 +42,8 @@ management:
         readiness:
           include: readinessState,db
 compass:
+  catalog:
+    allow-demo: false
   integrations:
     llm-mode: ${LLM_MODE:OFF}
     payments-mode: ${PAYMENTS_MODE:OFF}

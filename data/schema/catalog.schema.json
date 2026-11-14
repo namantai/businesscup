@@ -1,0 +1,1704 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ai-compass.invalid/schema/catalog-v1.json",
+  "title": "AI Compass catalog manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "versionId",
+    "datasetKind",
+    "asOf",
+    "reviewer",
+    "providers",
+    "regions",
+    "evidenceSources",
+    "evidence",
+    "products",
+    "modelFamilies",
+    "aiModels",
+    "agents",
+    "capabilities",
+    "userNeeds",
+    "needCapabilities",
+    "exclusivityGroups",
+    "subscriptionPlans",
+    "priceOffers",
+    "planModelAccess",
+    "planAgentAccess",
+    "capabilityAssertions",
+    "quotaPools",
+    "usageLimits",
+    "eligibilityRules",
+    "benchmarkObservations",
+    "fxSnapshots"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "versionId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "datasetKind": {
+      "type": "string",
+      "enum": [
+        "DEMO",
+        "REVIEWED"
+      ]
+    },
+    "asOf": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000,
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "reviewer": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "providers": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/Provider"
+      }
+    },
+    "regions": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/Region"
+      }
+    },
+    "evidenceSources": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/EvidenceSource"
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/Evidence"
+      }
+    },
+    "products": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/Product"
+      }
+    },
+    "modelFamilies": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/ModelFamily"
+      }
+    },
+    "aiModels": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/AiModel"
+      }
+    },
+    "agents": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/Agent"
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/Capability"
+      }
+    },
+    "userNeeds": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/UserNeed"
+      }
+    },
+    "needCapabilities": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/NeedCapability"
+      }
+    },
+    "exclusivityGroups": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/ExclusivityGroup"
+      }
+    },
+    "subscriptionPlans": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/SubscriptionPlan"
+      }
+    },
+    "priceOffers": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/PriceOffer"
+      }
+    },
+    "planModelAccess": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/PlanModelAccess"
+      }
+    },
+    "planAgentAccess": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/PlanAgentAccess"
+      }
+    },
+    "capabilityAssertions": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/CapabilityAssertion"
+      }
+    },
+    "quotaPools": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/QuotaPool"
+      }
+    },
+    "usageLimits": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/UsageLimit"
+      }
+    },
+    "eligibilityRules": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/EligibilityRule"
+      }
+    },
+    "benchmarkObservations": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/BenchmarkObservation"
+      }
+    },
+    "fxSnapshots": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/definitions/FxSnapshot"
+      }
+    }
+  },
+  "definitions": {
+    "Provider": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "officialDomain"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "officialDomain": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "Region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "countryCode",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "countryCode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2,
+          "pattern": "^[A-Z]{2}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "EvidenceSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "url",
+        "publisher",
+        "kind",
+        "usageRights"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "url": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "format": "uri",
+          "pattern": "^https://.+"
+        },
+        "publisher": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "OFFICIAL",
+            "INDEPENDENT_BENCHMARK",
+            "USER_REPORT",
+            "SYNTHETIC"
+          ]
+        },
+        "usageRights": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "Evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "sourceId",
+        "claimType",
+        "status",
+        "verifiedAt",
+        "observedRegionId",
+        "channel",
+        "summary",
+        "reviewer",
+        "method",
+        "conditions"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "sourceId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z][a-z0-9-]{0,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "claimType": {
+          "type": "string",
+          "enum": [
+            "PRICE",
+            "TAX",
+            "FEES",
+            "REGION",
+            "MODEL_ACCESS",
+            "AGENT_ACCESS",
+            "CAPABILITY",
+            "USAGE_LIMIT",
+            "ELIGIBILITY",
+            "BENCHMARK",
+            "FX",
+            "PRODUCT_METADATA"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "VERIFIED_SOURCE",
+            "CONDITIONAL",
+            "UNKNOWN",
+            "STALE",
+            "CONFLICTED",
+            "DEMO"
+          ]
+        },
+        "verifiedAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observedRegionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z][a-z0-9-]{0,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "reviewer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "Product": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "providerId",
+        "slug",
+        "name",
+        "kind",
+        "state",
+        "metadataEvidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "providerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "slug": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "APPLICATION",
+            "AUTOMATION_TOOL"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "RETIRED"
+          ]
+        },
+        "metadataEvidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    },
+    "ModelFamily": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "providerId",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "providerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "AiModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "familyId",
+        "name",
+        "exactVersion"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "familyId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "exactVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "Agent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "providerId",
+        "productId",
+        "name",
+        "executionEnvironment",
+        "metadataEvidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "providerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "productId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z][a-z0-9-]{0,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "executionEnvironment": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "metadataEvidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    },
+    "Capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "FUNCTION",
+            "PLATFORM",
+            "INTERFACE_LANGUAGE",
+            "OUTPUT_LANGUAGE",
+            "PRIVACY",
+            "LICENSE"
+          ]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "UserNeed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "NeedCapability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "needId",
+        "capabilityId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "needId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "capabilityId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    },
+    "ExclusivityGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "productId",
+        "name"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "productId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "SubscriptionPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "productId",
+        "tier",
+        "accessType",
+        "exclusivityGroupId",
+        "activeFrom",
+        "activeUntil"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "productId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "tier": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "accessType": {
+          "type": "string",
+          "enum": [
+            "APPLICATION",
+            "API",
+            "BOTH"
+          ]
+        },
+        "exclusivityGroupId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z][a-z0-9-]{0,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "activeFrom": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "activeUntil": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "PriceOffer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "planId",
+        "regionId",
+        "channel",
+        "currency",
+        "priceKind",
+        "billingPeriod",
+        "amount",
+        "upfrontAmount",
+        "usageUnit",
+        "taxStatus",
+        "additionalTax",
+        "feeStatus",
+        "additionalFee",
+        "trialDays",
+        "conditions",
+        "validFrom",
+        "validUntil",
+        "priceEvidenceId",
+        "taxEvidenceId",
+        "feeEvidenceId",
+        "regionEvidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "regionId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "currency": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3,
+          "pattern": "^[A-Z]{3}$"
+        },
+        "priceKind": {
+          "type": "string",
+          "enum": [
+            "FREE",
+            "FIXED",
+            "UNKNOWN",
+            "TRIAL",
+            "USAGE_BASED"
+          ]
+        },
+        "billingPeriod": {
+          "type": "string",
+          "enum": [
+            "MONTH",
+            "YEAR",
+            "ONE_TIME",
+            "USAGE"
+          ]
+        },
+        "amount": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "upfrontAmount": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "usageUnit": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "taxStatus": {
+          "type": "string",
+          "enum": [
+            "INCLUDED",
+            "EXCLUDED_KNOWN",
+            "NOT_APPLICABLE",
+            "UNKNOWN"
+          ]
+        },
+        "additionalTax": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "feeStatus": {
+          "type": "string",
+          "enum": [
+            "KNOWN",
+            "UNKNOWN"
+          ]
+        },
+        "additionalFee": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "trialDays": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3660
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "validFrom": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "validUntil": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "priceEvidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "taxEvidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "feeEvidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "regionEvidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "priceKind": {
+                "const": "UNKNOWN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "amount": {
+                "type": "null"
+              },
+              "upfrontAmount": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "priceKind": {
+                "enum": [
+                  "FREE",
+                  "FIXED",
+                  "TRIAL"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "amount": {
+                "type": "string"
+              },
+              "upfrontAmount": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "priceKind": {
+                "const": "FREE"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "amount": {
+                "pattern": "^0(\\.0{1,6})?$"
+              },
+              "upfrontAmount": {
+                "pattern": "^0(\\.0{1,6})?$"
+              },
+              "billingPeriod": {
+                "const": "MONTH"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "priceKind": {
+                "const": "TRIAL"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "trialDays": {
+                "type": "integer"
+              },
+              "billingPeriod": {
+                "const": "ONE_TIME"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "priceKind": {
+                "not": {
+                  "const": "TRIAL"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "trialDays": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "priceKind": {
+                "const": "USAGE_BASED"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "amount": {
+                "type": "string"
+              },
+              "upfrontAmount": {
+                "type": "null"
+              },
+              "usageUnit": {
+                "type": "string"
+              },
+              "billingPeriod": {
+                "const": "USAGE"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "priceKind": {
+                "not": {
+                  "const": "USAGE_BASED"
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "usageUnit": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "taxStatus": {
+                "const": "UNKNOWN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "additionalTax": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "feeStatus": {
+                "const": "UNKNOWN"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "additionalFee": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "PlanModelAccess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "planId",
+        "modelId",
+        "mode",
+        "state",
+        "conditions",
+        "evidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "modelId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "AVAILABLE",
+            "CONDITIONAL",
+            "UNKNOWN"
+          ]
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "evidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    },
+    "PlanAgentAccess": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "planId",
+        "agentId",
+        "state",
+        "conditions",
+        "evidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "planId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "agentId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "AVAILABLE",
+            "CONDITIONAL",
+            "UNKNOWN"
+          ]
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "evidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    },
+    "CapabilityAssertion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "productId",
+        "planId",
+        "capabilityId",
+        "state",
+        "conditions",
+        "evidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "productId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z][a-z0-9-]{0,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "planId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 80,
+              "pattern": "^[a-z][a-z0-9-]{0,79}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "capabilityId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "SUPPORTED",
+            "PARTIAL",
+            "UNSUPPORTED",
+            "UNKNOWN"
+          ]
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "evidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    },
+    "QuotaPool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "offerId",
+        "state",
+        "quantity",
+        "unit",
+        "resetPeriod",
+        "expiresAt",
+        "conditions",
+        "evidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "offerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "KNOWN",
+            "UNKNOWN",
+            "UNLIMITED"
+          ]
+        },
+        "quantity": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "resetPeriod": {
+          "type": "string",
+          "enum": [
+            "DAY",
+            "MONTH",
+            "YEAR",
+            "NEVER",
+            "UNKNOWN"
+          ]
+        },
+        "expiresAt": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "format": "date-time",
+              "pattern": "Z$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "evidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    },
+    "UsageLimit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "offerId",
+        "capabilityId",
+        "poolId",
+        "mode",
+        "unitsPerUse"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "offerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "capabilityId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "poolId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "unitsPerUse": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000,
+              "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "EligibilityRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "offerId",
+        "kind",
+        "state",
+        "requirement",
+        "conditions",
+        "evidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "offerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "STUDENT",
+            "REGION",
+            "PLATFORM",
+            "BILLING",
+            "PRIVACY",
+            "LANGUAGE"
+          ]
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "REQUIRED",
+            "NOT_REQUIRED",
+            "UNKNOWN"
+          ]
+        },
+        "requirement": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "evidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    },
+    "BenchmarkObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "modelId",
+        "task",
+        "metric",
+        "value",
+        "unit",
+        "methodology",
+        "observedAt",
+        "evidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "modelId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "task": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "metric": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^-?(0|[1-9][0-9]{0,11})(\\.[0-9]{1,6})?$"
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "methodology": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "observedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "evidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    },
+    "FxSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "baseCurrency",
+        "quoteCurrency",
+        "rate",
+        "observedAt",
+        "evidenceId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "baseCurrency": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3,
+          "pattern": "^[A-Z]{3}$"
+        },
+        "quoteCurrency": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3,
+          "pattern": "^[A-Z]{3}$"
+        },
+        "rate": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "pattern": "^(0|[1-9][0-9]{0,11})(\\.[0-9]{1,12})?$"
+        },
+        "observedAt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000,
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "evidenceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        }
+      }
+    }
+  }
+}

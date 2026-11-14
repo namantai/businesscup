@@ -1,9 +1,9 @@
 # AI Compass — фактический прогресс
 
 **План:** `../CODEX_PROMPT.md`, версия 1.0, 14.11.2026.
-**Текущее состояние:** локальный каркас P01 реализован и проверен; предметная логика не начата.
-**Текущий этап:** P01 — DONE (закрытие по прямому поручению владельца).
-**Следующее разрешённое действие:** остановиться после локального коммита P01; P02 требует отдельного разрешения.
+**Текущее состояние:** P02 предварительно принят владельцем и закрыт после архитектурной проверки и повторных тестов.
+**Текущий этап:** P02 — DONE (по прямому поручению владельца).
+**Следующее разрешённое действие:** остановиться после одного локального коммита P02. P03, push и PR не разрешены.
 **Источник состояния:** этот файл + фактический Git/code/test evidence, не обещания агента.
 
 ## 1. Маршрут
@@ -11,8 +11,8 @@
 | Этап | Название | Статус | Приёмка владельца / доказательство |
 |---|---|---|---|
 | P00 | Read-only аудит | ACCEPTED | Владелец 14.11.2026: «P00 ПРИНЯТ. Переходим к P01» |
-| P01 | Каркас и инфраструктура | DONE | Владелец 14.11.2026 предварительно принял отчёт и поручил закрытие; повторно 11 backend + 7 UI PASS, smoke 3 PASS |
-| P02 | Типы, schema, fixtures | NOT_STARTED | — |
+| P01 | Каркас и инфраструктура | ACCEPTED | Закрыт commit d895c04; затем владелец явно сообщил «P01 ПРИНЯТ» и разрешил P02 |
+| P02 | Типы, schema, fixtures | DONE | Владелец предварительно принял отчёт и поручил закрытие; повторно 62 unit + 44 PostgreSQL IT + 7 UI PASS |
 | P03 | Проверенный каталог и API | NOT_STARTED | — |
 | P04 | Recommendation Engine | NOT_STARTED | — |
 | P05 | Гостевой frontend / R1 | NOT_STARTED | — |
@@ -46,7 +46,7 @@
 | Действие | Текущее разрешение |
 |---|---|
 | P00 read-only аудит в рабочем репозитории | Выполнен и принят 14.11.2026 |
-| Локальные изменения кода | Владелец 14.11.2026: только P01, docs и тесты; без перехода P02 |
+| Локальные изменения кода | Владелец явно принял P01 и разрешил P02: схема, типы, fixtures, тесты и документация; P03 запрещён |
 | Первоначальный локальный commit и ветка | Владелец 14.11.2026: четыре исходных файла без изменений, затем codex/p01-scaffold; выполнено |
 | Установка project dependencies / Docker images / browsers | Владелец 14.11.2026: инструменты/зависимости и изолированная инфраструктура P01; без sudo/global config/платных услуг |
 | Системные установки / sudo / global config | Нет |
@@ -54,6 +54,7 @@
 | Реальные письма/уведомления внешним адресатам | Нет |
 | Production платежи / тестовые списания | Нет |
 | VPS/домен/хостинг/облако | Нет |
+| Локальный commit P02 | Владелец 14.11.2026 разрешил один commit после архитектурной проверки и успешных тестов: `feat: implement versioned ai catalog data model`; без push/PR |
 | Локальный commit закрытия P01 | Владелец 14.11.2026: один commit только P01, сообщение `feat: bootstrap ai compass infrastructure`; без push/PR |
 | Git push / merge / deploy | Нет |
 | Удаление volumes/данных/чужих файлов | Нет |
@@ -74,7 +75,7 @@
 
 Эти записи — известные будущие decision gates, не сообщение о провале ещё не начатой разработки.
 
-## 5. Протокол текущего этапа
+## 5. Исторический протокол P01
 
 - Этап: P01 — Infrastructure & Project Scaffold.
 - Владелец 14.11.2026 явно принял P00 и разрешил только P01, локальные установки/контейнеры/тесты/миграции/docs. Расходы на платные услуги: не разрешены. Системные настройки, push, deploy, внешние письма/платежи и P02 запрещены.
@@ -152,7 +153,7 @@
 
 ## 10. Следующий запуск Codex
 
-P01 закрыт по поручению владельца. Ожидать отдельного разрешения на P02; P02 = NOT_STARTED.
+P02 = DONE. P03 = NOT_STARTED. После локального коммита P02 остановиться; не начинать P03 без отдельного разрешения.
 
 ## 11. Итог P01 и критерии
 
@@ -193,3 +194,144 @@ Scope: только аудит файлов, повторные проверки
 Playwright/E2E и persistence при закрытии повторно не запускались: NOT_RUN, их успешные результаты относятся к предыдущей реализации P01 и сохранены выше. Известный Ubuntu fallback Chromium на Arch и две ошибки Docker pull сохранены; remote CI остаётся NOT_RUN. Никаких новых заявлений об официальной поддержке Arch, production или remote CI нет.
 
 При ручном просмотре состава коммита случайных файлов не обнаружено. Исходные AGENTS.md, CODEX_PROMPT.md и HTML-референс не входят в изменения закрытия. Разрешён только локальный commit; push, PR и P02 не выполняются.
+
+## 13. P02 — Data Model & Database Design
+
+P01 явно принят владельцем в поручении P02. Прочитаны полностью AGENTS.md, CODEX_PROMPT.md, этот журнал и ARCHITECTURE.md. Исходное дерево чистое, ветка codex/p01-scaffold, HEAD d895c04. Работа остаётся в этой ветке; commit до приёмки P02 запрещён. V1 сохраняется; используются существующие зависимости и локальный PostgreSQL/Testcontainers. Фактические результаты ниже. P02 завершён в статусе AWAITING_REVIEW; P03 не начат.
+
+
+### Выполнено в P02
+
+- V1 сохранена побайтно. V2 создаёт 23 таблицы каталога, version-scoped PK/FK, UNIQUE/CHECK, индексы и точные numeric domains; V3 защищает неизменяемость, соответствие evidence полю и UNKNOWN.
+- Разделены provider/product/model family/exact model/agent/plan/offer/region/need/capability. ER-модель и назначение каждой таблицы — ARCHITECTURE.md.
+- `CatalogManifest`, typed enums, строгий JSON contract, Bean Validation и `CatalogImportValidator`; понятные ошибки полей/ссылок, без вывода исходного содержимого в parse errors.
+- Атомарный внутренний `CatalogImportService`: validate/hash/DRAFT/rows/PUBLISHED; повторный и конкурентный импорт без дублей, откат поздней DB-ошибки, история старых версий.
+- `Money`, `FxConversion`, `OfferCosts`, UTC Clock и календарный `RenewalSchedule`; никаких float/double для денег, никаких вымышленных реальных FX.
+- JSON Schema и синтетический manifest: 14 сценарных тарифов, 15 региональных предложений, более 12 различных границ (перечень в data/fixtures/README.md).
+- DEMO выключен по умолчанию, разрешается только явным dev/test flag/profile; нет auto-seed/HTTP import/URL fetch. Fixtures отсутствуют в runtime JAR. В dev БД после миграции 0 catalog versions.
+- В check.sh включена проверка schema; новые зависимости/версии не добавлялись. Maven POM изменён только для test resources; frontend source и lockfile не изменены.
+- README уточнён, чтобы больше не утверждать, что существует только P01. AGENTS.md, CODEX_PROMPT.md и HTML-референс не изменены.
+
+### Фактические проверки P02 — 14.11.2026
+
+Команды из корня; `maven` — helper после `source scripts/common.sh`. Docker/network sandbox expansion применялась только к разрешённым локальным сборкам, контейнерам и loopback-проверкам.
+
+| Команда / проверка | Результат / exit | Факты |
+|---|---|---|
+| `maven -o test -DskipTests` | PASS / 0 | Начальная compilation; tests SKIPPED явно, не доказательство тестов |
+| `bash scripts/check.sh` | PASS / 0 | clean compilation/package/verify: 60 unit + 41 PostgreSQL IT; npm ci 230 packages; format/lint/typecheck/build PASS; UI 7 passed; schema 1 valid + 12 invalid cases |
+| `maven -o verify` после финального review Money JSON и cleanup конкурентного теста | PASS / 0 | **61 unit + 41 PostgreSQL IT**, failures/errors/skipped = 0; packaged final JAR |
+| `bash scripts/check-catalog.sh` | PASS / 0 | 1 synthetic manifest accepted, 12 invalid shape cases rejected; Ajv 6.15.0 уже был в lockfile |
+| `bash scripts/dev-down.sh`, `bash scripts/dev-up.sh --no-build` | PASS / 0 | Существующая dev БД обновлена с V1 до V3; финальный JAR повторно запущен; Flyway validated 3 migrations, schema up to date |
+| `bash scripts/smoke.sh` | PASS / 0 | 3 read-only проверки: direct readiness, proxy readiness, frontend HTML; финальный повтор PASS |
+| `bash scripts/test-persistence.sh` | PASS / 0 | Контрольный UUID сохранился после stop/start; только собственная probe-таблица удалена; volume сохранён |
+| `bash scripts/test-e2e.sh` | PASS / 0 | 3 Chromium сценария 360/768/1440, health/retry/console/overflow; прежний Ubuntu fallback на Arch |
+| Read-only SQL dev DB | PASS / 0 | V1/V2/V3 success; 23 таблицы compass; 0 catalog versions, 0 probe tables |
+| Runtime JAR inspection | PASS / 0 | Нет catalog-demo.json и fixture resources |
+| `bash scripts/check-secrets.sh` | PASS / 0 | Нет совпадений ограниченного сканера или фактического локального DB-пароля |
+| `git diff --check`, whitespace review новых файлов | PASS / 0 | После удаления лишней пустой строки в V2; --no-index возвращает 1 для нового содержимого, без whitespace diagnostics |
+| Аудит состава изменений | PASS / 0 | 6 изменённых tracked + 23 новых файла; нет .env, caches, build artifacts, node_modules, symlinks |
+
+Последние результаты по слоям: **61 unit + 41 IT + 7 UI + 3 E2E = 112 passed, 0 failed/errors, 0 skipped**. Это сумма последних прогонов соответствующих слоёв, не утверждение об одном совмещённом прогоне. Отдельно 13 schema-проверок и 3 smoke-проверки. P01 regression сохранена: 5 IntegrationSettings unit, 6 ScaffoldIT, 7 UI, 3 E2E.
+
+Локальные игнорируемые артефакты: `.runtime/p02-check.log`, `.runtime/p02-final-backend.log`, `.runtime/p02-runtime.log`, `.runtime/p02-final-runtime.log`, backend/target/{surefire,failsafe}-reports, frontend/test-results. Отчёты не добавлены в Git.
+
+### Найденные и исправленные проблемы
+
+- Первые unit-прогоны: **FAIL / 1**, 58 tests, 1 failure: Jackson преобразовывал числовую цену в String несмотря на общий scalar guard. Добавлен явный запрет Integer/Float/Boolean → Textual; regression test сохранён. Повторный verify до этого исправления также завершился на той же unit-ошибке, IT в нём не запускались.
+- Дополнительный контрактный прогон: **FAIL / 1**, 59 tests, 1 failure: Jackson принимал числовой epoch как Instant. Добавлен строгий UTC string deserializer; regression test сохранён.
+- Self-review: денежная сериализация закреплена decimal string, без scientific notation; отдельный финальный unit test. Безуспешные тесты не удалялись и ожидания не ослаблялись.
+- SQL CHECK использует `IS TRUE` для условных nullable сумм; чрезмерная точность отклоняется, а не округляется до нуля. Измерения benchmark отделены от денег и могут быть знаковыми; кредиты имеют свой numeric domain.
+- Защита snapshot ставится только на перечисленные таблицы P02, не на временную persistence probe. Конкурентная публикация и повторный импорт проверены настоящими параллельными DB-транзакциями.
+- Убрана лишняя пустая строка в конце V2; финальный запуск подтвердил прежний Flyway checksum/validate на уже обновлённой dev БД. V1 не редактировалась.
+
+### Ограничения и ручной review
+
+- P03 **NOT_STARTED**: реальных reviewed данных, публичного catalog API, CLI review/activation нет. Recommendation Engine, ранжирование, учёт личного портфеля и профили пользователей не реализованы.
+- Cost helpers возвращают компоненты, не подтверждённую пригодность: evidence freshness/eligibility/annual opt-in/hard budget проверит P04. Доплаты P02 относятся к одному billing period; более сложный график add-ons — P04/P07.
+- JSON Schema и Java validation — два проверяемых представления контракта; при изменениях поддерживать оба. Ajv используется из существующей транзитивной зависимости ESLint и закреплён lockfile; npm upgrade должен сохранять эту проверку.
+- Remote CI **NOT_RUN**, не было push/PR; production deployment, внешние AI/payment/mail/source integrations **NOT_RUN**, вне этапа. Mockito self-attach warning сохранён.
+- Playwright: 3 tests PASS; Arch остаётся официально неподдерживаемой ОС с Ubuntu fallback. Docker Playwright image из P01 по-прежнему не проверен; прежние ошибки containerd не устранялись глобальными настройками.
+- Измерение процентов code/branch coverage **NOT_RUN**: инструмент покрытия в существующем стеке не настроен; проценты не заявляются. Поведенческие negative/integration tests и точные числа приведены выше.
+- Ручной self-review выполнен: scope/связи/PK-FK-CHECK, nullable суммы, источники и отсутствие рейтингов, межверсионные ссылки, publication locks, rollback, default OFF/demo isolation, состав Git и целостность V1. Независимая приёмка владельцем ещё не выполнена; screenshots не выдаются за доказательство денежных правил.
+
+### Критерии P02
+
+- [x] Money/currency/billing/evidence/eligibility/capability types.
+- [x] Flyway schema + immutable catalog versions; V1 сохранена.
+- [x] JSON Schema + synthetic fixtures, >=12 разных граничных случаев.
+- [x] CatalogImportValidator, broken references, UNKNOWN != zero, provenance fields.
+- [x] Recurring/upfront helpers, FX/rounding, UTC/asOf и календарное продление.
+- [x] Product-tier exclusivity, included agents, shared quota metadata.
+- [x] Fresh PostgreSQL migrations + validate/no-op migrate; V1 upgrade в dev.
+- [x] Repeat/concurrent import, snapshot immutability и failed-import rollback.
+- [x] Demo/prod guard и отсутствие auto-seed; frontend/P01 regression.
+- [x] Документация, whitespace/secret/file review.
+- [x] Владелец предварительно принял отчёт P02 и поручил окончательное закрытие после проверок (см. §14).
+
+Исторический статус до поручения о закрытии: **P02 = AWAITING_REVIEW**. **P03 = NOT_STARTED**. Ветка `codex/p01-scaffold`, HEAD `d895c04c76fe6d0da5dd96d1450dc66a35f343f3`. Изменения P02 не staged и не committed; push/PR не выполнялись. Приложение оставлено на 127.0.0.1:5173/18080, PostgreSQL на 127.0.0.1:15432. Остановка: `bash scripts/dev-down.sh`, без удаления volume.
+
+В исходном отчёте commit был запрещён до приёмки; новое разрешение и окончательное сообщение коммита записаны в §14.
+
+### Полный список файлов P02
+
+```text
+M  README.md
+M  backend/pom.xml
+M  backend/src/main/resources/application.yml
+M  docs/ARCHITECTURE.md
+M  docs/PROGRESS.md
+M  scripts/check.sh
+?? backend/src/main/java/com/aicompass/compass/catalog/CatalogImportService.java
+?? backend/src/main/java/com/aicompass/compass/catalog/CatalogImportValidator.java
+?? backend/src/main/java/com/aicompass/compass/catalog/CatalogJson.java
+?? backend/src/main/java/com/aicompass/compass/catalog/CatalogManifest.java
+?? backend/src/main/java/com/aicompass/compass/catalog/CatalogPolicy.java
+?? backend/src/main/java/com/aicompass/compass/catalog/CatalogTypes.java
+?? backend/src/main/java/com/aicompass/compass/catalog/OfferCosts.java
+?? backend/src/main/java/com/aicompass/compass/shared/money/FxConversion.java
+?? backend/src/main/java/com/aicompass/compass/shared/money/Money.java
+?? backend/src/main/java/com/aicompass/compass/shared/time/RenewalSchedule.java
+?? backend/src/main/java/com/aicompass/compass/shared/time/TimeConfiguration.java
+?? backend/src/main/resources/db/migration/V2__create_versioned_catalog.sql
+?? backend/src/main/resources/db/migration/V3__protect_catalog_snapshots.sql
+?? backend/src/test/java/com/aicompass/compass/catalog/CatalogIT.java
+?? backend/src/test/java/com/aicompass/compass/catalog/CatalogImportValidatorTest.java
+?? backend/src/test/java/com/aicompass/compass/catalog/CatalogTestData.java
+?? backend/src/test/java/com/aicompass/compass/shared/MoneyTest.java
+?? backend/src/test/java/com/aicompass/compass/shared/RenewalScheduleTest.java
+?? data/fixtures/README.md
+?? data/fixtures/catalog-demo.json
+?? data/schema/catalog.schema.json
+?? scripts/check-catalog.mjs
+?? scripts/check-catalog.sh
+```
+
+
+## 14. Закрытие P02 — 14.11.2026
+
+Владелец предварительно принял P02 по отчёту, поручил короткую архитектурную проверку, повторные проверки, статус DONE и один локальный commit. DONE — явное поручение владельца, как при закрытии P01, без разрешения на следующий этап.
+
+Результаты трёх групп архитектурных проверок:
+
+1. **Версии / конкурентный импорт.** P02 выбирает опубликованный снимок только по явно переданному UUID (`readPublishedArtifact`), а не «последний по дате». Единственной активной версии пока нет; atomic activation прямо относится к P03. Разные versionId импортируются независимо, оба могут стать PUBLISHED; значения и строки не смешиваются благодаря составным ключам и отдельным транзакциям. Новый тест запускает разные версии одновременно и проверяет обе целиком; прежние тесты same-id retry/immutability сохранены.
+2. **Неизвестность / доказательность.** CapabilityState и EvidenceStatus независимы. UNSUPPORTED с VERIFIED_SOURCE означает подтверждённое источником отсутствие; UNKNOWN/отсутствующая assertion — недостаток данных. CONDITIONAL/CONFLICTED/STALE не становятся VERIFIED автоматически; условия сохраняются. UNKNOWN evidence запрещён для SUPPORTED и UNSUPPORTED как приложением, так и БД. Добавлены отрицательные unit/DB проверки именно неподтверждённого отсутствия.
+3. **Связи / модульность.** Одна модель доступна через планы нескольких продуктов. Один тариф включает несколько моделей и агентов через M:N; новый PostgreSQL-тест подтверждает 2 модели + 2 агента в одном плане, без новых price offers. Все 23 таблицы — каталог, внешних FK в identity/billing/portfolio нет; catalog зависит только от shared.money, обратной зависимости нет. Таблицы не превращены в сервисы. Производительность будущих API-запросов не заявляется.
+
+Реальных ошибок в проверенных архитектурных пунктах не выявлено. Production-код, V1–V3 и зависимости при закрытии не менялись; структурный рефакторинг не выполнялся. Добавлены 2 integration methods, 1 отрицательный DB case и 1 unit case; обновлены архитектурные пояснения и статус документации. Выбор active version не реализовывался.
+
+| Команда | Статус / exit | Фактический результат |
+|---|---|---|
+| `bash scripts/check.sh` | PASS / 0 | clean compile/package/verify: 62 unit + 44 PostgreSQL IT; npm ci, format/lint/typecheck/build PASS; 7 UI tests PASS; schema cases PASS |
+| `bash scripts/check-catalog.sh` | PASS / 0 | 1 valid fixture + 12 invalid schema cases |
+| `bash scripts/smoke.sh` | PASS / 0 | 3 проверки: direct readiness, proxy readiness, HTML; production-код совпадает с ранее запущенным P02 |
+| `bash scripts/check-secrets.sh` | PASS / 0 | Шаблонов секретов/фактического DB-пароля в Git-кандидатах не найдено |
+| `git diff --check` | PASS / 0 | Нет whitespace errors; новые файлы проверены отдельно |
+
+Повторный прогон: **113 tests passed, 0 failures/errors, 0 skipped**; отдельно 13 schema cases и 3 smoke checks. Лог `.runtime/p02-close-check.log`, XML target/surefire-reports и target/failsafe-reports — локальные игнорируемые артефакты.
+
+E2E/Playwright и persistence в этом закрытии повторно **NOT_RUN**: их прежние результаты сохранены в §13. Ограничения Arch/Ubuntu fallback и Docker Playwright image остаются. Remote CI и coverage percentage **NOT_RUN**, внешние интеграции/production не запускались. Все пять запрошенных проверок доступны и выполнены.
+
+Состав коммита проверен: **29 файлов**, 6 изменённых tracked + 23 новых, полный список в §13. Нет .env, настоящих секретов, кешей, логов, target/dist, node_modules, symlinks и случайных файлов. AGENTS.md, CODEX_PROMPT.md, HTML reference и V1 совпадают с исходным HEAD. Индекс перед staging пустой; включаются только явно перечисленные пути P02.
+
+Ветка: `codex/p01-scaffold`. Один локальный commit: `feat: implement versioned ai catalog data model`; итоговый hash и git status выводятся после выполнения в отчёте. Push/PR не выполняются. **P02 = DONE; P03 = NOT_STARTED.** После коммита остановиться.

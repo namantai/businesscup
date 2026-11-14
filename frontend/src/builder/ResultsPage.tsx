@@ -4,6 +4,7 @@ import type { Bundle, Reason } from '../api/generated/types.gen';
 import { CatalogLayout, DateLabel, Status } from '../catalog/CatalogLayout';
 import { useBuilder, type CompletedPreview } from './BuilderSession';
 import styles from './Builder.module.css';
+import { SavePanel } from '../account/SavePanel';
 const strategy = {
   ECONOMY: 'Экономный набор',
   BALANCED: 'Сбалансированный набор',
@@ -376,6 +377,7 @@ export function ResultsPage() {
         </section>
       ) : (
         <>
+          <SavePanel key={completed.response.requestId} />
           <div className={styles.actions}>
             <Link className={styles.primary} to="/onboarding">
               Изменить параметры

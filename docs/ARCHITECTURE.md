@@ -1,12 +1,12 @@
-# AI Compass — архитектура P01–P04
+# AI Compass — архитектура P01–P06
 
 ## Граница
 
-Модульный монолит: React/TypeScript → same-origin Vite proxy → Java/Spring Boot → PostgreSQL. В P01 Docker Compose управляет локальной БД; frontend и backend работают на хосте с закреплёнными инструментами. В P02 добавлены схема и внутренний импорт каталога; в P03 — явная публикация, read-only catalog API, OpenAPI и frontend каталога. В P04 добавлен детерминированный recommendation preview. Production images/Caddy и аккаунты ещё не реализованы. Их границы остаются по CODEX_PROMPT.md.
+Модульный монолит: React/TypeScript → same-origin Vite proxy → Java/Spring Boot → PostgreSQL. В P01 Docker Compose управляет локальной БД; frontend и backend работают на хосте с закреплёнными инструментами. В P02 добавлены схема и внутренний импорт каталога; в P03 — явная публикация, read-only catalog API, OpenAPI и frontend каталога. В P04 добавлен детерминированный recommendation preview. P05 добавляет гостевую анкету/результаты, P06 — аккаунты и личное сохранение. Production images/Caddy ещё не реализованы; их границы остаются по CODEX_PROMPT.md.
 
 Неизменённая миграция V1 создаёт схему `compass`; V2 добавляет каталог, V3 — защиту снимков. Служебная таблица Flyway ведёт историю миграций. Hibernate использует `validate`; `open-in-view` отключён. Пустая БД не получает демонстрационные тарифы.
 
-Readiness включает DB health, но наружу отдаёт только `status`. `/actuator/env` закрыт. CSRF не отключён; HTTP-ошибки API используют Problem Details. Чтение scaffold/catalog API, OpenAPI и health разрешено анонимно; аккаунты пока отсутствуют.
+Readiness включает DB health, но наружу отдаёт только `status`. `/actuator/env` закрыт. CSRF не отключён; HTTP-ошибки API используют Problem Details. Чтение scaffold/catalog API, OpenAPI и health разрешено анонимно; личные маршруты P06 требуют сессию и ownership.
 
 ## Закреплённые версии
 
@@ -15,6 +15,7 @@ Readiness включает DB health, но наружу отдаёт тольк�
 | Temurin JDK | 21.0.13+9 |
 | Maven / Wrapper | 3.10.0 / 3.3.4 |
 | Spring Boot | 4.1.2 |
+| Spring Session JDBC/Core | 4.1.1, управляет Boot BOM через starter-session-jdbc 4.1.2 |
 | springdoc-openapi-starter-webmvc-api | 3.2.0 |
 | Flyway / PostgreSQL JDBC | 12.4.0 / 42.7.14, управляет Boot BOM |
 | JUnit Jupiter / Testcontainers | 6.0.3 / 2.0.5, управляет Boot BOM |
@@ -250,7 +251,7 @@ Need→capability берётся из snapshot. Пересекающаяся ф�
 
 `GET /api/v1/auth/csrf` выдаёт session-bound token, `POST /api/v1/recommendations/preview` принимает профиль, возвращает 200 для MATCH/CONDITIONAL_ONLY/NO_MATCH/NO_PUBLISHED_CATALOG. Ошибки 400/403/413/429 используют ApiProblem и requestId. Оба endpoint `Cache-Control: no-store`; body до 64 KiB. In-memory fixed-window limit: 30 запросов/минуту на remote IP, 120 глобально, максимум 2 параллельных; 429 содержит Retry-After=60. Forwarded headers не считаются доверенными. При same-origin proxy клиенты могут делить один IP: это консервативный локальный лимит, distributed production limiter — вне P04.
 
-CSRF и session cookie защита не отключены. Локальный HTTP/test снимает только Secure-флаг cookie; production default сохраняется. Ни профиль, ни результаты не сохраняются, нет profile/account/payment write endpoints. Публикация по-прежнему только CLI; source-fetch/LLM/payments OFF. Frontend получает generated DTO/SDK, но анкета/страница результатов P05 не создаётся.
+CSRF и session cookie защита не отключены. Локальный HTTP/test снимает только Secure-флаг cookie; production default сохраняется. В границах P04 preview не сохраняет профиль/результаты. Отдельные personal write endpoints добавлены в P06 ниже; платежей нет. Публикация по-прежнему только CLI; source-fetch/LLM/payments OFF. Frontend получает generated DTO/SDK, но анкета/страница результатов P05 не создаётся.
 
 ### Воспроизводимые проверки и benchmark
 
@@ -275,4 +276,43 @@ CSRF и session cookie защита не отключены. Локальный 
 - Costs передаются строками: cash now, upfront, recurring equivalent, futureMonthly, horizonTotal, baseline, potential net difference и Compass fee. Годовая сумма показывается только для horizon=12; для иного периода предлагается изменить горизонт, месячная сумма не умножается на 12 на frontend. FREE-badge требует подтверждённого полного бюджета и нулевых recurring/upfront/horizon; UNKNOWN цены, комиссии/налоги и FX не подменяются нулями. Базовая цена условного предложения помечена как неполная.
 - Coverage, unmet, factual/policy reasons, conditions, assessments, evidence/source/date/status и версии доступны в результате. Никаких универсальных процентов качества. Внешние source links ограничены http(s), React экранирует текст, `rel=noreferrer` используется для новой вкладки.
 
-Доступность: semantic headings/fieldset/labels, явный focus outline, skip link, focus на шаге/summary валидации/результате, role alert/status, disabled при отправке. Adaptive grid с `minmax(min(100%, …),1fr)` и переносы длинных идентификаторов; E2E проверяет отсутствие горизонтального overflow на 360/768/1440. UI tests работают на синтетических test-only fixtures, E2E — с реальной PostgreSQL/CLI публикацией/CSRF/API. Имитация HTTP 500/429 используется только для детерминированной проверки recovery UI, не заменяет проверки backend. Производственный a11y/security audit и аккаунты P06 не заявляются выполненными.
+Доступность: semantic headings/fieldset/labels, явный focus outline, skip link, focus на шаге/summary валидации/результате, role alert/status, disabled при отправке. Adaptive grid с `minmax(min(100%, …),1fr)` и переносы длинных идентификаторов; E2E проверяет отсутствие горизонтального overflow на 360/768/1440. UI tests работают на синтетических test-only fixtures, E2E — с реальной PostgreSQL/CLI публикацией/CSRF/API. Имитация HTTP 500/429 используется только для детерминированной проверки recovery UI, не заменяет проверки backend. Производственный a11y/security audit не заявляется выполненным; аккаунты описаны в P06 ниже.
+
+
+## P06: identity и сохранение личных данных
+
+`identity` отвечает за учётные записи, подтверждение адреса, reset, ограничения попыток и локальную почту; `portfolio` в P06 содержит только сохранённый профиль, исторические результаты и выбранные наборы. Это не реализация расходов/оптимизации P07. Модули работают в одном Spring Boot приложении и существующей PostgreSQL. Роли USER/ADMIN — ограниченное поле аккаунта, отдельная дублирующая таблица ролей не нужна.
+
+Единственная новая прямая зависимость — `spring-boot-starter-session-jdbc`, управляемая Boot BOM 4.1.2. Фактическое дерево Maven: starter/autoconfigure/JDBC 4.1.2, Spring Session JDBC/Core 4.1.1, Spring Security 7.1.2. Другие прямые зависимости и ручные версии транзитивных модулей не добавлены.
+
+### Схема и сессии
+
+V5 создаёт `spring_session` и `spring_session_attributes` по стандартной PostgreSQL schema установленного Spring Session 4.1.1 в schema compass. `spring.session.jdbc.initialize-schema=never`; Flyway — единственный владелец схемы. Сериализацию, session IDs, expiration и удаление session attributes выполняет библиотека. Собственного session store/шифрования IDs нет. В session лежат стандартный SecurityContext с UUID/ролью (без password hash), CSRF, credentialVersion и время авторизации.
+
+V6 создаёт `user_account`, `identity_token`, `auth_rate`, `saved_profile`, `recommendation_snapshot`, `saved_stack`. Итого 34 предметные/служебные таблицы compass, включая 26 прежних. Уникальные normalized email и owner профиля, FK/cascade, составной FK `(snapshot_id, owner_id)` исключают чужие saved stacks. V1–V4 неизменны. PostgreSQL JSONB хранит реальный типизированный RecommendationProfile и RecommendationResult; это не второй формат профиля или engine.
+
+Пароли обрабатываются стандартным Spring Security PBKDF2 PasswordEncoder (defaultsForSpringSecurity_v5_8), проверка — DaoAuthenticationProvider. Login вызывает стандартные ChangeSessionIdAuthenticationStrategy и CsrfAuthenticationStrategy; SecurityContext сохраняется стандартным repository. Cookie HttpOnly/Lax/Secure, в dev/test Secure=false только для loopback HTTP. Idle timeout 30 минут, абсолютный срок авторизации 12 часов. Reset удаляет все сессии аккаунта и повышает credential_version; фильтр сравнивает версию с БД на каждом авторизованном запросе, поэтому позднее сохранение старой сессии не возвращает доступ. Logout отзывает текущую сессию, обычные concurrent sessions разрешены.
+
+### Проверка адреса, reset, bootstrap и ограничения
+
+Verify/reset получают 32 случайных байта SecureRandom; в БД хранится только SHA-256 digest, purpose, owner, expiry. TTL verify=24h/reset=30min. Новый запрос заменяет предыдущий token данного purpose; consume блокирует аккаунт и атомарно удаляет валидный token. Истечение и повторное использование возвращают одинаковую ошибку. Reset не подтверждает автоматически ранее неподтверждённый email. Регистрация дубликата выполняет password hash и возвращает тот же 202; неверный пароль, неизвестный или неподтверждённый email — один 401. Нормализация: strip + lowercase Locale.ROOT, уникальность также в PostgreSQL.
+
+Лимиты хранятся в PostgreSQL (ключи — hash, не raw email/IP), транзакции REQUIRES_NEW сохраняют счётчики при неудачной операции. Окно 15 минут; login 10/email, register/resend/forgot 5/email, save 20/account, delete 5/account, общий auth/personal 300/IP. Старые rate buckets удаляются при следующих запросах спустя час. Forwarded IP не доверяется; за одним proxy клиенты делят лимит — production настройка ещё не заявляется. Body личных mutation до 64 KiB. Прежний preview limiter не ослаблен.
+
+Dev/test sink — приватные файлы 0600 в каталоге 0700, нет SMTP, публичного чтения и вывода токенов в логи. В prod/staging доставка закрыта с 503. Fragment ссылки удаляется из browser history при открытии формы, token field маскирован. Файлы sink не являются обычными логами: содержат одноразовые секреты, остаются локально до удаления аккаунта/ручной очистки оператором. В БД истёкшие token rows недействительны, физически заменяются новым запросом или удаляются с аккаунтом. Production retention и доставку следует определить на соответствующем этапе.
+
+AdminBootstrap — отдельный локальный non-web режим: транзакционная блокировка user_account, только существующий verified UUID, только первый ADMIN, повышение credential_version и отзыв сессий. Скрипт требует терминал и GRANT. Публичных admin операций нет; роль клиента отклоняется strict DTO parser.
+
+### Ownership, snapshots и frontend
+
+SecurityConfig явно разрешает public catalog/health/OpenAPI/preview и auth flow; me/profiles/recommendations/saved-stacks требуют сессию; остальные операции запрещены. Гость с валидным CSRF получает 401 на личных маршрутах; missing/invalid CSRF — 403; import/publish — 403 для всех. Владелец берётся только из серверного Principal. Все personal SQL ограничены owner; чужой UUID даёт 404. Optional `X-Compass-Account` — дополнительная UI-предпосылка: несовпадение текущей сессии с ожидаемым аккаунтом даёт 409; этот заголовок никогда не назначает владельца/права.
+
+Free один профиль обеспечивается блокировкой аккаунта и UNIQUE(owner_id), update использует optimistic revision. Неизвестные поля/role/Premium/ownerId и JSON coercion отвергаются, вложенный профиль проходит существующий P04 validator. Сохранение результата принимает параметры, catalog/engine/policy version и asOf, заново вычисляет результат на сервере по опубликованному историческому каталогу. Клиентские цены/ранжирование не принимаются. Версии engine/policy, которые текущий backend воспроизвести не может, дают 409 с предложением пересчитать. Snapshot содержит весь результат с UNKNOWN/причинами/FX и далее неизменен: нет update endpoint. Повторный save создаёт отдельный snapshot. Saved stack должен принадлежать набору из своего snapshot; duplicate save идемпотентен. Предел 100 результатов и rate limit ограничивают сохранение/расчёт.
+
+AuthSession хранит только публичные данные аккаунта в React memory. Вход гостя сохраняет его текущий черновик, но ничего не записывает автоматически. SavePanel требует явный checkbox, сообщает о замене единственного профиля и отправляет typed SDK запросы. Смена известного аккаунта, logout или подтверждённая потеря сессии очищают builder и personal query cache; focus/navigation проверяют session, account header защищает запросы при смене сессии в соседней вкладке. Перезагрузка гостевой вкладки теряет черновик по прежнему privacy-правилу P05. Dashboard загружает новый расчёт из профиля с текущим временем либо открывает immutable результат с его pinned catalog. DTO берутся из generated OpenAPI, auth tokens не записываются в local/sessionStorage.
+
+Export выбирает только публичные account DTO и принадлежащие пользователю profiles/results/stacks. Delete требует password + confirm, удаляет аккаунт с cascade, session rows, известные account/email rate buckets и его локальные письма. IP rate bucket не принадлежит одному аккаунту и истекает отдельно. Общий каталог не удаляется. Эти механизмы не являются заявлением юридического compliance.
+
+### Проверки P06
+
+IdentityIT — реальная PostgreSQL/Testcontainers и HTTP, включая закрытие/повторный запуск Spring приложения, concurrent profile creation, A/B ownership, reset/reuse/expiry, fixation/CSRF, безопасный bootstrap, export/delete и поиск секретов в captured logs. Отдельные UI tests проверяют согласие, guest transfer, смену аккаунта и ошибки. Изолированные E2E выполняют регистрацию/verify через локальный sink, login/logout/reset, сохранение/rerun, IDOR, session expiry через собственную тестовую БД, export/delete и 360/768/1440. Auth traces/video выключены во избежание записи cookie. Числа и фактические результаты — в PROGRESS; удалённый CI, реальная почта, production deployment/pentest не выполнены.

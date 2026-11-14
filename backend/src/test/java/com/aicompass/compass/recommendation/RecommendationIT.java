@@ -94,9 +94,10 @@ class RecommendationIT {
             Files.writeString(Path.of("target/p04-real-catalog-response.json"),r.body());
         }
     }
-    @Test @Order(7) void publicImportAndSavedRecommendationRoutesRemainForbidden() throws Exception {
+    @Test @Order(7) void publicImportIsForbiddenAndSavedRoutesRequireAuthentication() throws Exception {
         var c=client();var token=csrf(c);
-        for(String path:List.of("/catalog/import","/catalog/publish","/recommendations","/profiles"))assertEquals(403,request(c,"POST",path,"{}",token).statusCode());
+        for(String path:List.of("/catalog/import","/catalog/publish"))assertEquals(403,request(c,"POST",path,"{}",token).statusCode());
+        for(String path:List.of("/recommendations","/profiles"))assertEquals(401,request(c,"POST",path,"{}",token).statusCode());
     }
     @Test @Order(8) void publicPreviewIsRateLimited() throws Exception {
         boolean limited=false;

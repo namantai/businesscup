@@ -89,7 +89,23 @@ function useSessionState() {
       }
     }
   }
+  function load(profile: RecommendationProfile) {
+    cancel();
+    setDraft({ ...profile, asOf: null, missingNeed: false });
+    setCompleted(null);
+    setError(null);
+    setStep(0);
+  }
+  function restore(value: CompletedPreview) {
+    cancel();
+    setDraft({ ...value.profile, asOf: null, missingNeed: false });
+    setCompleted(value);
+    setError(null);
+    setStep(0);
+  }
   return {
+    load,
+    restore,
     draft,
     update,
     reset,

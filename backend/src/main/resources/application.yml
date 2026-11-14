@@ -12,6 +12,10 @@ spring:
   flyway:
     enabled: true
     clean-disabled: true
+  session:
+    jdbc:
+      initialize-schema: never
+      table-name: compass.SPRING_SESSION
   mvc:
     problemdetails:
       enabled: true
@@ -54,5 +58,5 @@ springdoc:
   api-docs:
     path: /api/v1/openapi
     version: OPENAPI_3_0
-  paths-to-match: /api/v1/catalog/**,/api/v1/recommendations/preview,/api/v1/auth/csrf
+  paths-to-match: /api/v1/catalog/**,/api/v1/recommendations/preview,/api/v1/auth/**,/api/v1/me/**,/api/v1/profiles/**,/api/v1/recommendations/**,/api/v1/saved-stacks/**
   writer-with-order-by-keys: true

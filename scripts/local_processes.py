@@ -85,7 +85,7 @@ def main():
         for name, command, cwd in processes:
             with (RUNTIME / f'{name}.log').open('wb') as log:
                 child = subprocess.Popen(command, cwd=cwd, stdout=log, stderr=log, stdin=subprocess.DEVNULL,
-                                         start_new_session=True, env={**os.environ, 'COOKIE_SECURE': 'false'})
+                                         start_new_session=True, env={**os.environ, 'COOKIE_SECURE': 'false', 'SPRING_PROFILES_ACTIVE': 'dev'})
             records.append({'name': name, 'pid': child.pid, 'start': identity(child.pid)})
             STATE.write_text(json.dumps(records))
         wait_ready(f"http://127.0.0.1:{os.environ['BACKEND_PORT']}/actuator/health/readiness")

@@ -1,9 +1,9 @@
 # AI Compass — фактический прогресс
 
 **План:** `../CODEX_PROMPT.md`, версия 1.0, 14.11.2026.
-**Текущее состояние:** P01–P05 = DONE. Владелец предварительно принял P05 и явно разрешил окончательное закрытие; повторные обязательные проверки выполнены 15.11.2026.
-**Текущий этап:** P05 — DONE.
-**Следующее действие:** остановиться после одного разрешённого локального commit P05. P06 = NOT_STARTED; начало P06 требует отдельного разрешения. Push/PR/deploy запрещены.
+**Текущее состояние:** P01–P06 = DONE. Владелец поручил окончательное закрытие P06 после повторного security review и обязательных проверок; проверки успешно выполнены.
+**Текущий этап:** P06 — DONE по явному поручению владельца. P07 — NOT_STARTED.
+**Следующее действие:** остановиться после одного разрешённого локального коммита P06. Для P07 требуется отдельное разрешение; push/PR/deploy запрещены.
 **Источник состояния:** этот файл + фактический Git/code/test evidence, не обещания агента.
 
 ## 1. Маршрут
@@ -16,7 +16,7 @@
 | P03 | Проверенный каталог и API | DONE | Владелец поручил финальную проверку 5 утверждений, все проверки и один commit; выполнено 14.11.2026, итог в разделе закрытия P03 |
 | P04 | Recommendation Engine | DONE | Владелец явно поручил закрытие; 10 инвариантов проверены, 185 backend +18 UI +14 E2E, p95=61.19 ms; исправлена граница horizon, engine1.0.1 |
 | P05 | Гостевой frontend / R1 | DONE | По явному поручению владельца от 15.11.2026: 10 групп инвариантов проверены; повторно 185 backend +42 UI +27 E2E PASS, все обязательные команды exit 0; итог в разделе закрытия P05 |
-| P06 | Аккаунты и сохранение | NOT_STARTED | — |
+| P06 | Аккаунты и сохранение | DONE | Окончательное закрытие по поручению владельца 15.11.2026: исправлены 2 дефекта rate limiting, 118 unit +93 integration +53 UI +34 E2E PASS; все обязательные команды exit 0; P07 не разрешён |
 | P07 | Портфель и расходы | NOT_STARTED | — |
 | P08 | Admin, мониторинг, уведомления | NOT_STARTED | — |
 | P09 | Optional LLM explanations | NOT_STARTED | Можно DEFERRED только по решению владельца |
@@ -46,10 +46,12 @@
 | Действие | Текущее разрешение |
 |---|---|
 | P00 read-only аудит в рабочем репозитории | Выполнен и принят 14.11.2026 |
-| Локальные изменения кода | Владелец 15.11.2026 разрешил окончательное закрытие P05: проверка инвариантов, исправления реальных ошибок с регрессиями, обязательные проверки и документация; P06 запрещён |
+| Локальные изменения кода | Владелец 15.11.2026 принял P05 и разрешил только P06: аккаунты, server-side auth, PostgreSQL sessions, сохранение профиля/результата, ownership, export/delete, тесты и документация. При необходимости новой прямой зависимости — остановиться до отдельного согласования; P07 запрещён |
 | Первоначальный локальный commit и ветка | Владелец 14.11.2026: четыре исходных файла без изменений, затем codex/p01-scaffold; выполнено |
 | Установка project dependencies / Docker images / browsers | P01 — ранее разрешённая локальная инфраструктура. P03 — владелец отдельно разрешил springdoc 3.2.0, react-router 8.5.1, @tanstack/react-query 5.107.1, @hey-api/openapi-ts 0.99.0 и их транзитивные зависимости; без других прямых зависимостей, sudo/global config/платных услуг |
 | Системные установки / sudo / global config | Нет |
+| Новая прямая зависимость P06 | Владелец 15.11.2026 отдельно разрешил `org.springframework.boot:spring-boot-starter-session-jdbc:4.1.2` и необходимые транзитивные зависимости, включая Spring Session JDBC/Core 4.1.1. Только backend/pom.xml, версии через Boot BOM, без sudo/global installs и других прямых зависимостей; установка и сборка выполнены |
+| Локальный commit P06 | Владелец 15.11.2026 предварительно принял P06 и разрешил окончательное закрытие: повторный security review/checks, DONE только после PASS, один локальный commit `feat: implement authentication and saved ai profiles`; без push/PR/P07 |
 | Платные LLM/API | Нет |
 | Реальные письма/уведомления внешним адресатам | Нет |
 | Production платежи / тестовые списания | Нет |
@@ -1082,3 +1084,194 @@ Git: `codex/p01-scaffold`; HEAD остался `67516620e1dcf20ca46feea69f02dd5b
 - Реальный каталог ограничен тремя продуктами и двумя потребностями; недостаток данных явно показан. Synthetic E2E публикации происходят только в отдельной БД. Платные API/реальные платежи/deployment — NOT_APPLICABLE, не запускались.
 - Просмотрены все 20 кандидатов P05: 3 документа, frontend UI/adapter/styles и UI/E2E tests. Чужих изменений нет. `.env`, `.runtime`, `.cache`, `.tools`, node_modules, target/dist, логи и screenshots исключены; tracked/staged артефактов нет. Начальный index пуст. Перед commit повторяются secret scan и staged diff check.
 - Разрешён ровно один локальный commit с указанным сообщением; push/PR не выполняются. Исторические записи AWAITING_REVIEW выше описывают предыдущую передачу, итоговый статус этого закрытия — **P05 = DONE; P06 = NOT_STARTED**. Следующий этап только по отдельному разрешению владельца.
+
+## P06 — начальная проверка и блокер зависимости (15.11.2026)
+
+Владелец явно сообщил «P05 ПРИНЯТ. Разрешаю начать P06 — User Accounts, Authentication & Saved Profiles». P06 начат с проверки требований и окружения; реализация остановлена согласно прямому пункту 17 поручения: «Если необходима новая прямая зависимость, остановись, сообщи название, версию, назначение и причину установки».
+
+Прочитаны AGENTS.md, актуальное состояние PROGRESS.md, README.md, ARCHITECTURE.md и применимые разделы CODEX_PROMPT.md: архитектура, пользовательские данные, API, Free-профиль, безопасность/приватность и P06. Исходный Git чистый, ветка `codex/p01-scaffold`, HEAD `8ec96c51f3b4316f7b4e06d72dd2ec0e57f1cce1` (закрытие P05).
+
+### Факты и конкретное предложение для согласования
+
+- `backend/pom.xml`: Boot parent 4.1.2, Java 21; Spring Security/JDBC через существующие starters уже доступны. Spring Session JDBC/Core и session starter отсутствуют; в локальном Maven cache есть только их BOM, не реализация. Текущая конфигурация использует servlet session и не содержит PostgreSQL session repository.
+- Требование P06: серверные сессии в PostgreSQL, переживающие restart, без самодельного session manager. Официальный [Spring Boot Session JDBC starter](https://docs.spring.io/spring-boot/reference/web/spring-session.html) предоставляет интеграцию стандартного Spring Session с servlet-приложением.
+- Предложена **одна новая прямая зависимость**: `org.springframework.boot:spring-boot-starter-session-jdbc:4.1.2`. Она использует `spring-boot-session-jdbc:4.1.2` и транзитивные `org.springframework.session:spring-session-jdbc:4.1.1` / `spring-session-core:4.1.1`. Необходимые транзитивные зависимости входят в запрос разрешения. Новые frontend/UI зависимости не предлагаются.
+- Проверены существующий локальный Boot BOM 4.1.2 (`spring-session.version=4.1.1`, `spring-security.version=7.1.2`, `spring-framework.version=7.0.10`) и Spring Session BOM 4.1.1. Версии согласованы с текущим управлением зависимостями; менять Boot, Java, React или TypeScript не требуется. Успешная сборка с новым starter **ещё не проверена**, поскольку его установка не разрешена.
+- Read-only чтение официальных Maven POM дало HTTP 200 для [starter 4.1.2](https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-starter-session-jdbc/4.1.2/spring-boot-starter-session-jdbc-4.1.2.pom), [Boot session JDBC 4.1.2](https://repo.maven.apache.org/maven2/org/springframework/boot/spring-boot-session-jdbc/4.1.2/spring-boot-session-jdbc-4.1.2.pom) и [Session JDBC 4.1.1](https://repo.maven.apache.org/maven2/org/springframework/session/spring-session-jdbc/4.1.1/spring-session-jdbc-4.1.1.pom). Web-инструмент не смог открыть Maven XML, поэтому metadata прочитаны urllib непосредственно из Maven Central в память. JAR/зависимости не устанавливались, manifests не менялись.
+- V1–V4 содержат схему каталога; `user_need` — taxonomy, не личный профиль. Таблиц аккаунтов/личных результатов/сессий пока нет. Будущие миграции только после V4; существующие миграции сохраняются.
+- При реализации необходимо заменить нынешнее общее разрешение `GET /api/v1/**` в SecurityConfig на явные публичные маршруты и защищённые личные маршруты. Это необходимая часть P06, не ослабление текущей CSRF-защиты.
+
+### Граница продолжения и проверок
+
+После отдельного разрешения: подключить закреплённый starter; реализовать identity/ownership, Flyway-схему сессий и личных данных, локальный email sink, auth/verification/reset, один Free-профиль и исторические snapshots, UI и generated API. Guest → account сохраняется только после явного подтверждения, без browser token storage. До приёмки нужны реальные PostgreSQL A/B ownership/security tests, restart persistence, UI/E2E и все обязательные scripts. Это план продолжения, а не заявление о реализованной функциональности.
+
+**Историческая матрица до разрешения зависимости:** проверка исходного состояния и dependency metadata — PASS; auth/роли/verification/reset, PostgreSQL sessions/restart, profiles/snapshots/stacks, guest transfer, UI/OpenAPI, ownership/лимиты, export/delete, security/UI/E2E — NOT_IMPLEMENTED / NOT_RUN. `check.sh`, `check-catalog.sh`, `smoke.sh`, `test-e2e.sh` в этой начальной проверке не запускались: код не менялся, этап остановлен перед установкой. Результаты P05 выше не выдаются за тесты P06. Для единственного изменения документации выполнены `bash scripts/check-secrets.sh` и `git diff --check` (exit 0).
+
+Изменён только `docs/PROGRESS.md`: актуальный статус, разрешения и этот блокер. Commit/push/PR, миграции, установка зависимостей, реальная почта, платные API и платежи не выполнялись. **P06 = BLOCKED; P07 = NOT_STARTED.** Следующее действие — отдельное разрешение владельца на указанную зависимость и её необходимые транзитивные зависимости.
+
+
+## P06 — продолжение после разрешения зависимости, 15.11.2026
+
+Предыдущая запись BLOCKED описывает исходную остановку до разрешения; этот блок содержит последующую реализацию. P01–P05 приняты владельцем. Ветка `codex/p01-scaffold`, исходный HEAD `8ec96c51f3b4316f7b4e06d72dd2ec0e57f1cce1`. Commit/staging/push/PR не выполнялись; P07 не начат.
+
+### Зависимость и изменения
+
+- В `backend/pom.xml` добавлен только `spring-boot-starter-session-jdbc`, без собственной версии: Boot parent/BOM 4.1.2 разрешает starter 4.1.2 и Session JDBC/Core 4.1.1. `maven dependency:tree` и последующая загрузка/compile exit 0, дерево `.runtime/p06-dependencies.log`, установка `.runtime/p06-install.log`. Транзитивные версии вручную не закреплялись, frontend manifests/lockfile и глобальное окружение не менялись.
+- V5 — стандартная PostgreSQL schema Spring Session 4.1.1 (две таблицы); V6 — user_account, identity_token, auth_rate, saved_profile, recommendation_snapshot, saved_stack. V1–V4 неизменны, `initialize-schema=never`, та же PostgreSQL. Роли USER/ADMIN в constrained column. Новые Redis/БД/сервисы не создавались.
+- `identity`: Spring Security PasswordEncoder/AuthenticationManager, normalize/unique email, generic responses, verify/resend/reset, одноразовые hashed tokens с TTL, PostgreSQL rate limits, локальный приватный файловый sink, безопасный первый ADMIN через локальный CLI. Стандартный Spring Session JDBC обеспечивает restart/expiration/logout/fixation, CSRF обновляется при login/logout. Reset/delete отзывают все сессии; credential version закрывает гонку позднего сохранения сессии.
+- `portfolio`: Free один профиль (UNIQUE + account lock + optimistic revision), immutable server-derived snapshots и выбранные наборы; все SQL ограничены owner из Principal. Результат сохраняется с версиями, временем, параметрами, UNKNOWN/FX/предупреждениями; новые публикации старые snapshots не меняют. Export без секретов, delete с паролем/подтверждением и cascade личных данных/сессий/локальных писем. P07 оптимизация расходов не реализована.
+- Frontend: register/login/verify/forgot/reset/account/dashboard, guest→account без потери памяти SPA и без автозаписи, отдельное согласие, load/rerun/history, logout/export/delete, session expiration/account switch и errors. Только generated DTO/SDK; OpenAPI получен от реального backend и повторная генерация проверяется. Нет JWT/browser token storage, новых UI dependencies, share links или Premium из клиента.
+- Скрипты: dev-профиль для локального sink, отдельный sink E2E, `dev-mail.py` (без печати кодов), `admin-bootstrap.sh` (интерактивный GRANT, без запуска на рабочей БД). README/ARCHITECTURE документируют flow, schema, API, ограничения и использование.
+
+### Фактические финальные проверки P06
+
+- `bash scripts/check.sh`: PASS, exit 0. Backend 116 unit +88 integration =204, failures/errors/skipped 0; frontend 53 UI tests, 0 failed/skipped; install, generated OpenAPI/SDK comparison, format/lint/typecheck/build и JSON Schema PASS. Лог `.runtime/p06-check.log`, XML в backend/target.
+- `bash scripts/check-catalog.sh`: PASS, exit 0 — synthetic manifest, 12 negative cases, оба reviewed manifests и recommendation fixture.
+- `bash scripts/dev-down.sh` + `bash scripts/dev-up.sh --no-build`: PASS, exit 0, только собственные процессы/Compose, volume сохранён; локальная PostgreSQL healthy, V5/V6 применены.
+- `bash scripts/smoke.sh`: PASS, exit 0 — 3/3 (backend readiness, proxy readiness, frontend HTML); `.runtime/p06-smoke.log`.
+- `maven test-compile failsafe:integration-test failsafe:verify -Dit.test=IdentityIT`: дополнительный PASS, exit 0, 18/18 PostgreSQL security tests после усиления replay старой cookie и старого CSRF после logout. Не заменяет полный check.sh; production JAR при этом не пересобирался. Лог `.runtime/p06-security.log`.
+- `python3 -m py_compile` для локальных Python scripts и `bash -n scripts/admin-bootstrap.sh`: PASS. Две изолированные проверки dev-mail viewer с mocked desktop handler: успешный/неуспешный запуск, отсутствие token в output/launcher argv — PASS. Реальное открытие системного браузера этим скриптом не заявляется.
+- `bash scripts/test-e2e.sh`: PASS, exit 0, **34/34**, 0 failed, 0 skipped, 7.1 минуты. Из них 7 новых комплексных P06 scenarios и 27 прежних. Реальные изолированные PostgreSQL, backend, Vite/Chromium, local sink; test resources остановлены в finally. Лог `.runtime/p06-e2e.log`, screenshots `.runtime/e2e-060325ade6a4/`.
+- `bash scripts/check-secrets.sh` и `git diff --check`: PASS, exit 0, повторены после документации. Git candidate audit: 0 секретных/случайных/почтовых/build/cache файлов, 0 staged; .env/node_modules/target/dist/.runtime/.cache исключены. Это ограниченный scanner + ручной review, не полный независимый security audit.
+
+### Исправления, найденные проверками
+
+Первый тестовый запуск выявил ошибочную инициализацию временного mail directory в fixture: исправлен lifecycle @TempDir; созданные этим тестом `.mail` удалены из untracked backend/null, без удаления чужих файлов. Snapshot POST/GET расходились по наносекундам savedAt: время нормализовано до точности PostgreSQL (микросекунды), историческое равенство проверяется регрессионным тестом. Сценарии IdentityIT изолированы реальным lifecycle приложения, чтобы их отдельные запросы не делили preview rate window; сами production лимиты и отдельные rate-limit проверки сохранены. Старый тест запрета всех personal routes обновлён на новый контракт: private 401, catalog write 403. Первый E2E остановился до тестов из-за test.use(trace/video) внутри describe; настройка перенесена на уровень файла. Следующий прогон: 28 PASS, 1 FAIL, 5 NOT_RUN из-за неоднозначного тестового status-selector (статус подбора и сохранения на одной странице); селектор уточнён, независимые P06 тесты больше не объединены serial-зависимостью. OpenAPI дополнен cookie security и typed ApiProblem responses. Финальный просмотр выявил ещё одну реальную ошибку контракта: nullable Account внутри SessionStatus терял null при $ref-генерации Springdoc. Добавлена явная nullable schema-обёртка и регрессионная проверка guest response/schema; generated SDK пересоздан с `account: Account | null`. Диагностика security assertions не выводит значения password/session/CSRF даже при падении. Ни одна из этих неудач не выдаётся за PASS; итоговые результаты относятся к повторным запускам.
+
+### Ограничения и NOT_RUN
+
+- Реальная отправка email, платные API/платежи, production deployment, push/PR/commit — NOT_RUN, запрещены. Интеграции OFF, email только local sink.
+- ADMIN CLI на рабочей БД — NOT_RUN, чтобы не менять рабочие роли; механизм grant/one-time/revocation проверен на Testcontainers.
+- Удалённый CI — NOT_RUN; локальный Chromium Playwright на Arch использует прежний Ubuntu fallback (ограничение P01 сохранено). E2E не зависит от реального рынка/платных API.
+- Production HTTPS/proxy, независимый pentest, правовая/privacy-проверка и доставка/retention production-писем — не заявляются выполненными. Локальные письма содержат одноразовые секреты и хранятся приватно до удаления аккаунта/ручной очистки. Истёкшие token rows не действуют, удаляются при замене/удалении аккаунта.
+- Гостевой черновик сохраняется при SPA переходе/входе, но не после reload/закрытия вкладки (privacy правило P05). Для verify через новое окно следует вернуться в исходную вкладку. Защитные ограничения: 100 snapshots/account, один Free-профиль, воспроизведение старого engine/policy возможно только пока версия поддерживается; иначе явный 409.
+
+
+### Файлы P06 перед приёмкой
+
+Ручной review: manifests, default-deny/CSRF/ownership, schema/FK/cascade, UNKNOWN и server-derived pricing, guest consent, локальные mail permissions, generated DTO и тестовые изоляции. Изменения AGENTS/CODEX_PROMPT, V1–V4, frontend manifests/lockfile отсутствуют. В index ничего не добавлено. Полный рабочий список (M — изменён, ?? — новый):
+
+```text
+ M README.md
+ M backend/pom.xml
+ M backend/src/main/java/com/aicompass/compass/CompassApplication.java
+ M backend/src/main/java/com/aicompass/compass/catalog/CatalogReadService.java
+ M backend/src/main/java/com/aicompass/compass/config/OpenApiConfiguration.java
+ M backend/src/main/java/com/aicompass/compass/config/SecurityConfig.java
+ M backend/src/main/java/com/aicompass/compass/shared/web/ProblemDetailsAdvice.java
+ M backend/src/main/resources/application.yml
+ M backend/src/test/java/com/aicompass/compass/ScaffoldIT.java
+ M backend/src/test/java/com/aicompass/compass/catalog/CatalogIT.java
+ M backend/src/test/java/com/aicompass/compass/recommendation/RecommendationIT.java
+ M docs/ARCHITECTURE.md
+ M docs/PROGRESS.md
+ M docs/openapi.json
+ M frontend/src/api/generated/index.ts
+ M frontend/src/api/generated/sdk.gen.ts
+ M frontend/src/api/generated/types.gen.ts
+ M frontend/src/app/App.tsx
+ M frontend/src/app/Navigation.tsx
+ M frontend/src/builder/Builder.module.css
+ M frontend/src/builder/BuilderSession.tsx
+ M frontend/src/builder/ResultsPage.tsx
+ M scripts/e2e.py
+ M scripts/local_processes.py
+?? backend/src/main/java/com/aicompass/compass/identity/AdminBootstrap.java
+?? backend/src/main/java/com/aicompass/compass/identity/AuthController.java
+?? backend/src/main/java/com/aicompass/compass/identity/AuthDtos.java
+?? backend/src/main/java/com/aicompass/compass/identity/AuthRateLimiter.java
+?? backend/src/main/java/com/aicompass/compass/identity/IdentityGuard.java
+?? backend/src/main/java/com/aicompass/compass/identity/IdentityJson.java
+?? backend/src/main/java/com/aicompass/compass/identity/IdentityService.java
+?? backend/src/main/java/com/aicompass/compass/identity/LocalMailSink.java
+?? backend/src/main/java/com/aicompass/compass/portfolio/PortfolioController.java
+?? backend/src/main/java/com/aicompass/compass/portfolio/PortfolioDtos.java
+?? backend/src/main/java/com/aicompass/compass/portfolio/PortfolioService.java
+?? backend/src/main/resources/db/migration/V5__persistent_sessions.sql
+?? backend/src/main/resources/db/migration/V6__accounts_and_saved_profiles.sql
+?? backend/src/test/java/com/aicompass/compass/identity/IdentityIT.java
+?? frontend/src/account/Account.test.tsx
+?? frontend/src/account/AccountPage.tsx
+?? frontend/src/account/AuthPage.tsx
+?? frontend/src/account/AuthSession.tsx
+?? frontend/src/account/Dashboard.tsx
+?? frontend/src/account/PersonalGate.tsx
+?? frontend/src/account/SavePanel.tsx
+?? frontend/src/api/account.ts
+?? frontend/tests/e2e/zz-accounts.spec.ts
+?? scripts/admin-bootstrap.sh
+?? scripts/dev-mail.py
+```
+
+
+### Матрица приёмки P06
+
+| Критерий | Результат и доказательство |
+|---|---|
+| Разрешённая зависимость/BOM/actual versions | PASS: только starter 4.1.2 в backend/pom.xml; JDBC/Core 4.1.1 через Boot BOM, dependency tree/compile/verify |
+| PostgreSQL sessions/Flyway | PASS: V5/V6 на реальной PostgreSQL, initialize-schema=never, V1–V4 неизменны, Redis/новой постоянной БД нет |
+| Сессии после restart и сохранность профиля | PASS: IdentityIT закрывает Spring-приложение и запускает заново с той же PostgreSQL; прежняя cookie авторизована и профиль читается |
+| Logout/expiry/fixation/concurrent sessions/CSRF | PASS: HTTP + PostgreSQL IT; старые cookie/CSRF отвергаются, новые действуют; E2E logout/DB expiry; Secure/HttpOnly/Lax default проверен отдельно |
+| Register/verify/resend/reset/expiry/reuse | PASS: 18 IdentityIT сценариев, UI/E2E; hashed token rows, local sink, reset отзывает обе concurrent sessions |
+| Enumeration/rate limiting/USER–ADMIN/bootstrap | PASS: одинаковые ошибки/202, persisted counters, strict DTO, USER denied admin HTTP; verified/one-time local bootstrap в Testcontainers |
+| Ownership/IDOR/mass assignment/Free one profile | PASS: реальные users A/B HTTP + E2E; foreign GET/PATCH/DELETE 404; race create 201/409; owner/role/Premium не принимаются от клиента |
+| Сохранение профиля/результата/набора | PASS: реальный RecommendationProfile, server-derived immutable snapshot с versions/asOf/FX/UNKNOWN; catalog update не меняет историю; выбранный bundle проверен сервером |
+| Guest → account и повторный подбор | PASS: 0 writes до согласия, SPA draft сохраняется через register/verify/login, явное сохранение; load/revisit/rerun; UI очищает previous account state |
+| Frontend/API/OpenAPI | PASS: 7 account/auth страниц, loading/empty/errors, typed generated client, nullable Account исправлен и проверен, private cookie security + typed Problem Details |
+| Export/delete/privacy | PASS: только свои данные, без hashes/tokens/sessions; password+confirm; cascade, session revoke, mail cleanup; общий каталог и guest preview сохраняются |
+| Responsive/доступность | PASS в пределах локальных проверок: labels/focus, 360/768/1440 без overflow, 53 UI tests + E2E; независимый a11y audit не заявляется |
+| Обязательные scripts и Git hygiene | PASS: check/catalog/smoke/E2E/secrets/diff; 204 backend +53 UI +34 E2E =291 тест, 0 failed/skipped в финальных suite |
+| Внешние действия и граница этапа | PASS по scope review: LLM/payments/source-fetch OFF, email только sink; no commit/push/PR/deploy; P07 NOT_STARTED |
+
+Ручной visual review: просмотрены реальные E2E `p06-account-360.png`, `p06-account-1440.png`, `p06-dashboard-360.png`: читаемые формы и тексты, перенос длинного синтетического email, disabled delete до подтверждения, корректный empty state, без обрезки/горизонтального overflow. Дополнительно автоматизированы ширины 768 и 1440 для dashboard. Скриншоты содержат только synthetic @example.invalid, без секретов:
+
+- [Account 360](../.runtime/e2e-060325ade6a4/p06-account-360.png), [768](../.runtime/e2e-060325ade6a4/p06-account-768.png), [1440](../.runtime/e2e-060325ade6a4/p06-account-1440.png).
+- [Dashboard 360](../.runtime/e2e-060325ade6a4/p06-dashboard-360.png), [768](../.runtime/e2e-060325ade6a4/p06-dashboard-768.png), [1440](../.runtime/e2e-060325ade6a4/p06-dashboard-1440.png).
+
+Финальная сборка запущена в локальных процессах; повторный smoke 3/3 PASS. Compose `ai-compass-p01-postgres-1` running/healthy, PostgreSQL 17.12, bind 127.0.0.1:15432; frontend/backend 127.0.0.1:5173/18080. Только собственные ресурсы проекта, volume сохранён. Ветка `codex/p01-scaffold`; HEAD остаётся `8ec96c51f3b4316f7b4e06d72dd2ec0e57f1cce1`; 24 modified +25 untracked файлов P06, staged 0. Полный список выше. **P06 = AWAITING_REVIEW; P07 = NOT_STARTED. Обязательных незавершённых критериев P06 нет; приёмка владельца ещё не получена. Работа остановлена без commit/push/PR.**
+
+
+## Окончательное закрытие P06 — 15.11.2026
+
+Владелец предварительно принял этап и явно поручил только финальную проверку, исправление обнаруженных ошибок, статус DONE при успешных проверках и один локальный commit `feat: implement authentication and saved ai profiles`. P07 не разрешён. Исторические AWAITING_REVIEW/NOT_RUN commit выше относятся к предыдущей передаче.
+
+Повторно прочитаны AGENTS.md, применимые workflow/security/privacy/P06 разделы CODEX_PROMPT.md, фактический PROGRESS и архитектура P06. Исходный HEAD `8ec96c51f3b4316f7b4e06d72dd2ec0e57f1cce1`, ветка `codex/p01-scaffold`. Рабочие изменения — ранее реализованный P06, посторонних изменений не выявлено.
+
+### Результат security review и исправления
+
+- Подтверждены две ошибки в IdentityGuard: HTTP 429 общего IP limiter терял Retry-After из-за записи заголовка после завершения response; GET/DELETE отдельного `/recommendations/{id}` не попадали в общий IP limiter. Два regression tests до исправления дали FAIL (2/2, exit 1): missing header и 404 вместо 429 при исчерпанном лимите. Исправлены порядок записи заголовка и распознавание personal recommendation routes; preview сохраняет прежний отдельный limiter. Ownership не обходился.
+- Добавлены проверки конкурентного reset одним token (ровно 200+400, прежняя сессия отозвана), атомарного limiter (из 12 параллельных попыток ровно 5 разрешены, 7 получают 429; counter=12), абсолютного session lifetime 12h при свежей активности и idle timeout 30m.
+- Проверка чистой PostgreSQL явно подтверждает отсутствие compass schema перед первым запуском, затем историю Flyway ровно 1–6, success и validate checksums. V1–V6 не редактировались при закрытии.
+- Добавлены unit checks локального sink: default/prod/staging и смешанные dev+prod/test+staging не создают писем; symlink каталога не перенаправляет запись. Реальной сети/SMTP нет. Код создаёт каталог 0700 и файлы 0600; имеющиеся IT проверяют права файлов 0600, отсутствие секретов в output/export и удаление писем аккаунта.
+- Перепроверены session persistence/logout/reset/fixation/CSRF, SQL owner predicates, Free UNIQUE+lock/revision, snapshot/stack ownership, password+confirm delete, cascade/revoke, server role и bootstrap, cookie defaults и локальный HTTP override. Новых прямых зависимостей, миграций или рефакторинга структуры нет.
+- При подготовке дополнительного теста первая testCompile остановилась из-за package-private JdbcSession. Тест переведён на публичный SessionRepository; это ошибка тестового кода, не ошибка runtime. Ни неудачный compile, ни regression-before не считаются успешными проверками.
+
+### Финальные результаты закрытия
+
+| Команда / проверка | Результат |
+|---|---|
+| `bash scripts/check.sh` | PASS, exit 0: 118 unit +93 integration =211 backend; 53 UI; 0 failures/errors/skipped; install, format, lint, typecheck, build, actual OpenAPI/generated SDK comparison и schema checks PASS |
+| `bash scripts/check-catalog.sh` | PASS, exit 0: synthetic/12 negative cases/reviewed/recommendation manifests |
+| `bash scripts/smoke.sh` | PASS, exit 0: 3/3, после запуска окончательной сборки |
+| `bash scripts/test-e2e.sh` | PASS, exit 0: 34/34, 0 failed/skipped, 6.8 минуты; isolated PostgreSQL/backend/browser/sink |
+| `bash scripts/check-secrets.sh` | PASS, exit 0: secret patterns и фактический local password не найдены в кандидатах Git |
+| `git diff --check` | PASS, exit 0 |
+| Чистая PostgreSQL + Flyway | PASS: compass отсутствует перед первым стартом; применены V1–V6, checksums validate; initialize-schema=never |
+| Cookie | PASS: реальный dev response HttpOnly=true/SameSite=Lax/Secure=false; ScaffoldIT проверяет Secure=true/HttpOnly/Lax по умолчанию; значения cookie не выводились |
+| Email sink permissions | PASS: отдельная проверка фактического E2E каталога 0700 и всех писем 0600, без чтения содержимого в отчёт |
+
+Всего **298 тестов**, 0 ошибок/пропусков в финальных suites. Добавлены 7 тестов: 5 PostgreSQL IT и 2 unit; IdentityIT теперь 23/23 PASS. Regression-before 2/2 FAIL зафиксирован отдельно, итог относится к повторному прогону после исправления.
+
+Логи (ignored): `.runtime/p06-close-check.log`, `p06-close-catalog.log`, `p06-close-smoke.log`, `p06-close-e2e.log`, `p06-close-secrets.log`, `p06-close-regression-before.log`; E2E artifacts — `.runtime/e2e-c42159029dfe/`. Рабочие аккаунты/каталог E2E не изменяет; собственный временный контейнер и процессы завершены finally. Локальные frontend/backend оставлены работающими на loopback с окончательной сборкой.
+
+### Итог безопасности и Git
+
+Session restart/logout/reset/expiry/fixation и CSRF — PASS; concurrent reset/rate limiter/Free-profile creation — PASS; A/B ownership и mass assignment — PASS; local sink isolation/profiles/permissions — PASS; export/delete/cascade/revoke — PASS. Проверены backend owner predicates и отсутствие browser token storage. Новых блокеров нет.
+
+Ручной review охватил код auth/filter/portfolio, схемы/FK/cascade, cookie defaults/dev override, местные mail scripts, весь набор Git. Для одного локального commit подготовлены ровно **50 файлов P06**: полный список предыдущей передачи выше плюс `backend/src/test/java/com/aicompass/compass/identity/LocalMailSinkTest.java`. При закрытии изменены только IdentityGuard (два исправления), IdentityIT (пять дополнительных проверок и clean DB assertion), новый LocalMailSinkTest и этот журнал. Секреты, .env, mail-файлы, caches, node_modules, логи и build artifacts не входят. AGENTS/CODEX_PROMPT, frontend manifests/lockfile и миграции не менялись при закрытии.
+
+Разрешённое сообщение коммита: `feat: implement authentication and saved ai profiles`. Ветка `codex/p01-scaffold`. Hash и фактический результат Git сообщаются после выполнения коммита, без записи предполагаемого hash в этот файл.
+
+NOT_RUN/ограничения сохраняются: удалённый CI, production HTTPS/proxy/pentest и юридическая проверка не выполнялись; Arch Playwright использует прежний Ubuntu fallback. Рабочий ADMIN bootstrap не запускался, механизм проверен на Testcontainers. Реальные email/платежи/платные API/deployment/push/PR запрещены и не выполнялись. Гостевой черновик остаётся в памяти вкладки; локальные письма приватны и требуют предусмотренного удаления/очистки.
+
+**P06 = DONE. P07 = NOT_STARTED. Работа ограничена закрытием P06; после локального коммита остановиться.**

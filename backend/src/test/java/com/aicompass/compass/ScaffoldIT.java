@@ -83,11 +83,11 @@ class ScaffoldIT {
     }
 
     @Test
-    void returnsProblemDetailsForUnknownApi() throws Exception {
+    void deniesUnknownApiByDefaultWithProblemDetails() throws Exception {
         var response = request("GET", "/api/v1/missing");
-        assertEquals(404, response.statusCode());
+        assertEquals(403, response.statusCode());
         assertTrue(response.headers().firstValue("content-type").orElse("").contains("application/problem+json"));
-        assertTrue(response.body().contains("\"status\":404"));
+        assertTrue(response.body().contains("\"status\":403"));
         String requestId = response.headers().firstValue("X-Request-Id").orElseThrow();
         assertTrue(response.body().contains("\"requestId\":\"" + requestId + "\""));
         assertFalse(response.body().contains("stackTrace"));
@@ -115,7 +115,7 @@ class ScaffoldIT {
         assertEquals(403, request("GET", "/actuator/env").statusCode());
     }
     @Test
-    void exportsPublicOpenApiWithExplicitUnknownAndNoMutationRoutes() throws Exception {
+    void exportsOpenApiWithExplicitUnknownPersonalSecurityAndNoCatalogMutationRoutes() throws Exception {
         var response = request("GET", "/api/v1/openapi");
         assertEquals(200, response.statusCode(), response.body());
         var mapper = tools.jackson.databind.json.JsonMapper.builder().build();
@@ -146,5 +146,25 @@ class ScaffoldIT {
         assertEquals("string", schema.at("/components/schemas/Costs/properties/recurringMonthly/type").asString());
         assertFalse(response.body().contains("manifest_json"));
         assertFalse(response.body().contains("reviewer"));
+        assertEquals("cookie", schema.at("/components/securitySchemes/sessionCookie/in").asString());
+        assertTrue(schema.at("/components/schemas/SessionStatus/properties/account/nullable").asBoolean());
+        assertEquals("#/components/schemas/Account", schema.at("/components/schemas/SessionStatus/properties/account/allOf/0/$ref").asString());
+        var guest = request("GET", "/api/v1/auth/session");
+        assertEquals(200, guest.statusCode());
+        assertTrue(mapper.readTree(guest.body()).get("account").isNull());
+        assertTrue(schema.at("/paths/~1api~1v1~1profiles/post/security/0/sessionCookie").isArray());
+        assertFalse(preview.has("security"));
+        for (String code : java.util.List.of("400", "401", "403", "404", "409", "429", "500"))
+            assertEquals("#/components/schemas/ApiProblem", schema.at("/paths/~1api~1v1~1profiles/post/responses/" + code + "/content/application~1problem+json/schema/$ref").asString());
     }
+    @Test
+    void productionDefaultsIssueSecureHttpOnlySameSiteSessionCookie() throws Exception {
+        var response = request("GET", "/api/v1/auth/csrf");
+        assertEquals(200, response.statusCode());
+        String cookies = response.headers().allValues("Set-Cookie").toString();
+        assertTrue(cookies.contains("Secure"));
+        assertTrue(cookies.contains("HttpOnly"));
+        assertTrue(cookies.toLowerCase(java.util.Locale.ROOT).contains("samesite=lax"));
+    }
+
 }

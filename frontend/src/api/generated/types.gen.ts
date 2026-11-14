@@ -4,6 +4,15 @@ export type ClientOptions = {
   baseUrl: `${string}://${string}` | (string & {});
 };
 
+export type Account = {
+  createdAt: string;
+  email: string;
+  id: string;
+  plan: string;
+  role: string;
+  verified: boolean;
+};
+
 export type Agent = {
   executionEnvironment: string;
   id: string;
@@ -102,9 +111,26 @@ export type Coverage = {
   weight: number;
 };
 
+export type Credentials = {
+  email: string;
+  password: string;
+};
+
 export type CsrfResponse = {
   headerName: string;
   token: string;
+};
+
+export type DataExport = {
+  account: Account;
+  profiles: Array<SavedProfile>;
+  recommendations: Array<SavedRecommendation>;
+  stacks: Array<SavedStack>;
+};
+
+export type DeleteRequest = {
+  confirm: boolean;
+  password: string;
 };
 
 export type Detail = {
@@ -134,6 +160,10 @@ export type EligibilityRule = {
   offerId: string;
   requirement: string;
   state: 'REQUIRED' | 'NOT_REQUIRED' | 'UNKNOWN';
+};
+
+export type EmailRequest = {
+  email: string;
 };
 
 export type Evidence = {
@@ -191,6 +221,10 @@ export type Item = {
   planId: string | null;
   productId: string | null;
   sharedPoolIds: Array<string>;
+};
+
+export type Message = {
+  message: string;
 };
 
 export type Meta = {
@@ -446,6 +480,12 @@ export type Product = {
   state: 'ACTIVE' | 'RETIRED';
 };
 
+export type ProfileWrite = {
+  name: string;
+  profile: RecommendationProfile;
+  revision: number;
+};
+
 export type Provider = {
   id: string;
   name: string;
@@ -564,6 +604,34 @@ export type Requirements = {
   usage: Array<Usage>;
 };
 
+export type ResetRequest = {
+  password: string;
+  token: string;
+};
+
+export type SavedProfile = {
+  createdAt: string;
+  id: string;
+  name: string;
+  profile: RecommendationProfile;
+  revision: number;
+  updatedAt: string;
+};
+
+export type SavedRecommendation = {
+  id: string;
+  profile: RecommendationProfile;
+  result: RecommendationResult;
+  savedAt: string;
+};
+
+export type SavedStack = {
+  bundleId: string;
+  createdAt: string;
+  id: string;
+  snapshotId: string;
+};
+
 export type Search = {
   candidateCount: number;
   catalogProducts: number;
@@ -574,11 +642,28 @@ export type Search = {
   visitedCombinations: number;
 };
 
+export type SessionStatus = {
+  account: Account | null;
+};
+
+export type SnapshotWrite = {
+  asOf: string;
+  catalogVersion: string;
+  engineVersion: string;
+  policyVersion: string;
+  profile: RecommendationProfile;
+};
+
 export type Source = {
   id: string;
   kind: string;
   publisher: string;
   url: string;
+};
+
+export type StackWrite = {
+  bundleId: string;
+  snapshotId: string;
 };
 
 export type SubscriptionPlan = {
@@ -589,6 +674,10 @@ export type SubscriptionPlan = {
   id: string;
   productId: string;
   tier: string;
+};
+
+export type TokenRequest = {
+  token: string;
 };
 
 export type Unmet = {
@@ -667,6 +756,47 @@ export type CsrfData = {
   url: '/api/v1/auth/csrf';
 };
 
+export type CsrfErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type CsrfError = CsrfErrors[keyof CsrfErrors];
+
 export type CsrfResponses = {
   /**
    * OK
@@ -675,6 +805,462 @@ export type CsrfResponses = {
 };
 
 export type CsrfResponse2 = CsrfResponses[keyof CsrfResponses];
+
+export type LoginData = {
+  body: Credentials;
+  path?: never;
+  query?: never;
+  url: '/api/v1/auth/login';
+};
+
+export type LoginErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type LoginError = LoginErrors[keyof LoginErrors];
+
+export type LoginResponses = {
+  /**
+   * OK
+   */
+  200: Account;
+};
+
+export type LoginResponse = LoginResponses[keyof LoginResponses];
+
+export type LogoutData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/auth/logout';
+};
+
+export type LogoutErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type LogoutError = LogoutErrors[keyof LogoutErrors];
+
+export type LogoutResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type LogoutResponse = LogoutResponses[keyof LogoutResponses];
+
+export type ForgotData = {
+  body: EmailRequest;
+  path?: never;
+  query?: never;
+  url: '/api/v1/auth/password/forgot';
+};
+
+export type ForgotErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type ForgotError = ForgotErrors[keyof ForgotErrors];
+
+export type ForgotResponses = {
+  /**
+   * Accepted
+   */
+  202: Message;
+};
+
+export type ForgotResponse = ForgotResponses[keyof ForgotResponses];
+
+export type ResetData = {
+  body: ResetRequest;
+  path?: never;
+  query?: never;
+  url: '/api/v1/auth/password/reset';
+};
+
+export type ResetErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type ResetError = ResetErrors[keyof ResetErrors];
+
+export type ResetResponses = {
+  /**
+   * OK
+   */
+  200: Message;
+};
+
+export type ResetResponse = ResetResponses[keyof ResetResponses];
+
+export type RegisterData = {
+  body: Credentials;
+  path?: never;
+  query?: never;
+  url: '/api/v1/auth/register';
+};
+
+export type RegisterErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type RegisterError = RegisterErrors[keyof RegisterErrors];
+
+export type RegisterResponses = {
+  /**
+   * Accepted
+   */
+  202: Message;
+};
+
+export type RegisterResponse = RegisterResponses[keyof RegisterResponses];
+
+export type SessionData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/auth/session';
+};
+
+export type SessionErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type SessionError = SessionErrors[keyof SessionErrors];
+
+export type SessionResponses = {
+  /**
+   * OK
+   */
+  200: SessionStatus;
+};
+
+export type SessionResponse = SessionResponses[keyof SessionResponses];
+
+export type ResendData = {
+  body: EmailRequest;
+  path?: never;
+  query?: never;
+  url: '/api/v1/auth/verification/resend';
+};
+
+export type ResendErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type ResendError = ResendErrors[keyof ResendErrors];
+
+export type ResendResponses = {
+  /**
+   * Accepted
+   */
+  202: Message;
+};
+
+export type ResendResponse = ResendResponses[keyof ResendResponses];
+
+export type VerifyData = {
+  body: TokenRequest;
+  path?: never;
+  query?: never;
+  url: '/api/v1/auth/verify';
+};
+
+export type VerifyErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type VerifyError = VerifyErrors[keyof VerifyErrors];
+
+export type VerifyResponses = {
+  /**
+   * OK
+   */
+  200: Message;
+};
+
+export type VerifyResponse = VerifyResponses[keyof VerifyResponses];
 
 export type AgentAccessData = {
   body?: never;
@@ -1493,6 +2079,590 @@ export type UsageLimitsResponses = {
 export type UsageLimitsResponse =
   UsageLimitsResponses[keyof UsageLimitsResponses];
 
+export type DeleteAccountData = {
+  body: DeleteRequest;
+  path?: never;
+  query?: never;
+  url: '/api/v1/me';
+};
+
+export type DeleteAccountErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type DeleteAccountError = DeleteAccountErrors[keyof DeleteAccountErrors];
+
+export type DeleteAccountResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteAccountResponse =
+  DeleteAccountResponses[keyof DeleteAccountResponses];
+
+export type MeData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/me';
+};
+
+export type MeErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type MeError = MeErrors[keyof MeErrors];
+
+export type MeResponses = {
+  /**
+   * OK
+   */
+  200: Account;
+};
+
+export type MeResponse = MeResponses[keyof MeResponses];
+
+export type ExportData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/me/export';
+};
+
+export type ExportErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type ExportError = ExportErrors[keyof ExportErrors];
+
+export type ExportResponses = {
+  /**
+   * OK
+   */
+  200: DataExport;
+};
+
+export type ExportResponse = ExportResponses[keyof ExportResponses];
+
+export type ProfilesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/profiles';
+};
+
+export type ProfilesErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type ProfilesError = ProfilesErrors[keyof ProfilesErrors];
+
+export type ProfilesResponses = {
+  /**
+   * OK
+   */
+  200: Array<SavedProfile>;
+};
+
+export type ProfilesResponse = ProfilesResponses[keyof ProfilesResponses];
+
+export type CreateProfileData = {
+  body: ProfileWrite;
+  path?: never;
+  query?: never;
+  url: '/api/v1/profiles';
+};
+
+export type CreateProfileErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type CreateProfileError = CreateProfileErrors[keyof CreateProfileErrors];
+
+export type CreateProfileResponses = {
+  /**
+   * Created
+   */
+  201: SavedProfile;
+};
+
+export type CreateProfileResponse =
+  CreateProfileResponses[keyof CreateProfileResponses];
+
+export type DeleteProfileData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/profiles/{id}';
+};
+
+export type DeleteProfileErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type DeleteProfileError = DeleteProfileErrors[keyof DeleteProfileErrors];
+
+export type DeleteProfileResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteProfileResponse =
+  DeleteProfileResponses[keyof DeleteProfileResponses];
+
+export type ProfileData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/profiles/{id}';
+};
+
+export type ProfileErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type ProfileError = ProfileErrors[keyof ProfileErrors];
+
+export type ProfileResponses = {
+  /**
+   * OK
+   */
+  200: SavedProfile;
+};
+
+export type ProfileResponse = ProfileResponses[keyof ProfileResponses];
+
+export type UpdateProfileData = {
+  body: ProfileWrite;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/profiles/{id}';
+};
+
+export type UpdateProfileErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type UpdateProfileError = UpdateProfileErrors[keyof UpdateProfileErrors];
+
+export type UpdateProfileResponses = {
+  /**
+   * OK
+   */
+  200: SavedProfile;
+};
+
+export type UpdateProfileResponse =
+  UpdateProfileResponses[keyof UpdateProfileResponses];
+
+export type SavedRecommendationsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/recommendations';
+};
+
+export type SavedRecommendationsErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type SavedRecommendationsError =
+  SavedRecommendationsErrors[keyof SavedRecommendationsErrors];
+
+export type SavedRecommendationsResponses = {
+  /**
+   * OK
+   */
+  200: Array<SavedRecommendation>;
+};
+
+export type SavedRecommendationsResponse =
+  SavedRecommendationsResponses[keyof SavedRecommendationsResponses];
+
+export type SaveRecommendationData = {
+  body: SnapshotWrite;
+  path?: never;
+  query?: never;
+  url: '/api/v1/recommendations';
+};
+
+export type SaveRecommendationErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type SaveRecommendationError =
+  SaveRecommendationErrors[keyof SaveRecommendationErrors];
+
+export type SaveRecommendationResponses = {
+  /**
+   * Created
+   */
+  201: SavedRecommendation;
+};
+
+export type SaveRecommendationResponse =
+  SaveRecommendationResponses[keyof SaveRecommendationResponses];
+
 export type PreviewData = {
   body: RecommendationProfile;
   path?: never;
@@ -1529,3 +2699,300 @@ export type PreviewResponses = {
 };
 
 export type PreviewResponse = PreviewResponses[keyof PreviewResponses];
+
+export type DeleteRecommendationData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/recommendations/{id}';
+};
+
+export type DeleteRecommendationErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type DeleteRecommendationError =
+  DeleteRecommendationErrors[keyof DeleteRecommendationErrors];
+
+export type DeleteRecommendationResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteRecommendationResponse =
+  DeleteRecommendationResponses[keyof DeleteRecommendationResponses];
+
+export type SavedRecommendationData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/recommendations/{id}';
+};
+
+export type SavedRecommendationErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type SavedRecommendationError =
+  SavedRecommendationErrors[keyof SavedRecommendationErrors];
+
+export type SavedRecommendationResponses = {
+  /**
+   * OK
+   */
+  200: SavedRecommendation;
+};
+
+export type SavedRecommendationResponse =
+  SavedRecommendationResponses[keyof SavedRecommendationResponses];
+
+export type SavedStacksData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/saved-stacks';
+};
+
+export type SavedStacksErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type SavedStacksError = SavedStacksErrors[keyof SavedStacksErrors];
+
+export type SavedStacksResponses = {
+  /**
+   * OK
+   */
+  200: Array<SavedStack>;
+};
+
+export type SavedStacksResponse =
+  SavedStacksResponses[keyof SavedStacksResponses];
+
+export type SaveStackData = {
+  body: StackWrite;
+  path?: never;
+  query?: never;
+  url: '/api/v1/saved-stacks';
+};
+
+export type SaveStackErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type SaveStackError = SaveStackErrors[keyof SaveStackErrors];
+
+export type SaveStackResponses = {
+  /**
+   * Created
+   */
+  201: SavedStack;
+};
+
+export type SaveStackResponse = SaveStackResponses[keyof SaveStackResponses];
+
+export type DeleteStackData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/saved-stacks/{id}';
+};
+
+export type DeleteStackErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type DeleteStackError = DeleteStackErrors[keyof DeleteStackErrors];
+
+export type DeleteStackResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteStackResponse =
+  DeleteStackResponses[keyof DeleteStackResponses];

@@ -78,6 +78,7 @@ try:
                BACKEND_PORT=str(backend_port), FRONTEND_PORT=str(frontend_port), SPRING_PROFILES_ACTIVE='test',
                COMPASS_CATALOG_ALLOW_DEMO='true', COOKIE_SECURE='false', LLM_MODE='OFF', PAYMENTS_MODE='OFF',
                EMAIL_MODE='LOCAL', SOURCE_FETCH_ENABLED='false', COMPASS_E2E_DIR=str(RUN),
+               COMPASS_IDENTITY_MAIL_DIRECTORY=str(RUN / 'mail'),
                PLAYWRIGHT_BROWSERS_PATH=str(ROOT / '.cache' / 'playwright'))
     backend = start(['java', '-jar', str(ROOT / 'backend/target/ai-compass-0.1.0.jar')], ROOT, env, 'backend')
     ready(f'http://127.0.0.1:{backend_port}/actuator/health/readiness', backend)

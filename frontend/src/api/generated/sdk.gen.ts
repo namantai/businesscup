@@ -21,8 +21,24 @@ import type {
   CapabilitiesData,
   CapabilitiesErrors,
   CapabilitiesResponses,
+  CreateProfileData,
+  CreateProfileErrors,
+  CreateProfileResponses,
   CsrfData,
+  CsrfErrors,
   CsrfResponses,
+  DeleteAccountData,
+  DeleteAccountErrors,
+  DeleteAccountResponses,
+  DeleteProfileData,
+  DeleteProfileErrors,
+  DeleteProfileResponses,
+  DeleteRecommendationData,
+  DeleteRecommendationErrors,
+  DeleteRecommendationResponses,
+  DeleteStackData,
+  DeleteStackErrors,
+  DeleteStackResponses,
   DetailData,
   DetailErrors,
   DetailResponses,
@@ -32,6 +48,21 @@ import type {
   EvidenceData,
   EvidenceErrors,
   EvidenceResponses,
+  ExportData,
+  ExportErrors,
+  ExportResponses,
+  ForgotData,
+  ForgotErrors,
+  ForgotResponses,
+  LoginData,
+  LoginErrors,
+  LoginResponses,
+  LogoutData,
+  LogoutErrors,
+  LogoutResponses,
+  MeData,
+  MeErrors,
+  MeResponses,
   MetaData,
   MetaErrors,
   MetaResponses,
@@ -62,6 +93,12 @@ import type {
   ProductsData,
   ProductsErrors,
   ProductsResponses,
+  ProfileData,
+  ProfileErrors,
+  ProfileResponses,
+  ProfilesData,
+  ProfilesErrors,
+  ProfilesResponses,
   ProvidersData,
   ProvidersErrors,
   ProvidersResponses,
@@ -71,12 +108,45 @@ import type {
   RegionsData,
   RegionsErrors,
   RegionsResponses,
+  RegisterData,
+  RegisterErrors,
+  RegisterResponses,
+  ResendData,
+  ResendErrors,
+  ResendResponses,
+  ResetData,
+  ResetErrors,
+  ResetResponses,
+  SavedRecommendationData,
+  SavedRecommendationErrors,
+  SavedRecommendationResponses,
+  SavedRecommendationsData,
+  SavedRecommendationsErrors,
+  SavedRecommendationsResponses,
+  SavedStacksData,
+  SavedStacksErrors,
+  SavedStacksResponses,
+  SaveRecommendationData,
+  SaveRecommendationErrors,
+  SaveRecommendationResponses,
+  SaveStackData,
+  SaveStackErrors,
+  SaveStackResponses,
+  SessionData,
+  SessionErrors,
+  SessionResponses,
   SourcesData,
   SourcesErrors,
   SourcesResponses,
+  UpdateProfileData,
+  UpdateProfileErrors,
+  UpdateProfileResponses,
   UsageLimitsData,
   UsageLimitsErrors,
   UsageLimitsResponses,
+  VerifyData,
+  VerifyErrors,
+  VerifyResponses,
 } from './types.gen';
 
 export type Options<
@@ -99,10 +169,102 @@ export type Options<
 
 export const csrf = <ThrowOnError extends boolean = false>(
   options?: Options<CsrfData, ThrowOnError>,
-): RequestResult<CsrfResponses, unknown, ThrowOnError> =>
-  (options?.client ?? client).get<CsrfResponses, unknown, ThrowOnError>({
+): RequestResult<CsrfResponses, CsrfErrors, ThrowOnError> =>
+  (options?.client ?? client).get<CsrfResponses, CsrfErrors, ThrowOnError>({
     url: '/api/v1/auth/csrf',
     ...options,
+  });
+
+export const login = <ThrowOnError extends boolean = false>(
+  options: Options<LoginData, ThrowOnError>,
+): RequestResult<LoginResponses, LoginErrors, ThrowOnError> =>
+  (options.client ?? client).post<LoginResponses, LoginErrors, ThrowOnError>({
+    url: '/api/v1/auth/login',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const logout = <ThrowOnError extends boolean = false>(
+  options?: Options<LogoutData, ThrowOnError>,
+): RequestResult<LogoutResponses, LogoutErrors, ThrowOnError> =>
+  (options?.client ?? client).post<LogoutResponses, LogoutErrors, ThrowOnError>(
+    { url: '/api/v1/auth/logout', ...options },
+  );
+
+export const forgot = <ThrowOnError extends boolean = false>(
+  options: Options<ForgotData, ThrowOnError>,
+): RequestResult<ForgotResponses, ForgotErrors, ThrowOnError> =>
+  (options.client ?? client).post<ForgotResponses, ForgotErrors, ThrowOnError>({
+    url: '/api/v1/auth/password/forgot',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const reset = <ThrowOnError extends boolean = false>(
+  options: Options<ResetData, ThrowOnError>,
+): RequestResult<ResetResponses, ResetErrors, ThrowOnError> =>
+  (options.client ?? client).post<ResetResponses, ResetErrors, ThrowOnError>({
+    url: '/api/v1/auth/password/reset',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const register = <ThrowOnError extends boolean = false>(
+  options: Options<RegisterData, ThrowOnError>,
+): RequestResult<RegisterResponses, RegisterErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    RegisterResponses,
+    RegisterErrors,
+    ThrowOnError
+  >({
+    url: '/api/v1/auth/register',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const session = <ThrowOnError extends boolean = false>(
+  options?: Options<SessionData, ThrowOnError>,
+): RequestResult<SessionResponses, SessionErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    SessionResponses,
+    SessionErrors,
+    ThrowOnError
+  >({ url: '/api/v1/auth/session', ...options });
+
+export const resend = <ThrowOnError extends boolean = false>(
+  options: Options<ResendData, ThrowOnError>,
+): RequestResult<ResendResponses, ResendErrors, ThrowOnError> =>
+  (options.client ?? client).post<ResendResponses, ResendErrors, ThrowOnError>({
+    url: '/api/v1/auth/verification/resend',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const verify = <ThrowOnError extends boolean = false>(
+  options: Options<VerifyData, ThrowOnError>,
+): RequestResult<VerifyResponses, VerifyErrors, ThrowOnError> =>
+  (options.client ?? client).post<VerifyResponses, VerifyErrors, ThrowOnError>({
+    url: '/api/v1/auth/verify',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 
 export const agentAccess = <ThrowOnError extends boolean = false>(
@@ -295,6 +457,210 @@ export const usageLimits = <ThrowOnError extends boolean = false>(
     ThrowOnError
   >({ url: '/api/v1/catalog/usage-limits', ...options });
 
+export const deleteAccount = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAccountData, ThrowOnError>,
+): RequestResult<DeleteAccountResponses, DeleteAccountErrors, ThrowOnError> =>
+  (options.client ?? client).delete<
+    DeleteAccountResponses,
+    DeleteAccountErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/me',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const me = <ThrowOnError extends boolean = false>(
+  options?: Options<MeData, ThrowOnError>,
+): RequestResult<MeResponses, MeErrors, ThrowOnError> =>
+  (options?.client ?? client).get<MeResponses, MeErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/me',
+    ...options,
+  });
+
+export const export_ = <ThrowOnError extends boolean = false>(
+  options?: Options<ExportData, ThrowOnError>,
+): RequestResult<ExportResponses, ExportErrors, ThrowOnError> =>
+  (options?.client ?? client).get<ExportResponses, ExportErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/me/export',
+    ...options,
+  });
+
+export const profiles = <ThrowOnError extends boolean = false>(
+  options?: Options<ProfilesData, ThrowOnError>,
+): RequestResult<ProfilesResponses, ProfilesErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    ProfilesResponses,
+    ProfilesErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/profiles',
+    ...options,
+  });
+
+export const createProfile = <ThrowOnError extends boolean = false>(
+  options: Options<CreateProfileData, ThrowOnError>,
+): RequestResult<CreateProfileResponses, CreateProfileErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    CreateProfileResponses,
+    CreateProfileErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/profiles',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const deleteProfile = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteProfileData, ThrowOnError>,
+): RequestResult<DeleteProfileResponses, DeleteProfileErrors, ThrowOnError> =>
+  (options.client ?? client).delete<
+    DeleteProfileResponses,
+    DeleteProfileErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/profiles/{id}',
+    ...options,
+  });
+
+export const profile = <ThrowOnError extends boolean = false>(
+  options: Options<ProfileData, ThrowOnError>,
+): RequestResult<ProfileResponses, ProfileErrors, ThrowOnError> =>
+  (options.client ?? client).get<ProfileResponses, ProfileErrors, ThrowOnError>(
+    {
+      security: [
+        {
+          in: 'cookie',
+          name: 'SESSION',
+          type: 'apiKey',
+        },
+      ],
+      url: '/api/v1/profiles/{id}',
+      ...options,
+    },
+  );
+
+export const updateProfile = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateProfileData, ThrowOnError>,
+): RequestResult<UpdateProfileResponses, UpdateProfileErrors, ThrowOnError> =>
+  (options.client ?? client).patch<
+    UpdateProfileResponses,
+    UpdateProfileErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/profiles/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const savedRecommendations = <ThrowOnError extends boolean = false>(
+  options?: Options<SavedRecommendationsData, ThrowOnError>,
+): RequestResult<
+  SavedRecommendationsResponses,
+  SavedRecommendationsErrors,
+  ThrowOnError
+> =>
+  (options?.client ?? client).get<
+    SavedRecommendationsResponses,
+    SavedRecommendationsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/recommendations',
+    ...options,
+  });
+
+export const saveRecommendation = <ThrowOnError extends boolean = false>(
+  options: Options<SaveRecommendationData, ThrowOnError>,
+): RequestResult<
+  SaveRecommendationResponses,
+  SaveRecommendationErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    SaveRecommendationResponses,
+    SaveRecommendationErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/recommendations',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
 /**
  * Deterministic preview without saving a profile
  */
@@ -312,4 +678,111 @@ export const preview = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+
+export const deleteRecommendation = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteRecommendationData, ThrowOnError>,
+): RequestResult<
+  DeleteRecommendationResponses,
+  DeleteRecommendationErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).delete<
+    DeleteRecommendationResponses,
+    DeleteRecommendationErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/recommendations/{id}',
+    ...options,
+  });
+
+export const savedRecommendation = <ThrowOnError extends boolean = false>(
+  options: Options<SavedRecommendationData, ThrowOnError>,
+): RequestResult<
+  SavedRecommendationResponses,
+  SavedRecommendationErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    SavedRecommendationResponses,
+    SavedRecommendationErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/recommendations/{id}',
+    ...options,
+  });
+
+export const savedStacks = <ThrowOnError extends boolean = false>(
+  options?: Options<SavedStacksData, ThrowOnError>,
+): RequestResult<SavedStacksResponses, SavedStacksErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    SavedStacksResponses,
+    SavedStacksErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/saved-stacks',
+    ...options,
+  });
+
+export const saveStack = <ThrowOnError extends boolean = false>(
+  options: Options<SaveStackData, ThrowOnError>,
+): RequestResult<SaveStackResponses, SaveStackErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    SaveStackResponses,
+    SaveStackErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/saved-stacks',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const deleteStack = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteStackData, ThrowOnError>,
+): RequestResult<DeleteStackResponses, DeleteStackErrors, ThrowOnError> =>
+  (options.client ?? client).delete<
+    DeleteStackResponses,
+    DeleteStackErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/saved-stacks/{id}',
+    ...options,
   });

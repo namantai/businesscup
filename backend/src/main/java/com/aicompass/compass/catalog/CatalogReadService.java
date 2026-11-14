@@ -49,8 +49,11 @@ public class CatalogReadService {
     }
 
     /** Resolves the active pointer once; all normalized reads share REPEATABLE_READ. */
-    public PublishedCatalogSnapshot currentSnapshot() {
-        UUID version = visible(null);
+    public PublishedCatalogSnapshot currentSnapshot() { return snapshot(null); }
+
+    /** Previously activated immutable versions are also used to save historical results. */
+    public PublishedCatalogSnapshot snapshot(UUID requested) {
+        UUID version = visible(requested);
         if (version == null) return null;
         var meta = jdbc.queryForMap("SELECT dataset_kind, as_of FROM compass.catalog_version WHERE id = ?", version);
         return new PublishedCatalogSnapshot(version, (String) meta.get("dataset_kind"),

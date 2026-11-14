@@ -22,6 +22,7 @@ public class ProblemDetailsAdvice implements ResponseBodyAdvice<Object> {
             Class<? extends HttpMessageConverter<?>> converterType,
             ServerHttpRequest request, ServerHttpResponse response) {
         if (body instanceof ProblemDetail problem && request instanceof ServletServerHttpRequest servletRequest) {
+            if (problem.getStatus() == 429) response.getHeaders().set("Retry-After", "900");
             problem.setProperty("requestId", servletRequest.getServletRequest().getAttribute(RequestIdFilter.ATTRIBUTE));
         }
         return body;

@@ -49,3 +49,10 @@ compass:
     payments-mode: ${PAYMENTS_MODE:OFF}
     email-mode: ${EMAIL_MODE:LOCAL}
     source-fetch-enabled: ${SOURCE_FETCH_ENABLED:false}
+
+springdoc:
+  api-docs:
+    path: /api/v1/openapi
+    version: OPENAPI_3_0
+  paths-to-match: /api/v1/catalog/**
+  writer-with-order-by-keys: true

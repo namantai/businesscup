@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 // Reuse the exact Ajv 6.15.0 already locked by ESLint; never fetch remote schemas.
 const require = createRequire(new URL('../frontend/package.json', import.meta.url));
@@ -28,3 +28,10 @@ for (const mutate of invalidCases) {
   if (validate(invalid)) throw new Error('Invalid schema example was accepted');
 }
 console.log(`PASS: catalog JSON Schema, 1 synthetic manifest + ${invalidCases.length} negative cases.`);
+
+for (const file of readdirSync(new URL('../data/catalog/', import.meta.url)).filter(f => f.endsWith('.json'))) {
+  const manifest = JSON.parse(readFileSync(new URL(`../data/catalog/${file}`, import.meta.url)));
+  if (!validate(manifest)) throw new Error(`${file}: ${JSON.stringify(validate.errors)}`);
+  if (manifest.datasetKind !== 'REVIEWED') throw new Error(`${file}: reviewed catalog required`);
+  console.log(`PASS: reviewed manifest schema ${file}`);
+}

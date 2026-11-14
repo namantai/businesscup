@@ -114,4 +114,28 @@ class ScaffoldIT {
     void doesNotExposeEnvironmentEndpoint() throws Exception {
         assertEquals(403, request("GET", "/actuator/env").statusCode());
     }
+    @Test
+    void exportsPublicOpenApiWithExplicitUnknownAndNoMutationRoutes() throws Exception {
+        var response = request("GET", "/api/v1/openapi");
+        assertEquals(200, response.statusCode(), response.body());
+        var mapper = tools.jackson.databind.json.JsonMapper.builder().build();
+        var schema = mapper.readTree(response.body());
+        java.nio.file.Files.writeString(java.nio.file.Path.of("target/openapi.json"), response.body());
+
+        assertEquals("3.0.1", schema.get("openapi").asString());
+        var price = schema.at("/components/schemas/PriceOffer/properties/amount");
+        assertTrue(price.get("nullable").asBoolean(), price.toString());
+        assertEquals("string", price.get("type").asString());
+        assertTrue(schema.at("/components/schemas/PageProduct/properties/versionId/nullable").asBoolean());
+        assertTrue(schema.at("/components/schemas/Offer/properties/allInUpfront/nullable").asBoolean());
+        assertTrue(schema.get("paths").has("/api/v1/catalog/products/{slug}"));
+        for (var entry : schema.get("paths").properties()) {
+            assertTrue(entry.getKey().startsWith("/api/v1/catalog/"));
+            assertEquals(1, entry.getValue().size());
+            assertTrue(entry.getValue().has("get"));
+            assertTrue(entry.getValue().at("/get/responses/200/content/application~1json/schema/$ref").isString(), entry.toString());
+        }
+        assertFalse(response.body().contains("manifest_json"));
+        assertFalse(response.body().contains("reviewer"));
+    }
 }

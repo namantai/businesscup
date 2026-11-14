@@ -1,4 +1,4 @@
-name: P01 local scaffold checks
+name: AI Compass local checks through P03
 on:
   workflow_dispatch:
 permissions:
@@ -15,7 +15,13 @@ jobs:
         run: bash scripts/check.sh
       - name: Start local application
         run: bash scripts/dev-up.sh --no-build
-      - name: Browser smoke
+      - name: Install pinned Chromium into project cache
+        run: |
+          source scripts/common.sh
+          export PLAYWRIGHT_BROWSERS_PATH="$COMPASS_ROOT/.cache/playwright"
+          cd frontend
+          npm exec -- playwright install chromium
+      - name: Isolated browser catalog checks
         run: bash scripts/test-e2e.sh
       - name: Database persistence
         run: bash scripts/test-persistence.sh

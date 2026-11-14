@@ -78,9 +78,9 @@ class CatalogIT {
 
     @Test @Order(1)
     void migratesFreshDatabaseAndDoesNotAutoSeed() {
-        assertEquals(3, jdbc.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class));
+        assertEquals(4, jdbc.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class));
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM compass.catalog_version", Integer.class));
-        assertEquals(23, jdbc.queryForObject("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'compass'", Integer.class));
+        assertEquals(26, jdbc.queryForObject("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'compass'", Integer.class));
         flyway.validate();
         assertEquals(0, flyway.migrate().migrationsExecuted);
     }

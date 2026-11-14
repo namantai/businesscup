@@ -7,6 +7,7 @@ bash scripts/check-secrets.sh
 maven clean verify
 cd frontend
 npm ci --no-audit --no-fund
+bash ../scripts/check-api.sh
 npm run format:check
 npm run lint
 npm run typecheck

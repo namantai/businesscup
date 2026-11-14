@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
+@org.springframework.core.annotation.Order(0)
 public class CatalogPolicy implements ApplicationRunner {
     private final boolean allowDemo;
     private final JdbcTemplate jdbc;

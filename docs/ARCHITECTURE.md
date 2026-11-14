@@ -1,12 +1,12 @@
-# AI Compass — архитектура P01/P02
+# AI Compass — архитектура P01–P03
 
 ## Граница
 
-Модульный монолит: React/TypeScript → same-origin Vite proxy → Java/Spring Boot → PostgreSQL. В P01 Docker Compose управляет локальной БД; frontend и backend работают на хосте с закреплёнными инструментами. В P02 добавлены схема и внутренний импорт каталога. Production images/Caddy, публичное catalog API, аккаунты и Recommendation Engine ещё не реализованы. Их границы остаются по CODEX_PROMPT.md.
+Модульный монолит: React/TypeScript → same-origin Vite proxy → Java/Spring Boot → PostgreSQL. В P01 Docker Compose управляет локальной БД; frontend и backend работают на хосте с закреплёнными инструментами. В P02 добавлены схема и внутренний импорт каталога; в P03 — явная публикация, read-only catalog API, OpenAPI и frontend каталога. Production images/Caddy, аккаунты и Recommendation Engine ещё не реализованы. Их границы остаются по CODEX_PROMPT.md.
 
 Неизменённая миграция V1 создаёт схему `compass`; V2 добавляет каталог, V3 — защиту снимков. Служебная таблица Flyway ведёт историю миграций. Hibernate использует `validate`; `open-in-view` отключён. Пустая БД не получает демонстрационные тарифы.
 
-Readiness включает DB health, но наружу отдаёт только `status`. `/actuator/env` закрыт. CSRF не отключён; HTTP-ошибки API используют Problem Details. Только чтение scaffold API и health разрешено анонимно; аккаунты пока отсутствуют.
+Readiness включает DB health, но наружу отдаёт только `status`. `/actuator/env` закрыт. CSRF не отключён; HTTP-ошибки API используют Problem Details. Чтение scaffold/catalog API, OpenAPI и health разрешено анонимно; аккаунты пока отсутствуют.
 
 ## Закреплённые версии
 
@@ -15,11 +15,14 @@ Readiness включает DB health, но наружу отдаёт тольк�
 | Temurin JDK | 21.0.13+9 |
 | Maven / Wrapper | 3.10.0 / 3.3.4 |
 | Spring Boot | 4.1.2 |
+| springdoc-openapi-starter-webmvc-api | 3.2.0 |
 | Flyway / PostgreSQL JDBC | 12.4.0 / 42.7.14, управляет Boot BOM |
 | JUnit Jupiter / Testcontainers | 6.0.3 / 2.0.5, управляет Boot BOM |
 | PostgreSQL | 17.12-bookworm, digest в Compose и интеграционном тесте |
 | Node / npm | 24.22.3 / 11.19.1 |
 | React / React DOM | 19.3.1 |
+| React Router / TanStack Query | 8.5.1 / 5.107.1 |
+| @hey-api/openapi-ts (dev) | 0.99.0 |
 | TypeScript | 6.0.3 |
 | Vite / React plugin | 8.3.8 / 6.2.1 |
 | Vitest / Testing Library React | 5.1.0 / 16.3.3 |
@@ -39,7 +42,7 @@ TypeScript 7 из последнего релиза не выбран: [typescri
 - [PostgreSQL versioning](https://www.postgresql.org/support/versioning/), официальный образ `postgres`.
 - [Playwright Docker](https://playwright.dev/docs/docker): первоначально выбранный образ `v1.64.1-noble` (manifest digest `sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f`) не удалось скачать: две одинаковые ошибки сохранения слоя containerd. Без вмешательства в Docker использован разрешённый project-local Chromium из того же Playwright. Arch официально не поддерживается; CI-файл использует Ubuntu 24.04. Manifest подтверждён, работоспособность Docker-образа не заявляется.
 
-Springdoc/OpenAPI и генерация DTO будут подключены при появлении предметного API; рекомендуемая линия P00 — springdoc 3.2.0. React Router, TanStack Query и формы появятся по необходимости соответствующего этапа. Их отсутствие в пустом shell не означает изменение целевой архитектуры.
+P03: четыре новые прямые зависимости явно разрешены владельцем и закреплены точно. Перед установкой проверены официальные Maven Central/npm metadata и [springdoc](https://springdoc.org/): springdoc 3.x для Boot 4, Router 8.5.1 требует Node >=22.22.0 и React >=19.2.7, Query 5.107.1 поддерживает React 18/19, openapi-ts 0.99.0 требует Node >=22.18.0 и допускает TypeScript 6. Установленные Node 24.22.3, React 19.3.1 и TypeScript 6.0.3 подходят; совместимость с Boot 4.1.2 и Vite 8.3.8 дополнительно проверена реальными backend/frontend сборками, интеграционными и браузерными тестами. Другие прямые зависимости не добавлялись; peer checks не обходились.
 
 ## Локальная изоляция
 
@@ -51,7 +54,7 @@ Ryuk не запускается, так как требует Docker socket в 
 
 ## Проверка владельцем
 
-После `bash scripts/dev-up.sh` открыть frontend, дождаться «Сервис доступен», выполнить `bash scripts/test-persistence.sh`, затем `bash scripts/dev-down.sh`. P01 принят владельцем. P02 предварительно принят и закрыт по поручению владельца; P03 не разрешён автоматически.
+После `bash scripts/dev-up.sh` открыть frontend, дождаться «Сервис доступен», выполнить `bash scripts/test-persistence.sh`, затем `bash scripts/dev-down.sh`. P01 принят владельцем. P02 принят владельцем; P03 закрыт (DONE): по поручению владельца проверены 5 утверждений по первоисточникам и повторены обязательные tests; протокол — PROGRESS.md. Каталог доступен на `/catalog`; P04 не начат.
 
 
 ## P02: модель каталога
@@ -138,7 +141,7 @@ JSON Schema draft-07 хранится в `data/schema/catalog.schema.json`; `che
 
 V3 блокирует UPDATE/DELETE/INSERT для опубликованных строк, замену метаданных опубликованной версии и TRUNCATE. Любой writer блокирует строку версии через `FOR UPDATE`; publication использует ту же блокировку. Содержимое evidence нельзя обновлять даже в draft: исправление требует нового claim id; неиспользуемый draft claim можно удалить. Исправление опубликованных данных — новый versionId, старый снимок сохраняется. Защита относится к обычному DML; владелец БД/superuser с правом менять DDL не является недоверенным runtime-пользователем. Разделение production DB roles — эксплуатационный этап.
 
-Source kind и evidence status независимы: официальное заявление не равно независимому тесту; пользовательское мнение не превращается в benchmark. Benchmark ссылается на точную модель и методику, не наследуется family/новой версией/приложением. STALE/CONDITIONAL/CONFLICTED сохраняются. Freshness scheduler и выбор активного reviewed каталога ещё не реализованы.
+Source kind и evidence status независимы: официальное заявление не равно независимому тесту; пользовательское мнение не превращается в benchmark. Benchmark ссылается на точную модель и методику, не наследуется family/новой версией/приложением. STALE/CONDITIONAL/CONFLICTED сохраняются. В P02 freshness scheduler и выбор active version отсутствовали; P03 ниже добавляет явную активацию и вычисление свежести при чтении. Фоновый scheduler по-прежнему не реализован.
 
 ## Demo isolation и граница P02
 
@@ -156,3 +159,33 @@ Source kind и evidence status независимы: официальное за
 3. **Связи и границы модулей.** `plan_model_access` и `plan_agent_access` — M:N; уникальны пары/режимы, не один plan_id или model_id. Одна модель доступна нескольким продуктам через их планы; один план допускает несколько моделей и агентов, что проверено PostgreSQL-тестами. Все 23 таблицы принадлежат каталогу и ссылаются только друг на друга; `user_need` — taxonomy, не пользовательский профиль. В production Java есть зависимость catalog → shared.money, обратных ссылок shared → catalog и зависимостей от identity/billing/portfolio нет. Число таблиц не создаёт отдельных модулей/сервисов. Измерение производительности будущих catalog queries ещё не выполнено; это не основание для структурного рефакторинга сейчас.
 
 В рамках этой проверки ошибок, требующих изменения production-кода или миграций, не выявлено. Добавлены только проверки недостающих архитектурных сценариев и пояснения. Механизм active version намеренно не реализован за границей P02.
+
+
+## P03: публикация и публичное чтение
+
+V1–V3 не изменены. V4 добавляет catalog_review (sealed hash), catalog_publication (append-only audit) и singleton catalog_active. В БД 26 таблиц каталога. P02 state=PUBLISHED по-прежнему означает sealed import; право public read появляется только после явной активации. Нет выбора latest timestamp.
+
+CatalogPublicationService блокирует singleton FOR UPDATE, сравнивает монотонную expected revision, записывает событие и обновляет pointer в одной транзакции. Несовпадение отклоняет конкурирующую команду, включая случай A→B→A. Rollback разрешён только на ранее активированный reviewed snapshot. Ошибка записи pointer откатывает уже вставленное событие, что проверяется fault-injection integration test. DB triggers защищают append-only review/history и единственную строку pointer; production privileged DB owner по-прежнему доверенный.
+
+CatalogReadService использует REPEATABLE_READ и выбранный UUID во всех запросах. Public version selector допускает только previously activated versions с действующей demo policy. Читаются нормализованные таблицы, не manifest_json. CatalogResource — закрытый список таблиц/колонок, DataClassRowMapper — стандартный Spring mapper record DTO; пользовательские значения передаются параметрами SQL. Public evidence/source records исключают reviewer, method и usage-rights notes. Detail возвращает связанные строки выбранного продукта, источники, effective freshness и отдельные стоимостные компоненты.
+
+Списки используют SQL limit/offset, кроме компактных evidence/source списков. Product detail загружает таблицы выбранного snapshot и фильтрует связи в памяти; manifest ограничен 10 000 строк на список. Для большего production-каталога нужно измерить эти запросы до оптимизации. Кеш между версиями не используется.
+
+CatalogCommand запускается только при явном --catalog-command; CompassApplication выбирает non-web mode, SecurityConfig применяется только к servlet application. Обычный сервер сохраняет CSRF и запрет записи. CatalogPolicy проверяется до CLI runner. scripts/catalog.sh не принимает SQL и не загружает URL; исходный manifest — только локальный файл до 5 MB.
+
+Источники начального manifest прочитаны вручную; pipeline не выполняет scraping. DATA_POLICY фиксирует неизвестные региональные цены, поля и срок свежести. OpenAPI и интерфейс каталога описаны ниже. Реализация не означает приёмки этапа владельцем.
+
+
+### Контракт и frontend
+
+`GET /api/v1/openapi` генерируется springdoc из реальных контроллеров, а не ручной спецификации. Schema ограничена `/api/v1/catalog/**`, относительный server `/` сохраняет same-origin. DTO records сериализуют все поля: OpenApiConfiguration отмечает их required, nullable размечен явно у допускающих null полей. BigDecimal стоимости публично передаются строками; UNKNOWN и отсутствие значения не превращаются в 0/false. Контракт 200 содержит конкретный DTO, 400/404 — общий публичный ApiProblem. Schema не содержит import/review/publish/rollback и внутренних reviewer/hash/manifest.
+
+ScaffoldIT получает схему настоящим HTTP-запросом с реальной PostgreSQL, проверяет её и сохраняет в target/openapi.json. `generate-api.sh` обновляет docs/openapi.json и генерируемые TS-типы/SDK/native-fetch client через закреплённый openapi-ts. `check.sh` независимо сравнивает backend schema, затем повторно генерирует клиент во временный ignored каталог и проверяет отсутствие diff. Prettier вызывается программно с путём `.ts`, чтобы вывод не зависел от subprocess/имени временного каталога. Генерируемый код проверяется TypeScript; ESLint исключает только generated файлы. Ручных DTO-копий нет.
+
+React Router: `/`, `/catalog`, `/catalog/:slug`, 404. TanStack Query кеширует данные по типу запроса, параметрам и versionId; список сначала получает meta, затем читает закреплённый snapshot. Детальные ссылки содержат version. Поиск/фильтры/пагинация выполняются API, параметры сохраняются в URL. Meta возвращает coverage summaries из того же snapshot. Фильтр возможностей учитывает assertions продукта и его тарифов. Loading/empty/error/retry и UNKNOWN отображаются явно; модели/агенты не выдаются за подписки. Тарифы показывают регион, валюту, base/upfront/annual equivalent, отдельные налоги/сборы, shared pools и eligibility. Каждое утверждение связано с evidence, effective status, датой и source URL. Синтетические массивы используются только в тестах.
+
+### Проверки P03
+
+Backend: unit + настоящая PostgreSQL; публикация/конкуренция/rollback/история, demo isolation, nullable money, freshness, публичные GET и запрет записи. Frontend: 18 UI-тестов, включая 11 каталога, с generated SDK и подменой HTTP только в unit tests. E2E: 11 браузерных тестов, включая 8 каталога, настоящий backend и CLI. Отдельный PostgreSQL запускается с tmpfs, случайным паролем и loopback-портом; постоянных volumes нет. Завершение останавливает только собственные процессы и контейнер. Dev data не изменяются. Проверяются три ширины, keyboard skip link, отсутствие горизонтального overflow/page errors, обновление/rollback, UNKNOWN/FREE и региональные суммы без конвертации.
+
+Playwright на Arch использует прежний Ubuntu 24.04 fallback; официальная поддержка Arch не заявляется. CI содержит отдельную загрузку закреплённого Chromium, но удалённый workflow ещё не выполнялся. Наличие workflow не является результатом CI. Полный accessibility/security/load audit и production DB role separation остаются задачами последующих этапов; текущие checks не заменяют их.

@@ -1,6 +1,7 @@
 package com.aicompass.compass.config;
 
 import com.aicompass.compass.shared.web.RequestIdFilter;
+import com.aicompass.compass.shared.web.ApiProblem;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import tools.jackson.databind.ObjectMapper;
 
 @Configuration
+@org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication(type = org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET)
 public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper mapper) throws Exception {
@@ -31,13 +33,11 @@ public class SecurityConfig {
             ObjectMapper mapper) throws IOException {
         response.setStatus(403);
         response.setContentType("application/problem+json");
-        mapper.writeValue(response.getOutputStream(), new AccessProblem("about:blank", "Forbidden", 403,
+        mapper.writeValue(response.getOutputStream(), new ApiProblem("about:blank", "Forbidden", 403,
                 "This request is not permitted.", request.getRequestURI(),
                 (String) request.getAttribute(RequestIdFilter.ATTRIBUTE)));
     }
 
-    private record AccessProblem(String type, String title, int status, String detail,
-            String instance, String requestId) { }
 
     @Bean
     UserDetailsService userDetailsService() {

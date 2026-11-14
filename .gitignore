@@ -14,3 +14,7 @@
 *.tsbuildinfo
 .idea/
 .vscode/
+
+frontend/openapi-ts-error-*.log
+
+**/__pycache__/

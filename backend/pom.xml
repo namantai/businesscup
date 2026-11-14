@@ -16,6 +16,7 @@
     <project.build.outputTimestamp>2026-11-14T00:00:00Z</project.build.outputTimestamp>
   </properties>
   <dependencies>
+    <dependency><groupId>org.springdoc</groupId><artifactId>springdoc-openapi-starter-webmvc-api</artifactId><version>3.2.0</version></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-webmvc</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-actuator</artifactId></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId></dependency>
@@ -30,7 +31,7 @@
   <build>
     <testResources>
       <testResource><directory>src/test/resources</directory></testResource>
-      <testResource><directory>../data</directory><targetPath>data</targetPath><includes><include>fixtures/*.json</include><include>schema/*.json</include></includes></testResource>
+      <testResource><directory>../data</directory><targetPath>data</targetPath><includes><include>fixtures/*.json</include><include>schema/*.json</include><include>catalog/*.json</include></includes></testResource>
     </testResources>
     <plugins>
       <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>

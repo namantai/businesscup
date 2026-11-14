@@ -1,4 +1,4 @@
-name: AI Compass local checks through P03
+name: AI Compass local beta checks through P11
 on:
   workflow_dispatch:
 permissions:

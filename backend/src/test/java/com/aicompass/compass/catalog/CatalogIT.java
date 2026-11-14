@@ -31,6 +31,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = "compass.catalog.allow-demo=true")
 @org.springframework.test.context.ActiveProfiles("test")
 @org.junit.jupiter.api.TestMethodOrder(org.junit.jupiter.api.MethodOrderer.OrderAnnotation.class)
@@ -78,9 +79,9 @@ class CatalogIT {
 
     @Test @Order(1)
     void migratesFreshDatabaseAndDoesNotAutoSeed() {
-        assertEquals(6, jdbc.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class));
+        assertEquals(11, jdbc.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class));
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM compass.catalog_version", Integer.class));
-        assertEquals(34, jdbc.queryForObject("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'compass'", Integer.class));
+        assertEquals(45, jdbc.queryForObject("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'compass'", Integer.class));
         flyway.validate();
         assertEquals(0, flyway.migrate().migrationsExecuted);
     }
@@ -92,7 +93,7 @@ class CatalogIT {
         assertEquals(json.read(input), importer.readPublishedArtifact(id));
         assertEquals(CLOCK.instant(), jdbc.queryForObject("SELECT published_at FROM compass.catalog_version WHERE id = ?", java.time.OffsetDateTime.class, id).toInstant());
     }
-    @Test void concurrentRetryCreatesOneSnapshot() throws Exception {
+    @org.junit.jupiter.api.RepeatedTest(5) void concurrentRetryCreatesOneSnapshot() throws Exception {
         String input = mutated(d -> d.put("versionId", UUID.randomUUID().toString()));
         try (var executor = Executors.newFixedThreadPool(2)) {
             var first = executor.submit(() -> importer.importManifest(input));

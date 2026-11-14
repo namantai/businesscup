@@ -1,3 +1,7 @@
+import { BillingPage, PricingPage } from '../billing/BillingPage';
+import { AdminPage } from '../monitoring/AdminPage';
+import { InboxPage } from '../monitoring/InboxPage';
+import { SubscriptionPage } from '../subscriptions/SubscriptionPage';
 import { useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -48,7 +52,12 @@ export function App() {
                 path="/reset-password"
                 element={<AuthPage key="reset" mode="reset" />}
               />
+              <Route path="/admin/catalog" element={<AdminPage />} />
+              <Route path="/notifications" element={<InboxPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/account/billing" element={<BillingPage />} />
               <Route path="/account" element={<AccountPage />} />
+              <Route path="/subscriptions" element={<SubscriptionPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/" element={<Home />} />
               <Route path="/onboarding" element={<BuilderPage />} />

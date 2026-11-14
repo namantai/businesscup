@@ -30,7 +30,7 @@ public final class PreviewLoadGuard extends OncePerRequestFilter {
         return true;
     }
     @Override protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().equals("/api/v1/recommendations/preview") && !request.getRequestURI().equals("/api/v1/auth/csrf");
+        return !request.getRequestURI().equals("/api/v1/recommendations/preview") && !request.getRequestURI().equals("/api/v1/auth/csrf") && !request.getRequestURI().equals("/api/v1/subscriptions/analyze");
     }
     @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
         response.setHeader("Cache-Control", "no-store");

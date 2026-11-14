@@ -22,7 +22,7 @@ for name in sorted(set(filter(None, names))):
     content = path.read_text(errors='replace')
     if any(re.search(pattern, content) for pattern in patterns) or (local_password and local_password in content):
         bad.append(name)
-    if path.name == '.env' or '.runtime' in path.parts or '.tools' in path.parts:
+    if (path.name.startswith('.env') and path.name != '.env.example') or any(part in {'.runtime','.tools','.cache','node_modules','target','dist','coverage','test-results','playwright-report','__pycache__'} for part in path.parts) or path.suffix in {'.log','.tsbuildinfo'}:
         bad.append(name)
 if bad:
     raise SystemExit('Potential secrets or private files (values redacted): ' + ', '.join(sorted(set(bad))))

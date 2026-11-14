@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import secrets
 import signal
+import sys
 import socket
 import subprocess
 import time
@@ -84,7 +85,7 @@ try:
     ready(f'http://127.0.0.1:{backend_port}/actuator/health/readiness', backend)
     frontend = start(['npm', 'run', 'dev', '--', '--host', '127.0.0.1', '--port', str(frontend_port)], ROOT / 'frontend', env, 'frontend')
     ready(f'http://127.0.0.1:{frontend_port}', frontend)
-    result = subprocess.run(['npm', 'run', 'test:e2e'], cwd=ROOT / 'frontend', env=env)
+    result = subprocess.run(['npm', 'run', 'test:e2e', '--', *sys.argv[1:]], cwd=ROOT / 'frontend', env=env)
     raise SystemExit(result.returncode)
 finally:
     for process in reversed(processes):

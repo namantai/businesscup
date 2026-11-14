@@ -1,4 +1,4 @@
-# Catalog data policy — P03
+# Catalog and personal data policy — local beta
 
 Runtime reads normalized PostgreSQL rows from an explicitly activated snapshot. Repository JSON is an import artifact, never the public runtime database. P02's `PUBLISHED` state means immutable/sealed; V4 review plus activation determines public visibility.
 
@@ -32,3 +32,19 @@ Operators are local trusted users with project DB access; a CLI actor string is 
 ## Benchmark and source usage rights
 
 This catalog contains no benchmark dataset, score or copied source article. URLs and short factual paraphrases support individual claims; access to a public page does not grant a license to republish its contents. Before importing benchmark data, record its license/version, attribution, redistribution/commercial-use restrictions and method in source usage-rights notes. Unclear rights block ingestion; they are not assumed permissive. Keep API benchmarks separate from product/subscription quality and tie results to the measured model/version. Legal review and permission for new external collection remain separate gates.
+
+## P08–P11 update: accounts, administration and local beta
+
+The earlier P03 paragraph about the absence of a public write API described that stage. There is now a session/CSRF-protected ADMIN draft → validate → review → publish API. Ordinary users and guests cannot mutate catalogs. Publication uses the same immutable snapshots and active-pointer revision checks; admin audit contains identifiers/actions, not private profiles. External source fetching remains OFF. No new market assertions were invented for P08–P11; synthetic test catalogs are confined to isolated test databases.
+
+Personal records include verified email/password hash, standard server sessions, saved needs/results/stacks, user-reported subscriptions, watches/notices, beta grants and a minimal grant audit. Price entries supplied by a user remain USER_REPORTED, not bank-confirmed. Reading a notification and applying it are separate actions; self-report is not a purchase or verified saving.
+
+Free/Premium changes do not delete owned data. Full export and deletion remain available without Premium. A user-confirmed deletion revokes sessions and cascades owned records, including beta audit and analytics; catalog/audit actor references become null where appropriate. No payment records or future billing obligations exist in this beta. A future PSP requires a separately reviewed cancellation/financial-retention design.
+
+Analytics is opt-in, account-linked (not anonymous), limited to three daily event presences: result saved, change notice acknowledged, consented account revisit. Server-confirmed saves/acknowledgements and a bounded revisit endpoint do not accept arbitrary event names or properties. Multiple actions on a day count once per event; these are user-days, not sessions, conversion, purchases or revenue. Guests are not tracked. Selection bias from opt-in users must be disclosed in any metrics. No external analytics service or payment event is present.
+
+Events are query-visible for 30 UTC days; daily purge bounds physical retention to approximately 31 days while running. On restart, purge starts after one minute; reads never reveal expired days. Withdrawal deletes events immediately; account deletion deletes consent/events. Export contains the user's current consent and visible daily events, no other user's identifiers. No profile contents, email, IP, tokens, sources or subscription amounts are stored in analytics.
+
+Local email remains a private development sink (directory 0700/files 0600) containing one-time secrets. It must not be copied to issue reports, screenshots or repositories. Working-mail cleanup/retention beyond existing account deletion and operator control is not production-ready. No real SMTP or notifications are sent. Monitoring outbox LOCAL_ONLY is not delivery confirmation.
+
+Privacy, terms, tax and content-license compliance are **NOT_VERIFIED**; this document records implementation behavior, not legal approval. Closed-beta recruitment/data collection and public hosting require the owner's review and separate authorization.

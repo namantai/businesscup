@@ -37,9 +37,10 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http,ObjectMapper mapper,Clock clock,JdbcTemplate jdbc,AuthRateLimiter rates,
             SecurityContextRepository contexts,CsrfTokenRepository csrf) throws Exception {
         return http.authorizeHttpRequests(a->a
-                .requestMatchers(HttpMethod.GET,"/actuator/health","/actuator/health/**","/api/v1/catalog/**","/api/v1/openapi","/api/v1/auth/csrf","/api/v1/auth/session").permitAll()
+                .requestMatchers(HttpMethod.GET,"/actuator/health","/actuator/health/**","/api/v1/catalog/**","/api/v1/billing/plans","/api/v1/openapi","/api/v1/auth/csrf","/api/v1/auth/session").permitAll()
                 .requestMatchers(HttpMethod.POST,"/api/v1/recommendations/preview","/api/v1/auth/register","/api/v1/auth/login","/api/v1/auth/verify","/api/v1/auth/verification/resend","/api/v1/auth/password/forgot","/api/v1/auth/password/reset").permitAll()
-                .requestMatchers("/api/v1/me","/api/v1/me/**","/api/v1/profiles","/api/v1/profiles/**","/api/v1/recommendations","/api/v1/recommendations/*","/api/v1/saved-stacks","/api/v1/saved-stacks/**").authenticated()
+                .requestMatchers("/api/v1/monitoring/**","/api/v1/subscriptions","/api/v1/subscriptions/**","/api/v1/me","/api/v1/me/**","/api/v1/profiles","/api/v1/profiles/**","/api/v1/recommendations","/api/v1/recommendations/*","/api/v1/saved-stacks","/api/v1/saved-stacks/**").authenticated()
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().denyAll())
                 .securityContext(c->c.securityContextRepository(contexts))
                 .csrf(c->c.csrfTokenRepository(csrf))
@@ -51,7 +52,7 @@ public class SecurityConfig {
                     .accessDeniedHandler((req,res,ex)->problem(req,res,mapper,403)))
                 .build();
     }
-    private static boolean isPrivate(HttpServletRequest r){String p=r.getRequestURI();return p.startsWith("/api/v1/me")||p.startsWith("/api/v1/profiles")||p.startsWith("/api/v1/saved-stacks")||p.startsWith("/api/v1/recommendations")&&!p.endsWith("/preview");}
+    private static boolean isPrivate(HttpServletRequest r){String p=r.getRequestURI();return p.startsWith("/api/v1/monitoring/")||p.startsWith("/api/v1/subscriptions")||p.startsWith("/api/v1/me")||p.startsWith("/api/v1/profiles")||p.startsWith("/api/v1/saved-stacks")||p.startsWith("/api/v1/recommendations")&&!p.endsWith("/preview");}
     private static void problem(HttpServletRequest req,HttpServletResponse res,ObjectMapper mapper,int status)throws IOException {
         res.setStatus(status);res.setContentType("application/problem+json");res.setHeader("Cache-Control","no-store");
         mapper.writeValue(res.getOutputStream(),new ApiProblem("about:blank",status==401?"Unauthorized":"Forbidden",status,"This request is not permitted.",req.getRequestURI(),(String)req.getAttribute(RequestIdFilter.ATTRIBUTE)));

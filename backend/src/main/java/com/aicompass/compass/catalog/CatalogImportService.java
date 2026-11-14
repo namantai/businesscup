@@ -39,10 +39,12 @@ public class CatalogImportService {
         String artifact = json.write(m);
         String hash = sha256(artifact);
         UUID version = m.versionId();
+        // Concurrent identical imports can race on either unique index (id or hash).
+        // Handle both, then verify the exact immutable id/hash below.
         int inserted = jdbc.update("""
                 INSERT INTO compass.catalog_version
                     (id, schema_version, dataset_kind, state, content_hash, as_of, reviewer, manifest_json)
-                VALUES (?, ?, ?, 'DRAFT', ?, ?, ?, ?) ON CONFLICT (id) DO NOTHING
+                VALUES (?, ?, ?, 'DRAFT', ?, ?, ?, ?) ON CONFLICT DO NOTHING
                 """, version, m.schemaVersion(), m.datasetKind().name(), hash, timestamp(m.asOf()), m.reviewer(), artifact);
         if (inserted == 0) {
             String existing = jdbc.queryForObject("SELECT content_hash FROM compass.catalog_version WHERE id = ? AND state = 'PUBLISHED'", String.class, version);

@@ -8,6 +8,9 @@ export function Navigation() {
       <NavLink to="/results">Результаты</NavLink>
       <NavLink to="/methodology">Как это работает</NavLink>
       <NavLink to="/dashboard">Мои сохранения</NavLink>
+      <NavLink to="/subscriptions">Мои подписки</NavLink>
+      <NavLink to="/notifications">Изменения</NavLink>
+      <NavLink to="/pricing">Free / Premium</NavLink>
       <NavLink to="/account">Аккаунт</NavLink>
     </nav>
   );

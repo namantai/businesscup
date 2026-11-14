@@ -46,14 +46,14 @@ class IdentityIT {
         context=new SpringApplicationBuilder(CompassApplication.class).profiles("test").run(
             "--server.port=0","--spring.datasource.url="+db.getJdbcUrl(),"--spring.datasource.username="+db.getUsername(),"--spring.datasource.password="+db.getPassword(),
             "--server.servlet.session.cookie.secure=false","--compass.catalog.allow-demo=true","--compass.identity.mail-directory="+mail,
-            "--logging.level.root=ERROR");
+            "--compass.monitoring.enabled=false","--logging.level.root=ERROR");
         base="http://127.0.0.1:"+((ServletWebServerApplicationContext)context).getWebServer().getPort()+"/api/v1";
         jdbc=context.getBean(JdbcTemplate.class);
     }
     @AfterAll void stop(){if(context!=null)context.close();if(db!=null)db.stop();}
     // Each independent scenario gets a real application lifecycle and its own in-memory preview rate window.
     // Rate-limit tests keep the same application within the scenario; production limits are unchanged.
-    @BeforeEach void rateWindow(){if(context!=null)context.close();startApp();jdbc.update("DELETE FROM compass.auth_rate");}
+    @BeforeEach void rateWindow(){if(context!=null)context.close();startApp();jdbc.update("DELETE FROM compass.auth_rate");jdbc.update("UPDATE compass.watched_stack SET active=false");jdbc.update("UPDATE compass.user_account SET role='USER'");}
     class Browser {
         final CookieManager cookies=new CookieManager(null,CookiePolicy.ACCEPT_ALL);
         final HttpClient client=HttpClient.newBuilder().cookieHandler(cookies).build();
@@ -86,7 +86,7 @@ class IdentityIT {
     void status(int expected,HttpResponse<String> response){assertEquals(expected,response.statusCode(),()->"HTTP "+response.statusCode()+" (response body withheld)");}
     @Test void flywayCreatesStandardSessionTablesAndNoAutomaticInitializer(){
         assertEquals("never",context.getEnvironment().getProperty("spring.session.jdbc.initialize-schema"));
-        assertEquals(List.of("1", "2", "3", "4", "5", "6"), jdbc.queryForList(
+        assertEquals(List.of("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"), jdbc.queryForList(
                 "SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank", String.class));
         context.getBean(org.flywaydb.core.Flyway.class).validate();
         assertEquals(2,jdbc.queryForObject("SELECT count(*) FROM flyway_schema_history WHERE version IN ('5','6') AND success",Integer.class));
@@ -315,6 +315,321 @@ class IdentityIT {
             assertEquals(7, codes.stream().filter(code -> code == 429).count());
             assertEquals(12, jdbc.queryForObject("SELECT attempts FROM compass.auth_rate WHERE bucket_hash=?", Integer.class, AuthRateLimiter.hash(key)));
         }
+    }
+
+    Object ledgerBody(long revision) {
+        return json.readTree("""
+            {"revision":%d,"terms":{"name":"Synthetic ledger","status":"ACTIVE","catalogVersion":null,"planId":null,"offerId":null,
+            "currency":"USD","amount":"12","priceOrigin":"USER_REPORTED","billingPeriod":"MONTH","renewalAnchor":"2026-11-14",
+            "nextRenewal":"2026-11-14","billingZone":"UTC","paidFrom":null,"paidUntil":null,"paidAmount":null,
+            "autoRenew":"YES","trialUntil":null,"obligation":"NONE","commitmentUntil":null,"cancellationAvailableFrom":"2026-11-14",
+            "additionalPerPeriod":"0","transitionCost":"0","mustKeep":false}}
+            """.formatted(revision));
+    }
+    @Test void subscriptionOwnershipCsrfRevisionsExportAndCascade()throws Exception {
+        String email=email();var a=signedIn(email);var b=signedIn(email());var guest=new Browser();
+        status(401,guest.call("GET","/subscriptions",null,false));
+        status(403,a.call("POST","/subscriptions",ledgerBody(0),false));
+        var created=a.call("POST","/subscriptions",ledgerBody(0),true);status(201,created);
+        String key=json.readTree(created.body()).get("id").asString(),path="/subscriptions/"+key;
+        status(404,b.call("GET",path,null,false));status(404,b.call("PATCH",path,ledgerBody(1),true));status(404,b.call("DELETE",path+"?revision=1",null,true));
+        status(409,a.call("POST","/subscriptions",ledgerBody(0),true));
+        status(200,a.call("PATCH",path,ledgerBody(1),true));status(409,a.call("PATCH",path,ledgerBody(1),true));
+        status(409,a.call("DELETE",path+"?revision=1",null,true));
+        var export=json.readTree(a.call("GET","/me/export",null,false).body());assertEquals(1,export.get("subscriptions").size());
+        assertEquals("USER_REPORTED",export.at("/subscriptions/0/terms/priceOrigin").asString());
+        status(204,a.call("DELETE",path+"?revision=2",null,true));
+        status(201,a.call("POST","/subscriptions",ledgerBody(0),true));
+        UUID owner=id(email);status(204,a.call("DELETE","/me",Map.of("password",password,"confirm",true),true));
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass.user_subscription WHERE owner_id=?",Integer.class,owner));
+        status(401,a.call("GET","/subscriptions",null,false));
+    }
+    @Test void subscriptionConcurrentUpdateOneWinnerAndDatabaseConstraints()throws Exception {
+        String email=email();var a=signedIn(email);var created=a.call("POST","/subscriptions",ledgerBody(0),true);status(201,created);
+        UUID key=UUID.fromString(json.readTree(created.body()).get("id").asString());String path="/subscriptions/"+key;
+        try(var pool=java.util.concurrent.Executors.newFixedThreadPool(2)){
+            var one=pool.submit(()->a.call("PATCH",path,ledgerBody(1),true).statusCode());
+            var two=pool.submit(()->a.call("PATCH",path,ledgerBody(1),true).statusCode());
+            assertEquals(List.of(200,409),java.util.stream.Stream.of(one.get(),two.get()).sorted().toList());
+        }
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,()->jdbc.update("UPDATE compass.user_subscription SET amount=-1 WHERE id=?",key));
+        assertThrows(org.springframework.dao.DataIntegrityViolationException.class,()->jdbc.update("UPDATE compass.user_subscription SET price_state='UNKNOWN' WHERE id=?",key));
+        var numeric=(tools.jackson.databind.node.ObjectNode)ledgerBody(0);((tools.jackson.databind.node.ObjectNode)numeric.get("terms")).put("amount",12);
+        status(400,a.call("POST","/subscriptions",numeric,true));
+        var injected=(tools.jackson.databind.node.ObjectNode)ledgerBody(0);injected.put("ownerId",id(email).toString());status(400,a.call("POST","/subscriptions",injected,true));
+    }
+    @Test void subscriptionComparisonPinsLedgerCatalogAndRateLimit()throws Exception {
+        var importer=context.getBean(CatalogImportService.class);var publication=context.getBean(CatalogPublicationService.class);
+        var doc=(tools.jackson.databind.node.ObjectNode)json.readTree(Files.readString(Path.of("../data/fixtures/recommendation-demo.json")));
+        UUID version=UUID.randomUUID();doc.put("versionId",version.toString());importer.importManifest(doc.toString());
+        publication.review(version,jdbc.queryForObject("SELECT content_hash FROM compass.catalog_version WHERE id=?",String.class,version),"p07-it");
+        publication.activate(version,publication.current().revision(),false,"p07-it","Isolated ledger comparison");
+        var a=signedIn(email());var created=a.call("POST","/subscriptions",ledgerBody(0),true);status(201,created);String key=json.readTree(created.body()).get("id").asString();
+        var p=(tools.jackson.databind.node.ObjectNode)profile();p.put("portfolioMode","REVIEW");
+        var input=Map.of("profile",p,"catalogVersion",version,"revisions",Map.of(key,1));
+        var compared=a.call("POST","/subscriptions/analyze",input,true);status(200,compared);
+        assertEquals(version.toString(),json.readTree(compared.body()).get("catalogVersion").asString());
+        assertEquals("144",json.readTree(compared.body()).at("/current/costs/horizonTotal").asString());
+        status(409,a.call("POST","/subscriptions/analyze",Map.of("profile",p,"catalogVersion",version,"revisions",Map.of()),true));
+        status(409,a.call("POST","/subscriptions/analyze",Map.of("profile",p,"catalogVersion",UUID.randomUUID(),"revisions",Map.of(key,1)),true));
+        for(int i=0;i<17;i++)status(200,a.call("POST","/subscriptions/analyze",input,true));
+        status(429,a.call("POST","/subscriptions/analyze",input,true));
+        assertEquals("no-store",compared.headers().firstValue("Cache-Control").orElseThrow());
+    }
+
+
+    Browser administrator() throws Exception {
+        String address=email(); var b=verified(address);
+        jdbc.update("UPDATE compass.user_account SET role='ADMIN' WHERE id=?",id(address));
+        status(200,b.call("POST","/auth/login",credentials(address),true)); b.csrf(); return b;
+    }
+    String adminManifest() throws Exception {
+        var doc=(tools.jackson.databind.node.ObjectNode)json.readTree(Files.readString(Path.of("../data/fixtures/recommendation-demo.json")));
+        doc.put("versionId",UUID.randomUUID().toString()); return doc.toString();
+    }
+    @Test void adminDraftWorkflowRequiresReviewAndKeepsPublishedDataImmutable() throws Exception {
+        var a=administrator(); String manifest=adminManifest();
+        var created=a.call("POST","/admin/catalog/drafts",Map.of("manifest",manifest,"revision",0),true);
+        status(200,created); String path="/admin/catalog/drafts/"+json.readTree(created.body()).get("id").asString();
+        long active=context.getBean(CatalogPublicationService.class).current().revision();
+        status(409,a.call("POST",path+"/actions",Map.of("action","PUBLISH","revision",1,"activeRevision",active),true));
+        status(200,a.call("POST",path+"/actions",Map.of("action","VALIDATE","revision",1,"activeRevision",active),true));
+        status(200,a.call("POST",path+"/actions",Map.of("action","REVIEW","revision",2,"activeRevision",active),true));
+        status(409,a.call("POST",path+"/actions",Map.of("action","PUBLISH","revision",3,"activeRevision",active+1),true));
+        status(200,a.call("POST",path+"/actions",Map.of("action","PUBLISH","revision",3,"activeRevision",active),true));
+        status(409,a.call("PATCH",path,Map.of("manifest",manifest,"revision",4),true));
+        status(409,a.call("POST",path+"/actions",Map.of("action","PUBLISH","revision",3,"activeRevision",active),true));
+        status(200,a.call("GET","/admin/catalog/queue",null,false));
+        assertTrue(json.readTree(a.call("GET","/admin/catalog/audit",null,false).body()).size()>=4);
+    }
+    @Test void adminRejectsUserCsrfAndInvalidManifestAndEditClearsApproval() throws Exception {
+        var u=signedIn(email());
+        status(403,u.call("GET","/admin/catalog/drafts",null,false));
+        status(403,u.call("POST","/admin/catalog/drafts",Map.of("manifest",adminManifest(),"revision",0),true));
+        var a=administrator();
+        status(403,a.call("POST","/admin/catalog/drafts",Map.of("manifest","{}","revision",0),false));
+        var created=a.call("POST","/admin/catalog/drafts",Map.of("manifest","{}","revision",0),true);
+        status(200,created);String path="/admin/catalog/drafts/"+json.readTree(created.body()).get("id").asString();
+        status(400,a.call("POST",path+"/actions",Map.of("action","VALIDATE","revision",1,"activeRevision",0),true));
+        status(200,a.call("PATCH",path,Map.of("manifest",adminManifest(),"revision",1),true));
+        status(200,a.call("POST",path+"/actions",Map.of("action","VALIDATE","revision",2,"activeRevision",0),true));
+        status(200,a.call("POST",path+"/actions",Map.of("action","REVIEW","revision",3,"activeRevision",0),true));
+        var edited=a.call("PATCH",path,Map.of("manifest",adminManifest(),"revision",4),true);status(200,edited);
+        assertEquals("DRAFT",json.readTree(edited.body()).get("state").asString());
+        status(409,a.call("POST",path+"/actions",Map.of("action","PUBLISH","revision",5,"activeRevision",0),true));
+    }
+
+    UUID publishFixture(tools.jackson.databind.node.ObjectNode doc) {
+        UUID version=UUID.randomUUID();doc.put("versionId",version.toString());
+        context.getBean(CatalogImportService.class).importManifest(doc.toString());
+        var pub=context.getBean(CatalogPublicationService.class);
+        pub.review(version,jdbc.queryForObject("SELECT content_hash FROM compass.catalog_version WHERE id=?",String.class,version),"monitor-test");
+        pub.activate(version,pub.current().revision(),false,"monitor-test","Synthetic change");return version;
+    }
+    String watchFixture(Browser browser,Object profile,UUID version) throws Exception {
+        UUID owner=UUID.fromString(json.readTree(browser.call("GET","/me",null,false).body()).get("id").asString());
+        // Synthetic pre-existing beta right; grant authorization is exercised separately below.
+        jdbc.update("INSERT INTO compass.beta_grant VALUES (?,now()+interval '1 day',false,1) ON CONFLICT DO NOTHING",owner);
+        var response=browser.call("POST","/recommendations/preview",profile,true);status(200,response);var r=json.readTree(response.body());
+        var saved=browser.call("POST","/recommendations",Map.of("profile",profile,"catalogVersion",version,"asOf",r.get("asOf").asString(),"engineVersion",r.get("engineVersion").asString(),"policyVersion",r.get("policyVersion").asString()),true);status(201,saved);
+        var snap=json.readTree(saved.body());assertFalse(snap.at("/result/bundles").isEmpty());
+        var stack=browser.call("POST","/saved-stacks",Map.of("snapshotId",snap.get("id").asString(),"bundleId",snap.at("/result/bundles/0/id").asString()),true);status(201,stack);
+        var watch=browser.call("POST","/monitoring/watches",Map.of("stackId",json.readTree(stack.body()).get("id").asString(),"emailOptIn",true,"consent",true),true);status(200,watch);
+        return json.readTree(watch.body()).get("id").asString();
+    }
+    @Test void monitoringOnlyImpactedOwnerGetsOneNoticeAndOutboxUnsubscribeIsConfirmed() throws Exception {
+        var doc=(tools.jackson.databind.node.ObjectNode)json.readTree(Files.readString(Path.of("../data/fixtures/recommendation-demo.json")));
+        UUID version=publishFixture(doc);var a=signedIn(email());var b=signedIn(email());
+        var editor=(tools.jackson.databind.node.ObjectNode)json.readTree(Files.readString(Path.of("../data/fixtures/profiles/editor.json")));editor.putNull("asOf");
+        String watch=watchFixture(a,editor,version);watchFixture(b,profile(),version);
+        for(var offer:doc.get("priceOffers"))if(offer.get("id").asString().equals("creator-offer"))((tools.jackson.databind.node.ObjectNode)offer).put("amount","18").put("upfrontAmount","18");
+        publishFixture(doc);
+        var monitor=context.getBean(com.aicompass.compass.monitoring.MonitoringService.class);
+        assertEquals(2,monitor.enqueue());assertEquals(0,monitor.enqueue());
+        for(int n=0;n<2;n++){var job=monitor.claim();assertNotNull(job);monitor.process(job);monitor.process(job);}
+        var notices=json.readTree(a.call("GET","/monitoring/notices",null,false).body());assertEquals(1,notices.size());
+        assertEquals(0,json.readTree(b.call("GET","/monitoring/notices",null,false).body()).size());
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM compass.monitor_job WHERE publication_revision=? AND recomputed",Integer.class,context.getBean(CatalogPublicationService.class).current().revision()));
+        String notice=notices.get(0).get("id").asString();
+        assertFalse(notices.get(0).at("/comparison/changes").isEmpty());
+        status(404,b.call("PATCH","/monitoring/notices/"+notice,Map.of("appliedSelfReported",true),true));
+        status(403,a.call("PATCH","/monitoring/notices/"+notice,Map.of("appliedSelfReported",true),false));
+        status(200,a.call("PATCH","/me/analytics",Map.of("enabled",true,"confirm",true),true));
+        status(200,a.call("PATCH","/monitoring/notices/"+notice,Map.of("appliedSelfReported",true),true));
+        assertEquals(List.of("CHANGE_NOTICE_VIEWED"),jdbc.queryForList("SELECT event_name FROM compass.product_event WHERE owner_id=?",String.class,jdbc.queryForObject("SELECT owner_id FROM compass.watched_stack WHERE id=CAST(? AS uuid)",UUID.class,watch)));
+        status(404,b.call("PATCH","/monitoring/watches/"+watch,Map.of("active",false,"emailOptIn",false,"confirm",true),true));
+        status(400,a.call("PATCH","/monitoring/watches/"+watch,Map.of("active",false,"emailOptIn",false,"confirm",false),true));
+        status(200,a.call("PATCH","/monitoring/watches/"+watch,Map.of("active",false,"emailOptIn",false,"confirm",true),true));
+        assertEquals("CANCELLED",jdbc.queryForObject("SELECT state FROM compass.notification_outbox WHERE notice_id=CAST(? AS uuid)",String.class,notice));
+        var export=a.call("GET","/me/export",null,false);status(200,export);
+        assertEquals(1,json.readTree(export.body()).get("watches").size());
+        assertEquals(1,json.readTree(export.body()).get("notices").size());
+        // Seed a historical page boundary in this isolated fixture. Live delivery was exercised above.
+        var publication=context.getBean(CatalogPublicationService.class);UUID latest=publication.current().versionId();
+        for(int i=0;i<100;i++) {
+            var event=publication.activate(i%2==0?version:latest,publication.current().revision(),false,"history-test","Synthetic history");
+            jdbc.update("INSERT INTO compass.change_notice(id,owner_id,watch_id,publication_revision,payload) SELECT ?,owner_id,watch_id,?,payload FROM compass.change_notice WHERE id=CAST(? AS uuid)",UUID.randomUUID(),event.revision(),notice);
+        }
+        assertEquals(100,json.readTree(a.call("GET","/monitoring/notices",null,false).body()).size());
+        assertEquals(101,json.readTree(a.call("GET","/me/export",null,false).body()).get("notices").size());
+        UUID owner=UUID.fromString(json.readTree(a.call("GET","/me",null,false).body()).get("id").asString());
+        status(204,a.call("DELETE","/me",Map.of("password",password,"confirm",true),true));
+        for(String table:List.of("watched_stack","change_notice"))assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass."+table+" WHERE owner_id=?",Integer.class,owner));
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass.monitor_job WHERE watch_id=CAST(? AS uuid)",Integer.class,watch));
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass.notification_outbox WHERE notice_id=CAST(? AS uuid)",Integer.class,notice));
+    }
+    @Test void monitoringCrashLeaseRecoveryRetriesAndFencesOldWorkers() throws Exception {
+        var doc=(tools.jackson.databind.node.ObjectNode)json.readTree(Files.readString(Path.of("../data/fixtures/recommendation-demo.json")));
+        UUID version=publishFixture(doc);var a=signedIn(email());String watch=watchFixture(a,profile(),version);publishFixture(doc);
+        var monitor=context.getBean(com.aicompass.compass.monitoring.MonitoringService.class);monitor.enqueue();
+        // Isolate this test's job; prior completed watch fixtures can also receive publications.
+        jdbc.update("UPDATE compass.monitor_job SET state='DONE' WHERE watch_id<>CAST(? AS uuid)",watch);
+        var abandoned=monitor.claim();assertNotNull(abandoned);assertNull(monitor.claim());
+        jdbc.update("UPDATE compass.monitor_job SET lease_until=now()-interval '1 second' WHERE id=?",abandoned.id());
+        var recovered=monitor.claim();assertEquals(abandoned.id(),recovered.id());assertNotEquals(abandoned.token(),recovered.token());
+        monitor.process(abandoned);assertEquals("RUNNING",jdbc.queryForObject("SELECT state FROM compass.monitor_job WHERE id=?",String.class,recovered.id()));
+        monitor.retry(recovered);assertNull(monitor.claim());
+        jdbc.update("UPDATE compass.monitor_job SET available_at=now()-interval '1 second' WHERE id=?",recovered.id());
+        var retried=monitor.claim();monitor.process(retried);assertNull(monitor.claim());
+        assertEquals(0,json.readTree(a.call("GET","/monitoring/notices",null,false).body()).size());
+        assertEquals(3,jdbc.queryForObject("SELECT attempts FROM compass.monitor_job WHERE id=?",Integer.class,retried.id()));
+        jdbc.update("UPDATE compass.monitor_job SET state='READY',attempts=4,available_at=now()-interval '1 second' WHERE id=?",retried.id());
+        var finalAttempt=monitor.claim();monitor.retry(finalAttempt);assertNull(monitor.claim());
+        assertEquals("FAILED",jdbc.queryForObject("SELECT state FROM compass.monitor_job WHERE id=?",String.class,retried.id()));
+    }
+
+    @Test void adminDraftSizeLimitCountsUtf8BytesBeforeDatabaseConstraint() throws Exception {
+        var a=administrator();
+        status(413,a.call("POST","/admin/catalog/drafts",Map.of("manifest","я".repeat(2600000),"revision",0),true));
+    }
+    Map<String,Object> grant(String action,int days,long revision,UUID key) {
+        return Map.of("action",action,"days",days,"expectedRevision",revision,"requestId",key);
+    }
+    @Test void betaGrantAuthorizationCsrfStrictJsonAndFakeSuccessNeverGrantRights() throws Exception {
+        String address=email();var user=signedIn(address);var other=signedIn(email());var admin=administrator();
+        String route="/admin/entitlements/"+id(address);var input=grant("GRANT",7,0,UUID.randomUUID());
+        status(403,user.call("POST",route,input,true));status(403,other.call("GET",route,null,false));
+        status(403,admin.call("POST",route,input,false));
+        var injected=new HashMap<String,Object>(input);injected.put("plan","PREMIUM");status(400,admin.call("POST",route,injected,true));
+        injected.remove("plan");injected.put("price","0");status(400,admin.call("POST",route,injected,true));
+        status(400,admin.call("POST",route,grant("GRANT",91,0,UUID.randomUUID()),true));
+        status(403,user.call("POST","/billing/success",Map.of("premium",true),true));
+        assertEquals("FREE",json.readTree(user.call("GET","/me/entitlements?success=true&plan=PREMIUM",null,false).body()).get("plan").asString());
+        status(403,user.call("POST","/monitoring/watches",Map.of("stackId",UUID.randomUUID(),"emailOptIn",false,"consent",true),true));
+        status(200,admin.call("POST",route,input,true));
+        assertEquals("PREMIUM",json.readTree(user.call("GET","/me",null,false).body()).get("plan").asString());
+        assertEquals("FREE",json.readTree(other.call("GET","/me/entitlements",null,false).body()).get("plan").asString());
+        status(204,user.call("POST","/auth/logout",null,true));status(401,user.call("GET","/me/entitlements",null,false));
+    }
+    @Test void betaConcurrentGrantsReplayRevocationExpirationAndProfileLimits() throws Exception {
+        String address=email();var user=signedIn(address);var admin=administrator();UUID owner=id(address);
+        String route="/admin/entitlements/"+owner;var first=grant("GRANT",7,0,UUID.randomUUID());var second=grant("GRANT",14,0,UUID.randomUUID());
+        try(var pool=java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var a=pool.submit(()->admin.call("POST",route,first,true).statusCode());
+            var b=pool.submit(()->admin.call("POST",route,second,true).statusCode());
+            var codes=List.of(a.get(),b.get());assertTrue(codes.contains(200)&&codes.contains(409));
+        }
+        UUID key=jdbc.queryForObject("SELECT request_id FROM compass.beta_grant_audit WHERE owner_id=?",UUID.class,owner);
+        var winner=key.equals(first.get("requestId"))?first:second;
+        status(200,admin.call("POST",route,winner,true));assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM compass.beta_grant_audit WHERE owner_id=?",Integer.class,owner));
+        Object profile=profile();var body=Map.of("name","Beta profile","profile",profile,"revision",0);
+        for(int n=0;n<4;n++)status(201,user.call("POST","/profiles",body,true));
+        try(var pool=java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var a=pool.submit(()->user.call("POST","/profiles",body,true).statusCode());
+            var b=pool.submit(()->user.call("POST","/profiles",body,true).statusCode());
+            var codes=List.of(a.get(),b.get());assertTrue(codes.contains(201)&&codes.contains(409));
+        }
+        status(200,admin.call("POST",route,grant("REVOKE",0,1,UUID.randomUUID()),true));
+        status(200,admin.call("POST",route,winner,true)); // old replay must not reactivate
+        assertEquals("FREE",json.readTree(user.call("GET","/me/entitlements",null,false).body()).get("plan").asString());
+        status(409,user.call("POST","/profiles",body,true));
+        status(200,admin.call("POST",route,grant("GRANT",1,2,UUID.randomUUID()),true));
+        jdbc.update("UPDATE compass.beta_grant SET expires_at=now()-interval '1 second' WHERE owner_id=?",owner);
+        var rights=json.readTree(user.call("GET","/me/entitlements",null,false).body());assertEquals("EXPIRED",rights.get("grantState").asString());assertEquals("FREE",rights.get("plan").asString());
+        status(403,user.call("POST","/monitoring/watches",Map.of("stackId",UUID.randomUUID(),"emailOptIn",false,"consent",true),true));
+        var exported=json.readTree(user.call("GET","/me/export",null,false).body());assertEquals(5,exported.get("profiles").size());assertEquals(3,exported.get("entitlementAudit").size());
+        status(204,user.call("DELETE","/me",Map.of("password",password,"confirm",true),true));
+        for(String table:List.of("beta_grant","beta_grant_audit"))assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass."+table+" WHERE owner_id=?",Integer.class,owner));
+    }
+    @Test void betaHistoryIsServerGatedButExportRemainsCompleteAfterExpiry() throws Exception {
+        var doc=(tools.jackson.databind.node.ObjectNode)json.readTree(Files.readString(Path.of("../data/fixtures/recommendation-demo.json")));
+        UUID version=publishFixture(doc);String address=email();var user=signedIn(address);var other=signedIn(email());var admin=administrator();
+        Object p=profile();var preview=json.readTree(user.call("POST","/recommendations/preview",p,true).body());
+        var body=Map.of("profile",p,"catalogVersion",version,"asOf",preview.get("asOf").asString(),"engineVersion",preview.get("engineVersion").asString(),"policyVersion",preview.get("policyVersion").asString());
+        var first=user.call("POST","/recommendations",body,true);status(201,first);String old=json.readTree(first.body()).get("id").asString();
+        status(201,user.call("POST","/recommendations",body,true));
+        assertEquals(1,json.readTree(user.call("GET","/recommendations",null,false).body()).size());
+        status(403,user.call("GET","/recommendations/"+old,null,false));status(404,other.call("GET","/recommendations/"+old,null,false));
+        status(200,admin.call("POST","/admin/entitlements/"+id(address),grant("GRANT",1,0,UUID.randomUUID()),true));
+        assertEquals(2,json.readTree(user.call("GET","/recommendations",null,false).body()).size());status(200,user.call("GET","/recommendations/"+old,null,false));
+        jdbc.update("UPDATE compass.beta_grant SET expires_at=now()-interval '1 second' WHERE owner_id=?",id(address));
+        status(403,user.call("GET","/recommendations/"+old,null,false));
+        assertEquals(2,json.readTree(user.call("GET","/me/export",null,false).body()).get("recommendations").size());
+        status(204,user.call("DELETE","/recommendations/"+old,null,true));
+    }
+    @Test void revokedOrExpiredBetaStopsClaimedMonitoringJobAndCancelsOutbox() throws Exception {
+        var doc=(tools.jackson.databind.node.ObjectNode)json.readTree(Files.readString(Path.of("../data/fixtures/recommendation-demo.json")));
+        UUID version=publishFixture(doc);String address=email();var user=signedIn(address);String watch=watchFixture(user,profile(),version);
+        publishFixture(doc);var monitor=context.getBean(com.aicompass.compass.monitoring.MonitoringService.class);monitor.enqueue();
+        jdbc.update("UPDATE compass.monitor_job SET state='DONE' WHERE watch_id<>CAST(? AS uuid)",watch);
+        var job=monitor.claim();assertNotNull(job);
+        var admin=administrator();status(200,admin.call("POST","/admin/entitlements/"+id(address),grant("REVOKE",0,1,UUID.randomUUID()),true));
+        monitor.process(job);assertEquals("DONE",jdbc.queryForObject("SELECT state FROM compass.monitor_job WHERE id=?",String.class,job.id()));
+        assertFalse(jdbc.queryForObject("SELECT recomputed FROM compass.monitor_job WHERE id=?",Boolean.class,job.id()));
+        assertFalse(json.readTree(user.call("GET","/monitoring/watches",null,false).body()).get(0).get("effectiveActive").asBoolean());
+        status(403,user.call("PATCH","/monitoring/watches/"+watch,Map.of("active",true,"emailOptIn",false,"confirm",true),true));
+        status(200,user.call("PATCH","/monitoring/watches/"+watch,Map.of("active",false,"emailOptIn",false,"confirm",true),true));
+        assertEquals(0,json.readTree(user.call("GET","/monitoring/notices",null,false).body()).size());
+    }
+
+    @Test void analyticsOptInStrictFieldsOwnershipWithdrawalAndDelete() throws Exception {
+        String address=email();var a=signedIn(address);var b=signedIn(email());UUID owner=id(address);
+        assertFalse(json.readTree(a.call("GET","/me/analytics",null,false).body()).get("enabled").asBoolean());
+        status(200,a.call("POST","/me/analytics/revisit",Map.of("confirm",true),true));
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass.product_event WHERE owner_id=?",Integer.class,owner));
+        status(403,a.call("PATCH","/me/analytics",Map.of("enabled",true,"confirm",true),false));
+        status(400,a.call("PATCH","/me/analytics",Map.of("enabled",true,"confirm",false),true));
+        status(400,a.call("PATCH","/me/analytics",Map.of("enabled",true,"confirm",true,"email",address),true));
+        status(200,a.call("PATCH","/me/analytics",Map.of("enabled",true,"confirm",true),true));
+        status(400,a.call("POST","/me/analytics/revisit",Map.of("confirm",true,"event","PAYMENT_CONFIRMED"),true));
+        for(int n=0;n<2;n++)status(200,a.call("POST","/me/analytics/revisit",Map.of("confirm",true),true));
+        assertEquals(1,json.readTree(a.call("GET","/me/analytics",null,false).body()).get("events").size());
+        assertEquals(0,json.readTree(b.call("GET","/me/analytics?owner="+owner,null,false).body()).get("events").size());
+        assertEquals(1,json.readTree(a.call("GET","/me/export",null,false).body()).at("/analytics/events").size());
+        status(200,a.call("PATCH","/me/analytics",Map.of("enabled",false,"confirm",true),true));
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass.product_event WHERE owner_id=?",Integer.class,owner));
+        status(200,a.call("PATCH","/me/analytics",Map.of("enabled",true,"confirm",true),true));
+        status(200,a.call("POST","/me/analytics/revisit",Map.of("confirm",true),true));
+        status(204,a.call("DELETE","/me",Map.of("password",password,"confirm",true),true));
+        for(String table:List.of("analytics_consent","product_event"))assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass."+table+" WHERE owner_id=?",Integer.class,owner));
+    }
+    @Test void analyticsConcurrencyDoesNotOutrunWithdrawalAndRetentionPurgesOldDays() throws Exception {
+        String address=email();var a=signedIn(address);UUID owner=id(address);
+        status(200,a.call("PATCH","/me/analytics",Map.of("enabled",true,"confirm",true),true));
+        try(var pool=java.util.concurrent.Executors.newFixedThreadPool(2)) {
+            var record=pool.submit(()->a.call("POST","/me/analytics/revisit",Map.of("confirm",true),true).statusCode());
+            var withdraw=pool.submit(()->a.call("PATCH","/me/analytics",Map.of("enabled",false,"confirm",true),true).statusCode());
+            assertEquals(200,record.get());assertEquals(200,withdraw.get());
+        }
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass.product_event WHERE owner_id=?",Integer.class,owner));
+        status(200,a.call("PATCH","/me/analytics",Map.of("enabled",true,"confirm",true),true));
+        status(200,a.call("POST","/me/analytics/revisit",Map.of("confirm",true),true));
+        jdbc.update("INSERT INTO compass.product_event VALUES (?,'REVISIT',current_date-40)",owner);
+        assertEquals(1,json.readTree(a.call("GET","/me/analytics",null,false).body()).get("events").size());
+        context.getBean(com.aicompass.compass.analytics.UsageAnalyticsService.class).purgeExpired();
+        assertEquals(1,jdbc.queryForObject("SELECT count(*) FROM compass.product_event WHERE owner_id=?",Integer.class,owner));
+    }
+    @Test void analyticsRecordsServerConfirmedSaveOnlyAfterConsentWithoutProfilePayload() throws Exception {
+        var doc=(tools.jackson.databind.node.ObjectNode)json.readTree(Files.readString(Path.of("../data/fixtures/recommendation-demo.json")));
+        UUID version=publishFixture(doc);String address=email();var a=signedIn(address);Object p=profile();
+        var preview=json.readTree(a.call("POST","/recommendations/preview",p,true).body());
+        var body=Map.of("profile",p,"catalogVersion",version,"asOf",preview.get("asOf").asString(),"engineVersion",preview.get("engineVersion").asString(),"policyVersion",preview.get("policyVersion").asString());
+        status(201,a.call("POST","/recommendations",body,true));
+        assertEquals(0,jdbc.queryForObject("SELECT count(*) FROM compass.product_event WHERE owner_id=?",Integer.class,id(address)));
+        status(200,a.call("PATCH","/me/analytics",Map.of("enabled",true,"confirm",true),true));
+        status(201,a.call("POST","/recommendations",body,true));status(201,a.call("POST","/recommendations",body,true));
+        assertEquals(List.of("RESULT_SAVED"),jdbc.queryForList("SELECT event_name FROM compass.product_event WHERE owner_id=?",String.class,id(address)));
+        assertEquals(List.of("owner_id","event_name","event_day"),jdbc.queryForList("SELECT column_name FROM information_schema.columns WHERE table_schema='compass' AND table_name='product_event' ORDER BY ordinal_position",String.class));
     }
 
 }

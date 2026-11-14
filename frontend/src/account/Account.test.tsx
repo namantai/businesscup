@@ -103,6 +103,8 @@ beforeEach(() => {
         );
       }
       if (path.endsWith('/profiles')) return response(savedProfiles);
+      if (path.endsWith('/me/analytics'))
+        return response({ enabled: false, retentionDays: 30, events: [] });
       if (path.endsWith('/recommendations') || path.endsWith('/saved-stacks'))
         return response([]);
       if (path.endsWith('/me/export'))
@@ -289,4 +291,34 @@ test('switching account clears the previous account draft and result', async () 
   await waitFor(() =>
     expect(screen.queryByText('Сохранить в аккаунт')).not.toBeInTheDocument(),
   );
+});
+test('Premium creates a separate profile without overwriting an existing profile', async () => {
+  account = { ...userAccount, plan: 'PREMIUM' };
+  savedProfiles = [
+    {
+      id: 'profile-a',
+      name: 'Existing',
+      profile: profile(),
+      revision: 3,
+      createdAt: userAccount.createdAt,
+      updatedAt: userAccount.createdAt,
+    },
+  ];
+  fixture();
+  await userEvent.click(screen.getByRole('button', { name: 'Load fixture' }));
+  await userEvent.selectOptions(
+    await screen.findByLabelText('Как сохранить профиль'),
+    'NEW',
+  );
+  await userEvent.click(
+    screen.getByLabelText(
+      'Подтверждаю сохранение указанных параметров в этот аккаунт',
+    ),
+  );
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Сохранить профиль' }),
+  );
+  await screen.findByText('Профиль сохранён в аккаунте.');
+  expect(requests[0].path).toBe('/api/v1/profiles');
+  expect(requests[0].body.revision).toBe(0);
 });

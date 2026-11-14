@@ -34,7 +34,7 @@ public class OpenApiConfiguration {
                     .type(io.swagger.v3.oas.models.security.SecurityScheme.Type.APIKEY)
                     .in(io.swagger.v3.oas.models.security.SecurityScheme.In.COOKIE).name("SESSION"));
             api.getPaths().forEach((path, item) -> {
-                boolean personal = path.startsWith("/api/v1/me") || path.startsWith("/api/v1/profiles")
+                boolean personal = path.startsWith("/api/v1/monitoring/") || path.startsWith("/api/v1/admin/") || path.startsWith("/api/v1/subscriptions") || path.startsWith("/api/v1/me") || path.startsWith("/api/v1/profiles")
                         || path.startsWith("/api/v1/saved-stacks")
                         || path.startsWith("/api/v1/recommendations") && !path.endsWith("/preview");
                 if (!personal && !path.startsWith("/api/v1/auth/")) return;

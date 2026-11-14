@@ -21,6 +21,7 @@ import java.util.concurrent.*;
 import static com.aicompass.compass.recommendation.EngineFixtures.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT,properties={"compass.catalog.allow-demo=true","server.servlet.session.cookie.secure=false"})
 @ActiveProfiles("test")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)

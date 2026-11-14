@@ -15,14 +15,18 @@ import static com.aicompass.compass.portfolio.PortfolioDtos.*;
 @RestController
 @RequestMapping(value="/api/v1",produces="application/json")
 public class PortfolioController {
+    private final com.aicompass.compass.billing.EntitlementService entitlements;
+    private final com.aicompass.compass.monitoring.MonitoringService monitoring;
+    private final com.aicompass.compass.analytics.UsageAnalyticsService analytics;
+    private final SubscriptionService subscriptions;
     private final PortfolioService portfolio;
     private final IdentityService identity;
     private final IdentityJson json;
     private final AuthRateLimiter rates;
-    public PortfolioController(PortfolioService portfolio,IdentityService identity,IdentityJson json,AuthRateLimiter rates){this.portfolio=portfolio;this.identity=identity;this.json=json;this.rates=rates;}
+    public PortfolioController(com.aicompass.compass.analytics.UsageAnalyticsService analytics,com.aicompass.compass.billing.EntitlementService entitlements,com.aicompass.compass.monitoring.MonitoringService monitoring,SubscriptionService subscriptions,PortfolioService portfolio,IdentityService identity,IdentityJson json,AuthRateLimiter rates){this.analytics=analytics;this.entitlements=entitlements;this.monitoring=monitoring;this.subscriptions=subscriptions;this.portfolio=portfolio;this.identity=identity;this.json=json;this.rates=rates;}
     private UUID owner(Principal principal){return UUID.fromString(principal.getName());}
     @GetMapping("/me") public AuthDtos.Account me(Principal p){return identity.account(owner(p));}
-    @GetMapping("/me/export") public DataExport export(Principal p){UUID id=owner(p);return new DataExport(identity.account(id),portfolio.profiles(id),portfolio.recommendations(id),portfolio.stacks(id));}
+    @GetMapping("/me/export") public DataExport export(Principal p){UUID id=owner(p);return new DataExport(identity.account(id),portfolio.profiles(id),portfolio.recommendations(id),portfolio.stacks(id),subscriptions.subscriptions(id),monitoring.watches(id),monitoring.exportNotices(id),entitlements.current(id),entitlements.audit(id),analytics.preferences(id));}
     @DeleteMapping(value="/me",consumes="application/json") @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(requestBody=@io.swagger.v3.oas.annotations.parameters.RequestBody(content=@Content(schema=@Schema(implementation=AuthDtos.DeleteRequest.class))))
     public void deleteAccount(Principal p,@RequestBody String body,HttpServletRequest req,HttpServletResponse res){var in=json.read(body,AuthDtos.DeleteRequest.class);rates.take("delete:"+p.getName(),5);identity.delete(owner(p),in.password());new SecurityContextLogoutHandler().logout(req,res,SecurityContextHolder.getContext().getAuthentication());}
@@ -35,8 +39,8 @@ public class PortfolioController {
     @Operation(requestBody=@io.swagger.v3.oas.annotations.parameters.RequestBody(content=@Content(schema=@Schema(implementation=ProfileWrite.class))))
     public SavedProfile updateProfile(Principal p,@PathVariable UUID id,@RequestBody String body){return portfolio.update(owner(p),id,json.read(body,ProfileWrite.class));}
     @DeleteMapping("/profiles/{id}") @ResponseStatus(HttpStatus.NO_CONTENT) public void deleteProfile(Principal p,@PathVariable UUID id){portfolio.deleteProfile(owner(p),id);}
-    @GetMapping("/recommendations") public List<SavedRecommendation> savedRecommendations(Principal p){return portfolio.recommendations(owner(p));}
-    @GetMapping("/recommendations/{id}") public SavedRecommendation savedRecommendation(Principal p,@PathVariable UUID id){return portfolio.recommendation(owner(p),id);}
+    @GetMapping("/recommendations") public List<SavedRecommendation> savedRecommendations(Principal p){return portfolio.visibleRecommendations(owner(p));}
+    @GetMapping("/recommendations/{id}") public SavedRecommendation savedRecommendation(Principal p,@PathVariable UUID id){return portfolio.visibleRecommendation(owner(p),id);}
     @PostMapping(value="/recommendations",consumes="application/json") @ResponseStatus(HttpStatus.CREATED)
     @Operation(requestBody=@io.swagger.v3.oas.annotations.parameters.RequestBody(content=@Content(schema=@Schema(implementation=SnapshotWrite.class))))
     public SavedRecommendation saveRecommendation(Principal p,@RequestBody String body){rates.take("save:"+p.getName(),20);return portfolio.save(owner(p),json.read(body,SnapshotWrite.class));}

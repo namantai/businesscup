@@ -15,7 +15,12 @@ public class IdentityJson {
             .enable(StreamReadFeature.STRICT_DUPLICATE_DETECTION)
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES,
                     DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, DeserializationFeature.FAIL_ON_TRAILING_TOKENS)
-            .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS).build();
+            .disable(MapperFeature.ALLOW_COERCION_OF_SCALARS)
+            .withCoercionConfig(tools.jackson.databind.type.LogicalType.Textual, c -> c
+                    .setCoercion(tools.jackson.databind.cfg.CoercionInputShape.Integer, tools.jackson.databind.cfg.CoercionAction.Fail)
+                    .setCoercion(tools.jackson.databind.cfg.CoercionInputShape.Float, tools.jackson.databind.cfg.CoercionAction.Fail)
+                    .setCoercion(tools.jackson.databind.cfg.CoercionInputShape.Boolean, tools.jackson.databind.cfg.CoercionAction.Fail))
+            .build();
     public IdentityJson(Validator validator) { this.validator = validator; }
     public <T> T read(String body, Class<T> type) {
         try {

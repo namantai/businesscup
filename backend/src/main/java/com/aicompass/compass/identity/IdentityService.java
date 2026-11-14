@@ -18,19 +18,20 @@ import static com.aicompass.compass.identity.AuthDtos.*;
 
 @Service
 public class IdentityService {
+    private final com.aicompass.compass.billing.EntitlementService entitlements;
     private final JdbcTemplate jdbc;
     private final PasswordEncoder passwords;
     private final AuthenticationManager authentication;
     private final LocalMailSink mail;
     private final Clock clock;
     private final SecureRandom random = new SecureRandom();
-    public IdentityService(JdbcTemplate jdbc, PasswordEncoder passwords, AuthenticationManager authentication, LocalMailSink mail, Clock clock) {
-        this.jdbc=jdbc; this.passwords=passwords; this.authentication=authentication; this.mail=mail; this.clock=clock;
+    public IdentityService(com.aicompass.compass.billing.EntitlementService entitlements, JdbcTemplate jdbc, PasswordEncoder passwords, AuthenticationManager authentication, LocalMailSink mail, Clock clock) {
+        this.entitlements=entitlements; this.jdbc=jdbc; this.passwords=passwords; this.authentication=authentication; this.mail=mail; this.clock=clock;
     }
     public static String normalize(String email) { return email.strip().toLowerCase(Locale.ROOT); }
     public record LoginIdentity(UUID id, String role, long credentialVersion) {}
     public Account account(UUID id) {
-        return jdbc.query("SELECT * FROM compass.user_account WHERE id=?", (r,n) -> new Account(id,r.getString("email"),r.getString("role"),r.getTimestamp("verified_at")!=null,"FREE",r.getTimestamp("created_at").toInstant()), id)
+        return jdbc.query("SELECT * FROM compass.user_account WHERE id=?", (r,n) -> new Account(id,r.getString("email"),r.getString("role"),r.getTimestamp("verified_at")!=null,entitlements.current(id).plan(),r.getTimestamp("created_at").toInstant()), id)
                 .stream().findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authentication required"));
     }
     @Transactional
@@ -88,7 +89,7 @@ public class IdentityService {
         String email=account(id).email();
         for(String purpose:List.of("register:","login:","VERIFY:","RESET:"))
             jdbc.update("DELETE FROM compass.auth_rate WHERE bucket_hash=?",AuthRateLimiter.hash(purpose+email));
-        for(String purpose:List.of("delete:","save:"))
+        for(String purpose:List.of("delete:","save:","optimize:","watch:","admin:","grant:","analytics:"))
             jdbc.update("DELETE FROM compass.auth_rate WHERE bucket_hash=?",AuthRateLimiter.hash(purpose+id));
         mail.removeFor(email);
         jdbc.update("DELETE FROM compass.user_account WHERE id=?",id);

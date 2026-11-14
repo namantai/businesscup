@@ -1,3 +1,4 @@
+import { AnalyticsPanel } from './AnalyticsPanel';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { CatalogLayout } from '../catalog/CatalogLayout';
@@ -41,11 +42,18 @@ export function AccountPage() {
         {auth.account && (
           <section className={styles.panel}>
             <h2>{auth.account.email}</h2>
-            <p>Email подтверждён · Тариф Free · Роль {auth.account.role}</p>
+            {auth.account.role === 'ADMIN' && (
+              <a href="/admin/catalog">Управление каталогом</a>
+            )}
             <p>
-              Один сохранённый профиль. Платные подписки Compass и рассылки не
-              подключены.
+              Email подтверждён · Тариф {auth.account.plan} · Роль{' '}
+              {auth.account.role}
             </p>
+            <p>
+              Оплата недоступна. Beta-доступ может истечь или быть отозван.
+              Внешняя отправка писем отключена.
+            </p>
+            <Link to="/account/billing">Мой доступ и история beta</Link> ·{' '}
             <Link to="/dashboard">Мои сохранения</Link>
             <div className={styles.actions}>
               <button
@@ -90,6 +98,9 @@ export function AccountPage() {
               </button>
             </div>
           </section>
+        )}
+        {auth.account && (
+          <AnalyticsPanel key={auth.account.id} owner={auth.account.id} />
         )}
         <form
           className={styles.panel}

@@ -13,6 +13,15 @@ export type Account = {
   verified: boolean;
 };
 
+export type Acknowledgement = {
+  appliedSelfReported: boolean;
+};
+
+export type Active = {
+  revision: number;
+  versionId: string | null;
+};
+
 export type Agent = {
   executionEnvironment: string;
   id: string;
@@ -29,6 +38,21 @@ export type AiModel = {
   name: string;
 };
 
+export type AnalyticsConsent = {
+  confirm: boolean;
+  enabled: boolean;
+};
+
+export type AnalyticsPreferences = {
+  enabled: boolean;
+  events: Array<DailyEvent>;
+  retentionDays: number;
+};
+
+export type AnalyticsVisit = {
+  confirm: boolean;
+};
+
 export type ApiProblem = {
   detail: string;
   instance: string;
@@ -36,6 +60,33 @@ export type ApiProblem = {
   status: number;
   title: string;
   type: string;
+};
+
+export type Audit = {
+  action: string;
+  actorId: string | null;
+  createdAt: string;
+  id: number;
+  revision: number;
+  subjectId: string;
+};
+
+export type BetaGrantAudit = {
+  action: string;
+  createdAt: string;
+  expiresAt: string;
+  requestId: string;
+  revision: number;
+};
+
+export type BetaPlan = {
+  availability: string;
+  currency: string;
+  feeAmount: string;
+  history: boolean;
+  name: string;
+  profileLimit: number;
+  watchLimit: number;
 };
 
 export type Budget = {
@@ -87,6 +138,29 @@ export type CapabilityAssertion = {
   state: 'SUPPORTED' | 'PARTIAL' | 'UNSUPPORTED' | 'UNKNOWN';
 };
 
+export type Change = {
+  after: string;
+  before: string;
+  field: string;
+};
+
+export type Charge = {
+  amount: string | null;
+  billingZone: string;
+  date: string;
+  subscriptionId: string;
+  unavoidable: boolean;
+};
+
+export type Comparison = {
+  after: RecommendationResult;
+  before: RecommendationResult;
+  changes: Array<Change>;
+  currentVersion: string;
+  explanation: string;
+  previousVersion: string;
+};
+
 export type Costs = {
   cashDueNow: string | null;
   comparableBaselineMonthly: string | null;
@@ -121,11 +195,22 @@ export type CsrfResponse = {
   token: string;
 };
 
+export type DailyEvent = {
+  day: string;
+  event: 'RESULT_SAVED' | 'CHANGE_NOTICE_VIEWED' | 'REVISIT';
+};
+
 export type DataExport = {
   account: Account;
+  analytics: AnalyticsPreferences;
+  entitlementAudit: Array<BetaGrantAudit>;
+  entitlements: Entitlements;
+  notices: Array<Notice>;
   profiles: Array<SavedProfile>;
   recommendations: Array<SavedRecommendation>;
   stacks: Array<SavedStack>;
+  subscriptions: Array<SubscriptionEntry>;
+  watches: Array<Watch>;
 };
 
 export type DeleteRequest = {
@@ -152,6 +237,25 @@ export type Detail = {
   versionId: string;
 };
 
+export type Draft = {
+  id: string;
+  manifest: string;
+  revision: number;
+  state: string;
+  versionId: string | null;
+};
+
+export type DraftAction = {
+  action: string;
+  activeRevision: number;
+  revision: number;
+};
+
+export type DraftWrite = {
+  manifest: string;
+  revision: number;
+};
+
 export type EligibilityRule = {
   conditions: string;
   evidenceId: string;
@@ -164,6 +268,19 @@ export type EligibilityRule = {
 
 export type EmailRequest = {
   email: string;
+};
+
+export type Entitlements = {
+  expiresAt: string | null;
+  feeAmount: string;
+  feeCurrency: string;
+  grantState: string;
+  history: boolean;
+  paymentMode: string;
+  plan: string;
+  profileLimit: number;
+  revision: number;
+  watchLimit: number;
 };
 
 export type Evidence = {
@@ -205,6 +322,13 @@ export type FxUsed = {
   observedAt: string;
   quoteCurrency: string;
   rate: string;
+};
+
+export type GrantWrite = {
+  action: string;
+  days: number;
+  expectedRevision: number;
+  requestId: string;
 };
 
 export type Item = {
@@ -260,12 +384,59 @@ export type NeedCapability = {
   needId: string;
 };
 
+export type Notice = {
+  appliedSelfReported: boolean;
+  comparison: Comparison;
+  createdAt: string;
+  horizonMonths: number;
+  id: string;
+  publicationRevision: number;
+  read: boolean;
+  watchId: string;
+};
+
 export type Offer = {
   allInMonthly: string | null;
   allInUpfront: string | null;
   monthlyEquivalent: string | null;
   terms: PriceOffer;
   upfront: string | null;
+};
+
+export type OptimizationRequest = {
+  catalogVersion: string;
+  profile: RecommendationProfile;
+  revisions: {
+    [key: string]: number;
+  };
+};
+
+export type OptimizationResult = {
+  alternatives: Array<Scenario>;
+  asOf: string;
+  catalogVersion: string;
+  currency: string;
+  current: Scenario;
+  decision: string;
+  fxSnapshots: Array<FxUsed>;
+  horizonMonths: number;
+  limitations: Array<string>;
+  optimizerVersion: string;
+  overlaps: Array<Overlap>;
+  profile: RecommendationProfile;
+  recommendations: RecommendationResult;
+  subscriptions: {
+    [key: string]: SubscriptionTerms;
+  };
+};
+
+export type Overlap = {
+  capabilities: Array<string>;
+  evidenceIds: Array<string>;
+  explanation: string;
+  leftId: string;
+  rightId: string;
+  status: string;
 };
 
 export type PageAgent = {
@@ -443,6 +614,12 @@ export type PortfolioAction = {
   action: 'KEEP' | 'ADD' | 'CANCEL_AT_RENEWAL' | 'REVIEW';
   explanation: string;
   subscriptionId: string;
+};
+
+export type Preferences = {
+  active: boolean;
+  confirm: boolean;
+  emailOptIn: boolean;
 };
 
 export type PriceOffer = {
@@ -632,6 +809,22 @@ export type SavedStack = {
   snapshotId: string;
 };
 
+export type Scenario = {
+  actions: Array<PortfolioAction>;
+  conditions: Array<string>;
+  confirmedSavings: string | null;
+  costs: Timeline;
+  coverage: Array<Coverage>;
+  id: string;
+  items: Array<Item>;
+  label: string;
+  lostFunctions: Array<string>;
+  potentialSavings: string | null;
+  requirementsMet: boolean;
+  savingsStatus: string;
+  subscriptionIds: Array<string>;
+};
+
 export type Search = {
   candidateCount: number;
   catalogProducts: number;
@@ -666,6 +859,14 @@ export type StackWrite = {
   snapshotId: string;
 };
 
+export type SubscriptionEntry = {
+  createdAt: string;
+  id: string;
+  revision: number;
+  terms: SubscriptionTerms;
+  updatedAt: string;
+};
+
 export type SubscriptionPlan = {
   accessType: 'APPLICATION' | 'API' | 'BOTH';
   activeFrom: string;
@@ -674,6 +875,49 @@ export type SubscriptionPlan = {
   id: string;
   productId: string;
   tier: string;
+};
+
+export type SubscriptionTerms = {
+  additionalPerPeriod: string | null;
+  amount: string | null;
+  autoRenew: 'YES' | 'NO' | 'UNKNOWN';
+  billingPeriod: 'MONTH' | 'YEAR';
+  billingZone: string;
+  cancellationAvailableFrom: string | null;
+  catalogVersion: string | null;
+  commitmentUntil: string | null;
+  currency: string;
+  mustKeep: boolean;
+  name: string;
+  nextRenewal: string | null;
+  obligation: 'NONE' | 'UNTIL' | 'UNKNOWN';
+  offerId: string | null;
+  paidAmount: string | null;
+  paidFrom: string | null;
+  paidUntil: string | null;
+  planId: string | null;
+  priceOrigin: 'USER_REPORTED' | 'CATALOG' | 'UNKNOWN';
+  renewalAnchor: string | null;
+  status: 'ACTIVE' | 'TRIAL' | 'ENDED' | 'UNKNOWN';
+  transitionCost: string | null;
+  trialUntil: string | null;
+};
+
+export type SubscriptionWrite = {
+  revision: number;
+  terms: SubscriptionTerms;
+};
+
+export type Timeline = {
+  cashDueNow: string | null;
+  charges: Array<Charge>;
+  horizonTotal: string | null;
+  mandatoryTotal: string | null;
+  nextPayment: string | null;
+  paidAmount: string | null;
+  recurringMonthly: string | null;
+  transitionCost: string | null;
+  unknowns: Array<string>;
 };
 
 export type TokenRequest = {
@@ -748,6 +992,553 @@ export type UserNeed = {
   id: string;
   name: string;
 };
+
+export type Watch = {
+  active: boolean;
+  effectiveActive: boolean;
+  emailOptIn: boolean;
+  id: string;
+  stackId: string;
+};
+
+export type WatchWrite = {
+  consent: boolean;
+  emailOptIn: boolean;
+  stackId: string;
+};
+
+export type AdminActiveData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/admin/catalog/active';
+};
+
+export type AdminActiveErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AdminActiveError = AdminActiveErrors[keyof AdminActiveErrors];
+
+export type AdminActiveResponses = {
+  /**
+   * OK
+   */
+  200: Active;
+};
+
+export type AdminActiveResponse =
+  AdminActiveResponses[keyof AdminActiveResponses];
+
+export type AdminAuditData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/admin/catalog/audit';
+};
+
+export type AdminAuditErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AdminAuditError = AdminAuditErrors[keyof AdminAuditErrors];
+
+export type AdminAuditResponses = {
+  /**
+   * OK
+   */
+  200: Array<Audit>;
+};
+
+export type AdminAuditResponse = AdminAuditResponses[keyof AdminAuditResponses];
+
+export type AdminDraftsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/admin/catalog/drafts';
+};
+
+export type AdminDraftsErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AdminDraftsError = AdminDraftsErrors[keyof AdminDraftsErrors];
+
+export type AdminDraftsResponses = {
+  /**
+   * OK
+   */
+  200: Array<Draft>;
+};
+
+export type AdminDraftsResponse =
+  AdminDraftsResponses[keyof AdminDraftsResponses];
+
+export type CreateCatalogDraftData = {
+  body: DraftWrite;
+  path?: never;
+  query?: never;
+  url: '/api/v1/admin/catalog/drafts';
+};
+
+export type CreateCatalogDraftErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type CreateCatalogDraftError =
+  CreateCatalogDraftErrors[keyof CreateCatalogDraftErrors];
+
+export type CreateCatalogDraftResponses = {
+  /**
+   * OK
+   */
+  200: Draft;
+};
+
+export type CreateCatalogDraftResponse =
+  CreateCatalogDraftResponses[keyof CreateCatalogDraftResponses];
+
+export type UpdateCatalogDraftData = {
+  body: DraftWrite;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/admin/catalog/drafts/{id}';
+};
+
+export type UpdateCatalogDraftErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type UpdateCatalogDraftError =
+  UpdateCatalogDraftErrors[keyof UpdateCatalogDraftErrors];
+
+export type UpdateCatalogDraftResponses = {
+  /**
+   * OK
+   */
+  200: Draft;
+};
+
+export type UpdateCatalogDraftResponse =
+  UpdateCatalogDraftResponses[keyof UpdateCatalogDraftResponses];
+
+export type AdvanceCatalogDraftData = {
+  body: DraftAction;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/admin/catalog/drafts/{id}/actions';
+};
+
+export type AdvanceCatalogDraftErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AdvanceCatalogDraftError =
+  AdvanceCatalogDraftErrors[keyof AdvanceCatalogDraftErrors];
+
+export type AdvanceCatalogDraftResponses = {
+  /**
+   * OK
+   */
+  200: Draft;
+};
+
+export type AdvanceCatalogDraftResponse =
+  AdvanceCatalogDraftResponses[keyof AdvanceCatalogDraftResponses];
+
+export type AdminQueueData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/admin/catalog/queue';
+};
+
+export type AdminQueueErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AdminQueueError = AdminQueueErrors[keyof AdminQueueErrors];
+
+export type AdminQueueResponses = {
+  /**
+   * OK
+   */
+  200: Array<Evidence>;
+};
+
+export type AdminQueueResponse = AdminQueueResponses[keyof AdminQueueResponses];
+
+export type InspectEntitlementsData = {
+  body?: never;
+  path: {
+    owner: string;
+  };
+  query?: never;
+  url: '/api/v1/admin/entitlements/{owner}';
+};
+
+export type InspectEntitlementsErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type InspectEntitlementsError =
+  InspectEntitlementsErrors[keyof InspectEntitlementsErrors];
+
+export type InspectEntitlementsResponses = {
+  /**
+   * OK
+   */
+  200: Entitlements;
+};
+
+export type InspectEntitlementsResponse =
+  InspectEntitlementsResponses[keyof InspectEntitlementsResponses];
+
+export type ChangeEntitlementsData = {
+  body: GrantWrite;
+  path: {
+    owner: string;
+  };
+  query?: never;
+  url: '/api/v1/admin/entitlements/{owner}';
+};
+
+export type ChangeEntitlementsErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type ChangeEntitlementsError =
+  ChangeEntitlementsErrors[keyof ChangeEntitlementsErrors];
+
+export type ChangeEntitlementsResponses = {
+  /**
+   * OK
+   */
+  200: Entitlements;
+};
+
+export type ChangeEntitlementsResponse =
+  ChangeEntitlementsResponses[keyof ChangeEntitlementsResponses];
 
 export type CsrfData = {
   body?: never;
@@ -1261,6 +2052,22 @@ export type VerifyResponses = {
 };
 
 export type VerifyResponse = VerifyResponses[keyof VerifyResponses];
+
+export type BetaPlansData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/billing/plans';
+};
+
+export type BetaPlansResponses = {
+  /**
+   * OK
+   */
+  200: Array<BetaPlan>;
+};
+
+export type BetaPlansResponse = BetaPlansResponses[keyof BetaPlansResponses];
 
 export type AgentAccessData = {
   body?: never;
@@ -2194,6 +3001,297 @@ export type MeResponses = {
 
 export type MeResponse = MeResponses[keyof MeResponses];
 
+export type AnalyticsPreferencesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/me/analytics';
+};
+
+export type AnalyticsPreferencesErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AnalyticsPreferencesError =
+  AnalyticsPreferencesErrors[keyof AnalyticsPreferencesErrors];
+
+export type AnalyticsPreferencesResponses = {
+  /**
+   * OK
+   */
+  200: AnalyticsPreferences;
+};
+
+export type AnalyticsPreferencesResponse =
+  AnalyticsPreferencesResponses[keyof AnalyticsPreferencesResponses];
+
+export type AnalyticsConsentData = {
+  body: AnalyticsConsent;
+  path?: never;
+  query?: never;
+  url: '/api/v1/me/analytics';
+};
+
+export type AnalyticsConsentErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AnalyticsConsentError =
+  AnalyticsConsentErrors[keyof AnalyticsConsentErrors];
+
+export type AnalyticsConsentResponses = {
+  /**
+   * OK
+   */
+  200: AnalyticsPreferences;
+};
+
+export type AnalyticsConsentResponse =
+  AnalyticsConsentResponses[keyof AnalyticsConsentResponses];
+
+export type AnalyticsRevisitData = {
+  body: AnalyticsVisit;
+  path?: never;
+  query?: never;
+  url: '/api/v1/me/analytics/revisit';
+};
+
+export type AnalyticsRevisitErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AnalyticsRevisitError =
+  AnalyticsRevisitErrors[keyof AnalyticsRevisitErrors];
+
+export type AnalyticsRevisitResponses = {
+  /**
+   * OK
+   */
+  200: unknown;
+};
+
+export type EntitlementsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/me/entitlements';
+};
+
+export type EntitlementsErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type EntitlementsError = EntitlementsErrors[keyof EntitlementsErrors];
+
+export type EntitlementsResponses = {
+  /**
+   * OK
+   */
+  200: Entitlements;
+};
+
+export type EntitlementsResponse =
+  EntitlementsResponses[keyof EntitlementsResponses];
+
+export type EntitlementAuditData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/me/entitlements/audit';
+};
+
+export type EntitlementAuditErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type EntitlementAuditError =
+  EntitlementAuditErrors[keyof EntitlementAuditErrors];
+
+export type EntitlementAuditResponses = {
+  /**
+   * OK
+   */
+  200: Array<BetaGrantAudit>;
+};
+
+export type EntitlementAuditResponse =
+  EntitlementAuditResponses[keyof EntitlementAuditResponses];
+
 export type ExportData = {
   body?: never;
   path?: never;
@@ -2250,6 +3348,294 @@ export type ExportResponses = {
 };
 
 export type ExportResponse = ExportResponses[keyof ExportResponses];
+
+export type NoticesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/monitoring/notices';
+};
+
+export type NoticesErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type NoticesError = NoticesErrors[keyof NoticesErrors];
+
+export type NoticesResponses = {
+  /**
+   * OK
+   */
+  200: Array<Notice>;
+};
+
+export type NoticesResponse = NoticesResponses[keyof NoticesResponses];
+
+export type AcknowledgeData = {
+  body: Acknowledgement;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/monitoring/notices/{id}';
+};
+
+export type AcknowledgeErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AcknowledgeError = AcknowledgeErrors[keyof AcknowledgeErrors];
+
+export type AcknowledgeResponses = {
+  /**
+   * OK
+   */
+  200: unknown;
+};
+
+export type WatchesData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/monitoring/watches';
+};
+
+export type WatchesErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type WatchesError = WatchesErrors[keyof WatchesErrors];
+
+export type WatchesResponses = {
+  /**
+   * OK
+   */
+  200: Array<Watch>;
+};
+
+export type WatchesResponse = WatchesResponses[keyof WatchesResponses];
+
+export type WatchData = {
+  body: WatchWrite;
+  path?: never;
+  query?: never;
+  url: '/api/v1/monitoring/watches';
+};
+
+export type WatchErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type WatchError = WatchErrors[keyof WatchErrors];
+
+export type WatchResponses = {
+  /**
+   * OK
+   */
+  200: Watch;
+};
+
+export type WatchResponse = WatchResponses[keyof WatchResponses];
+
+export type PreferencesData = {
+  body: Preferences;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/monitoring/watches/{id}';
+};
+
+export type PreferencesErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type PreferencesError = PreferencesErrors[keyof PreferencesErrors];
+
+export type PreferencesResponses = {
+  /**
+   * OK
+   */
+  200: Watch;
+};
+
+export type PreferencesResponse =
+  PreferencesResponses[keyof PreferencesResponses];
 
 export type ProfilesData = {
   body?: never;
@@ -2996,3 +4382,363 @@ export type DeleteStackResponses = {
 
 export type DeleteStackResponse =
   DeleteStackResponses[keyof DeleteStackResponses];
+
+export type SubscriptionsData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/subscriptions';
+};
+
+export type SubscriptionsErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type SubscriptionsError = SubscriptionsErrors[keyof SubscriptionsErrors];
+
+export type SubscriptionsResponses = {
+  /**
+   * OK
+   */
+  200: Array<SubscriptionEntry>;
+};
+
+export type SubscriptionsResponse =
+  SubscriptionsResponses[keyof SubscriptionsResponses];
+
+export type CreateSubscriptionData = {
+  body: SubscriptionWrite;
+  path?: never;
+  query?: never;
+  url: '/api/v1/subscriptions';
+};
+
+export type CreateSubscriptionErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type CreateSubscriptionError =
+  CreateSubscriptionErrors[keyof CreateSubscriptionErrors];
+
+export type CreateSubscriptionResponses = {
+  /**
+   * Created
+   */
+  201: SubscriptionEntry;
+};
+
+export type CreateSubscriptionResponse =
+  CreateSubscriptionResponses[keyof CreateSubscriptionResponses];
+
+export type AnalyzeSubscriptionsData = {
+  body: OptimizationRequest;
+  path?: never;
+  query?: never;
+  url: '/api/v1/subscriptions/analyze';
+};
+
+export type AnalyzeSubscriptionsErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type AnalyzeSubscriptionsError =
+  AnalyzeSubscriptionsErrors[keyof AnalyzeSubscriptionsErrors];
+
+export type AnalyzeSubscriptionsResponses = {
+  /**
+   * OK
+   */
+  200: OptimizationResult;
+};
+
+export type AnalyzeSubscriptionsResponse =
+  AnalyzeSubscriptionsResponses[keyof AnalyzeSubscriptionsResponses];
+
+export type DeleteSubscriptionData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query: {
+    revision: number;
+  };
+  url: '/api/v1/subscriptions/{id}';
+};
+
+export type DeleteSubscriptionErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type DeleteSubscriptionError =
+  DeleteSubscriptionErrors[keyof DeleteSubscriptionErrors];
+
+export type DeleteSubscriptionResponses = {
+  /**
+   * No Content
+   */
+  204: void;
+};
+
+export type DeleteSubscriptionResponse =
+  DeleteSubscriptionResponses[keyof DeleteSubscriptionResponses];
+
+export type SubscriptionData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/subscriptions/{id}';
+};
+
+export type SubscriptionErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type SubscriptionError = SubscriptionErrors[keyof SubscriptionErrors];
+
+export type SubscriptionResponses = {
+  /**
+   * OK
+   */
+  200: SubscriptionEntry;
+};
+
+export type SubscriptionResponse =
+  SubscriptionResponses[keyof SubscriptionResponses];
+
+export type UpdateSubscriptionData = {
+  body: SubscriptionWrite;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: '/api/v1/subscriptions/{id}';
+};
+
+export type UpdateSubscriptionErrors = {
+  /**
+   * Bad Request
+   */
+  400: ApiProblem;
+  /**
+   * Unauthorized
+   */
+  401: ApiProblem;
+  /**
+   * Forbidden
+   */
+  403: ApiProblem;
+  /**
+   * Not Found
+   */
+  404: ApiProblem;
+  /**
+   * Conflict
+   */
+  409: ApiProblem;
+  /**
+   * Content Too Large
+   */
+  413: ApiProblem;
+  /**
+   * Too Many Requests
+   */
+  429: ApiProblem;
+  /**
+   * Internal Server Error
+   */
+  500: ApiProblem;
+  /**
+   * Service Unavailable
+   */
+  503: ApiProblem;
+};
+
+export type UpdateSubscriptionError =
+  UpdateSubscriptionErrors[keyof UpdateSubscriptionErrors];
+
+export type UpdateSubscriptionResponses = {
+  /**
+   * OK
+   */
+  200: SubscriptionEntry;
+};
+
+export type UpdateSubscriptionResponse =
+  UpdateSubscriptionResponses[keyof UpdateSubscriptionResponses];

@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@org.springframework.test.annotation.DirtiesContext(classMode = org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class ScaffoldIT {
     private static final PostgreSQLContainer DATABASE = new PostgreSQLContainer(DockerImageName.parse(
@@ -127,6 +128,12 @@ class ScaffoldIT {
         assertTrue(price.get("nullable").asBoolean(), price.toString());
         assertEquals("string", price.get("type").asString());
         assertTrue(schema.at("/components/schemas/PageProduct/properties/versionId/nullable").asBoolean());
+        assertTrue(schema.at("/components/schemas/Active/properties/versionId/nullable").asBoolean());
+        assertTrue(schema.at("/components/schemas/Audit/properties/subjectId").isObject());
+        assertTrue(schema.at("/components/schemas/BetaGrantAudit/properties/requestId").isObject());
+        assertEquals("betaPlans",schema.at("/paths/~1api~1v1~1billing~1plans/get/operationId").asString());
+        assertEquals("#/components/schemas/BetaPlan",schema.at("/paths/~1api~1v1~1billing~1plans/get/responses/200/content/application~1json/schema/items/$ref").asString());
+        assertTrue(schema.at("/components/schemas/Entitlements/properties/expiresAt/nullable").asBoolean());
         assertTrue(schema.at("/components/schemas/Offer/properties/allInUpfront/nullable").asBoolean());
         assertTrue(schema.get("paths").has("/api/v1/catalog/products/{slug}"));
         for (var entry : schema.get("paths").properties()) {

@@ -38,16 +38,22 @@ public class IdentityGuard extends OncePerRequestFilter {
         }
         String path=req.getRequestURI();
         boolean personal=path.startsWith("/api/v1/auth/") && !path.endsWith("/csrf") && !path.endsWith("/session")
-                || path.startsWith("/api/v1/me") || path.startsWith("/api/v1/profiles")
+                || path.startsWith("/api/v1/monitoring/") || path.startsWith("/api/v1/admin/") || path.startsWith("/api/v1/subscriptions") || path.startsWith("/api/v1/me") || path.startsWith("/api/v1/profiles")
                 || (path.equals("/api/v1/recommendations") || path.startsWith("/api/v1/recommendations/")) && !path.endsWith("/preview")
                 || path.startsWith("/api/v1/saved-stacks");
         if(!personal) {chain.doFilter(req,res);return;}
         res.setHeader("Cache-Control","no-store");
         try { rates.take("ip:"+req.getRemoteAddr(),300); }
         catch(ResponseStatusException e) { res.setHeader("Retry-After","900");problem(req,res,429,"Try again later");return; }
+        if (path.startsWith("/api/v1/admin/") && (current == null || current.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN")))) {
+            problem(req,res,403,"Administrator required"); return;
+        }
         if(java.util.Set.of("POST","PATCH","DELETE").contains(req.getMethod())) {
-            byte[] body=req.getInputStream().readNBytes(65537);
-            if(body.length>65536) {problem(req,res,413,"Request too large");return;}
+            boolean adminDraft = path.startsWith("/api/v1/admin/catalog/drafts") && current != null
+                    && current.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+            int maximum = adminDraft ? 6000000 : 65536;
+            byte[] body=req.getInputStream().readNBytes(maximum + 1);
+            if(body.length>maximum) {problem(req,res,413,"Request too large");return;}
             var wrapped=new HttpServletRequestWrapper(req) {
                 @Override public ServletInputStream getInputStream() {
                     var in=new ByteArrayInputStream(body);

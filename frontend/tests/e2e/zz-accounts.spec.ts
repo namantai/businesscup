@@ -306,6 +306,21 @@ test.describe('P06 isolated accounts and personal data', () => {
     await registerVerify(page, address);
     await login(page, address);
     await page.getByRole('link', { name: 'Аккаунт', exact: true }).click();
+    const consent = page.getByLabel(
+      'Согласен на локальную аналитику указанных событий',
+    );
+    await expect(consent).not.toBeChecked();
+    await consent.check();
+    await page
+      .getByRole('button', { name: 'Сохранить настройку аналитики' })
+      .click();
+    await expect
+      .poll(
+        async () =>
+          (await (await page.request.get('/api/v1/me/analytics')).json()).events
+            .length,
+      )
+      .toBe(1);
     const download = page.waitForEvent('download');
     await page
       .getByRole('button', { name: 'Экспортировать мои данные' })
@@ -317,6 +332,8 @@ test.describe('P06 isolated accounts and personal data', () => {
     const content = Buffer.concat(chunks).toString();
     const data = JSON.parse(content);
     expect(data.account.email).toBe(address);
+    expect(data.analytics.events).toHaveLength(1);
+    expect(data.analytics.events[0].event).toBe('REVISIT');
     expect(content.includes('password')).toBe(false);
     expect(content.includes('token')).toBe(false);
     await page.getByLabel('Текущий пароль').fill(password);

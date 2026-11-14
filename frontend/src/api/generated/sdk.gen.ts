@@ -9,21 +9,62 @@ import type {
 } from './client';
 import { client } from './client.gen';
 import type {
+  AcknowledgeData,
+  AcknowledgeErrors,
+  AcknowledgeResponses,
+  AdminActiveData,
+  AdminActiveErrors,
+  AdminActiveResponses,
+  AdminAuditData,
+  AdminAuditErrors,
+  AdminAuditResponses,
+  AdminDraftsData,
+  AdminDraftsErrors,
+  AdminDraftsResponses,
+  AdminQueueData,
+  AdminQueueErrors,
+  AdminQueueResponses,
+  AdvanceCatalogDraftData,
+  AdvanceCatalogDraftErrors,
+  AdvanceCatalogDraftResponses,
   AgentAccessData,
   AgentAccessErrors,
   AgentAccessResponses,
   AgentsData,
   AgentsErrors,
   AgentsResponses,
+  AnalyticsConsentData,
+  AnalyticsConsentErrors,
+  AnalyticsConsentResponses,
+  AnalyticsPreferencesData,
+  AnalyticsPreferencesErrors,
+  AnalyticsPreferencesResponses,
+  AnalyticsRevisitData,
+  AnalyticsRevisitErrors,
+  AnalyticsRevisitResponses,
+  AnalyzeSubscriptionsData,
+  AnalyzeSubscriptionsErrors,
+  AnalyzeSubscriptionsResponses,
   AssertionsData,
   AssertionsErrors,
   AssertionsResponses,
+  BetaPlansData,
+  BetaPlansResponses,
   CapabilitiesData,
   CapabilitiesErrors,
   CapabilitiesResponses,
+  ChangeEntitlementsData,
+  ChangeEntitlementsErrors,
+  ChangeEntitlementsResponses,
+  CreateCatalogDraftData,
+  CreateCatalogDraftErrors,
+  CreateCatalogDraftResponses,
   CreateProfileData,
   CreateProfileErrors,
   CreateProfileResponses,
+  CreateSubscriptionData,
+  CreateSubscriptionErrors,
+  CreateSubscriptionResponses,
   CsrfData,
   CsrfErrors,
   CsrfResponses,
@@ -39,12 +80,21 @@ import type {
   DeleteStackData,
   DeleteStackErrors,
   DeleteStackResponses,
+  DeleteSubscriptionData,
+  DeleteSubscriptionErrors,
+  DeleteSubscriptionResponses,
   DetailData,
   DetailErrors,
   DetailResponses,
   EligibilityRulesData,
   EligibilityRulesErrors,
   EligibilityRulesResponses,
+  EntitlementAuditData,
+  EntitlementAuditErrors,
+  EntitlementAuditResponses,
+  EntitlementsData,
+  EntitlementsErrors,
+  EntitlementsResponses,
   EvidenceData,
   EvidenceErrors,
   EvidenceResponses,
@@ -54,6 +104,9 @@ import type {
   ForgotData,
   ForgotErrors,
   ForgotResponses,
+  InspectEntitlementsData,
+  InspectEntitlementsErrors,
+  InspectEntitlementsResponses,
   LoginData,
   LoginErrors,
   LoginResponses,
@@ -81,12 +134,18 @@ import type {
   NeedsData,
   NeedsErrors,
   NeedsResponses,
+  NoticesData,
+  NoticesErrors,
+  NoticesResponses,
   OffersData,
   OffersErrors,
   OffersResponses,
   PlansData,
   PlansErrors,
   PlansResponses,
+  PreferencesData,
+  PreferencesErrors,
+  PreferencesResponses,
   PreviewData,
   PreviewErrors,
   PreviewResponses,
@@ -138,15 +197,33 @@ import type {
   SourcesData,
   SourcesErrors,
   SourcesResponses,
+  SubscriptionData,
+  SubscriptionErrors,
+  SubscriptionResponses,
+  SubscriptionsData,
+  SubscriptionsErrors,
+  SubscriptionsResponses,
+  UpdateCatalogDraftData,
+  UpdateCatalogDraftErrors,
+  UpdateCatalogDraftResponses,
   UpdateProfileData,
   UpdateProfileErrors,
   UpdateProfileResponses,
+  UpdateSubscriptionData,
+  UpdateSubscriptionErrors,
+  UpdateSubscriptionResponses,
   UsageLimitsData,
   UsageLimitsErrors,
   UsageLimitsResponses,
   VerifyData,
   VerifyErrors,
   VerifyResponses,
+  WatchData,
+  WatchErrors,
+  WatchesData,
+  WatchesErrors,
+  WatchesResponses,
+  WatchResponses,
 } from './types.gen';
 
 export type Options<
@@ -166,6 +243,213 @@ export type Options<
    */
   meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+export const adminActive = <ThrowOnError extends boolean = false>(
+  options?: Options<AdminActiveData, ThrowOnError>,
+): RequestResult<AdminActiveResponses, AdminActiveErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    AdminActiveResponses,
+    AdminActiveErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/admin/catalog/active',
+    ...options,
+  });
+
+export const adminAudit = <ThrowOnError extends boolean = false>(
+  options?: Options<AdminAuditData, ThrowOnError>,
+): RequestResult<AdminAuditResponses, AdminAuditErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    AdminAuditResponses,
+    AdminAuditErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/admin/catalog/audit',
+    ...options,
+  });
+
+export const adminDrafts = <ThrowOnError extends boolean = false>(
+  options?: Options<AdminDraftsData, ThrowOnError>,
+): RequestResult<AdminDraftsResponses, AdminDraftsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    AdminDraftsResponses,
+    AdminDraftsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/admin/catalog/drafts',
+    ...options,
+  });
+
+export const createCatalogDraft = <ThrowOnError extends boolean = false>(
+  options: Options<CreateCatalogDraftData, ThrowOnError>,
+): RequestResult<
+  CreateCatalogDraftResponses,
+  CreateCatalogDraftErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    CreateCatalogDraftResponses,
+    CreateCatalogDraftErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/admin/catalog/drafts',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const updateCatalogDraft = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateCatalogDraftData, ThrowOnError>,
+): RequestResult<
+  UpdateCatalogDraftResponses,
+  UpdateCatalogDraftErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    UpdateCatalogDraftResponses,
+    UpdateCatalogDraftErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/admin/catalog/drafts/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const advanceCatalogDraft = <ThrowOnError extends boolean = false>(
+  options: Options<AdvanceCatalogDraftData, ThrowOnError>,
+): RequestResult<
+  AdvanceCatalogDraftResponses,
+  AdvanceCatalogDraftErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    AdvanceCatalogDraftResponses,
+    AdvanceCatalogDraftErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/admin/catalog/drafts/{id}/actions',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const adminQueue = <ThrowOnError extends boolean = false>(
+  options?: Options<AdminQueueData, ThrowOnError>,
+): RequestResult<AdminQueueResponses, AdminQueueErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    AdminQueueResponses,
+    AdminQueueErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/admin/catalog/queue',
+    ...options,
+  });
+
+export const inspectEntitlements = <ThrowOnError extends boolean = false>(
+  options: Options<InspectEntitlementsData, ThrowOnError>,
+): RequestResult<
+  InspectEntitlementsResponses,
+  InspectEntitlementsErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).get<
+    InspectEntitlementsResponses,
+    InspectEntitlementsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/admin/entitlements/{owner}',
+    ...options,
+  });
+
+export const changeEntitlements = <ThrowOnError extends boolean = false>(
+  options: Options<ChangeEntitlementsData, ThrowOnError>,
+): RequestResult<
+  ChangeEntitlementsResponses,
+  ChangeEntitlementsErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    ChangeEntitlementsResponses,
+    ChangeEntitlementsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/admin/entitlements/{owner}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
 
 export const csrf = <ThrowOnError extends boolean = false>(
   options?: Options<CsrfData, ThrowOnError>,
@@ -265,6 +549,14 @@ export const verify = <ThrowOnError extends boolean = false>(
       'Content-Type': 'application/json',
       ...options.headers,
     },
+  });
+
+export const betaPlans = <ThrowOnError extends boolean = false>(
+  options?: Options<BetaPlansData, ThrowOnError>,
+): RequestResult<BetaPlansResponses, unknown, ThrowOnError> =>
+  (options?.client ?? client).get<BetaPlansResponses, unknown, ThrowOnError>({
+    url: '/api/v1/billing/plans',
+    ...options,
   });
 
 export const agentAccess = <ThrowOnError extends boolean = false>(
@@ -495,6 +787,125 @@ export const me = <ThrowOnError extends boolean = false>(
     ...options,
   });
 
+export const analyticsPreferences = <ThrowOnError extends boolean = false>(
+  options?: Options<AnalyticsPreferencesData, ThrowOnError>,
+): RequestResult<
+  AnalyticsPreferencesResponses,
+  AnalyticsPreferencesErrors,
+  ThrowOnError
+> =>
+  (options?.client ?? client).get<
+    AnalyticsPreferencesResponses,
+    AnalyticsPreferencesErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/me/analytics',
+    ...options,
+  });
+
+export const analyticsConsent = <ThrowOnError extends boolean = false>(
+  options: Options<AnalyticsConsentData, ThrowOnError>,
+): RequestResult<
+  AnalyticsConsentResponses,
+  AnalyticsConsentErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    AnalyticsConsentResponses,
+    AnalyticsConsentErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/me/analytics',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const analyticsRevisit = <ThrowOnError extends boolean = false>(
+  options: Options<AnalyticsRevisitData, ThrowOnError>,
+): RequestResult<
+  AnalyticsRevisitResponses,
+  AnalyticsRevisitErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    AnalyticsRevisitResponses,
+    AnalyticsRevisitErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/me/analytics/revisit',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const entitlements = <ThrowOnError extends boolean = false>(
+  options?: Options<EntitlementsData, ThrowOnError>,
+): RequestResult<EntitlementsResponses, EntitlementsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    EntitlementsResponses,
+    EntitlementsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/me/entitlements',
+    ...options,
+  });
+
+export const entitlementAudit = <ThrowOnError extends boolean = false>(
+  options?: Options<EntitlementAuditData, ThrowOnError>,
+): RequestResult<
+  EntitlementAuditResponses,
+  EntitlementAuditErrors,
+  ThrowOnError
+> =>
+  (options?.client ?? client).get<
+    EntitlementAuditResponses,
+    EntitlementAuditErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/me/entitlements/audit',
+    ...options,
+  });
+
 export const export_ = <ThrowOnError extends boolean = false>(
   options?: Options<ExportData, ThrowOnError>,
 ): RequestResult<ExportResponses, ExportErrors, ThrowOnError> =>
@@ -508,6 +919,109 @@ export const export_ = <ThrowOnError extends boolean = false>(
     ],
     url: '/api/v1/me/export',
     ...options,
+  });
+
+export const notices = <ThrowOnError extends boolean = false>(
+  options?: Options<NoticesData, ThrowOnError>,
+): RequestResult<NoticesResponses, NoticesErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    NoticesResponses,
+    NoticesErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/monitoring/notices',
+    ...options,
+  });
+
+export const acknowledge = <ThrowOnError extends boolean = false>(
+  options: Options<AcknowledgeData, ThrowOnError>,
+): RequestResult<AcknowledgeResponses, AcknowledgeErrors, ThrowOnError> =>
+  (options.client ?? client).patch<
+    AcknowledgeResponses,
+    AcknowledgeErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/monitoring/notices/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const watches = <ThrowOnError extends boolean = false>(
+  options?: Options<WatchesData, ThrowOnError>,
+): RequestResult<WatchesResponses, WatchesErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    WatchesResponses,
+    WatchesErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/monitoring/watches',
+    ...options,
+  });
+
+export const watch = <ThrowOnError extends boolean = false>(
+  options: Options<WatchData, ThrowOnError>,
+): RequestResult<WatchResponses, WatchErrors, ThrowOnError> =>
+  (options.client ?? client).post<WatchResponses, WatchErrors, ThrowOnError>({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/monitoring/watches',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const preferences = <ThrowOnError extends boolean = false>(
+  options: Options<PreferencesData, ThrowOnError>,
+): RequestResult<PreferencesResponses, PreferencesErrors, ThrowOnError> =>
+  (options.client ?? client).patch<
+    PreferencesResponses,
+    PreferencesErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/monitoring/watches/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });
 
 export const profiles = <ThrowOnError extends boolean = false>(
@@ -785,4 +1299,146 @@ export const deleteStack = <ThrowOnError extends boolean = false>(
     ],
     url: '/api/v1/saved-stacks/{id}',
     ...options,
+  });
+
+export const subscriptions = <ThrowOnError extends boolean = false>(
+  options?: Options<SubscriptionsData, ThrowOnError>,
+): RequestResult<SubscriptionsResponses, SubscriptionsErrors, ThrowOnError> =>
+  (options?.client ?? client).get<
+    SubscriptionsResponses,
+    SubscriptionsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/subscriptions',
+    ...options,
+  });
+
+export const createSubscription = <ThrowOnError extends boolean = false>(
+  options: Options<CreateSubscriptionData, ThrowOnError>,
+): RequestResult<
+  CreateSubscriptionResponses,
+  CreateSubscriptionErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    CreateSubscriptionResponses,
+    CreateSubscriptionErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/subscriptions',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const analyzeSubscriptions = <ThrowOnError extends boolean = false>(
+  options: Options<AnalyzeSubscriptionsData, ThrowOnError>,
+): RequestResult<
+  AnalyzeSubscriptionsResponses,
+  AnalyzeSubscriptionsErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).post<
+    AnalyzeSubscriptionsResponses,
+    AnalyzeSubscriptionsErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/subscriptions/analyze',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });
+
+export const deleteSubscription = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteSubscriptionData, ThrowOnError>,
+): RequestResult<
+  DeleteSubscriptionResponses,
+  DeleteSubscriptionErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).delete<
+    DeleteSubscriptionResponses,
+    DeleteSubscriptionErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/subscriptions/{id}',
+    ...options,
+  });
+
+export const subscription = <ThrowOnError extends boolean = false>(
+  options: Options<SubscriptionData, ThrowOnError>,
+): RequestResult<SubscriptionResponses, SubscriptionErrors, ThrowOnError> =>
+  (options.client ?? client).get<
+    SubscriptionResponses,
+    SubscriptionErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/subscriptions/{id}',
+    ...options,
+  });
+
+export const updateSubscription = <ThrowOnError extends boolean = false>(
+  options: Options<UpdateSubscriptionData, ThrowOnError>,
+): RequestResult<
+  UpdateSubscriptionResponses,
+  UpdateSubscriptionErrors,
+  ThrowOnError
+> =>
+  (options.client ?? client).patch<
+    UpdateSubscriptionResponses,
+    UpdateSubscriptionErrors,
+    ThrowOnError
+  >({
+    security: [
+      {
+        in: 'cookie',
+        name: 'SESSION',
+        type: 'apiKey',
+      },
+    ],
+    url: '/api/v1/subscriptions/{id}',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
   });

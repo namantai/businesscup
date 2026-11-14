@@ -12,6 +12,10 @@ final class CandidateResolver {
                       List<Candidate> existing, int total, boolean complete) {}
     static Resolution resolve(PublishedCatalogSnapshot catalog, RecommendationProfile p, EvidenceAssessment evidence,
                               CapabilityCoverage coverage, CostCalculator calculator, Instant asOf) {
+        return resolve(catalog,p,evidence,coverage,calculator,asOf,Map.of());
+    }
+    static Resolution resolve(PublishedCatalogSnapshot catalog, RecommendationProfile p, EvidenceAssessment evidence,
+            CapabilityCoverage coverage, CostCalculator calculator, Instant asOf, Map<String,CostCalculator.Amounts> ledgerCosts) {
         var eligibility = new EligibilityAssessment(catalog, p, evidence, coverage, asOf);
         var candidates = new ArrayList<Candidate>(); var assessments = new ArrayList<CandidateAssessment>();
         var retained = new ArrayList<Candidate>();
@@ -24,7 +28,7 @@ final class CandidateResolver {
                 throw ProfileValidator.bad("Existing plan/offer is not in the active snapshot; use a custom subscription with null references");
             var assessed = plan == null ? new EligibilityAssessment.Assessment(Eligibility.UNKNOWN,
                     List.of(reason(Code.UNKNOWN_CAPABILITY, "Custom subscription counts toward cost; its functions and constraints are unknown"))) : eligibility.assess(plan, offer, true);
-            var costs = calculator.existing(s);
+            var costs = ledgerCosts.containsKey(s.id()) ? ledgerCosts.get(s.id()) : calculator.existing(s);
             var reasons = new ArrayList<>(assessed.reasons()); reasons.addAll(costs.reasons()); reasons.add(reason(Code.KEEP_EXISTING, "Existing subscription is counted once"));
             var status = costs.confirmed() ? assessed.status() : EligibilityAssessment.merge(assessed.status(), Eligibility.UNKNOWN);
             var candidate = build("existing:" + s.id(), plan, offer, s,

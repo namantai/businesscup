@@ -19,6 +19,10 @@ public final class RecommendationEngine {
         this.fee = fee;
     }
     public RecommendationResult calculate(RecommendationProfile profile, PublishedCatalogSnapshot catalog, Instant asOf) {
+        return calculate(profile,catalog,asOf,Map.of());
+    }
+    RecommendationResult calculate(RecommendationProfile profile, PublishedCatalogSnapshot catalog, Instant asOf,
+                                   Map<String,CostCalculator.Amounts> ledgerCosts) {
         var warnings = new ArrayList<Reason>();
         if (catalog == null) return new RecommendationResult(null, null, "EMPTY", ENGINE_VERSION, policyVersion(), asOf, true,
                 new Search(0,0,0,0,0,0,"No published catalog"), "NO_PUBLISHED_CATALOG", List.of(), List.of(), List.of(),
@@ -27,7 +31,7 @@ public final class RecommendationEngine {
         var evidence = new EvidenceAssessment(catalog, asOf);
         var coverage = new CapabilityCoverage(catalog, profile, evidence);
         var costs = new CostCalculator(catalog, evidence, profile, asOf);
-        var resolved = CandidateResolver.resolve(catalog, profile, evidence, coverage, costs, asOf);
+        var resolved = CandidateResolver.resolve(catalog, profile, evidence, coverage, costs, asOf, ledgerCosts);
         var feeFx = new ArrayList<FxUsed>();
         BigDecimal convertedFee = costs.convert(fee.amount(), fee.currency().getCurrencyCode(), feeFx, warnings);
         var search = new BundleSearch(profile, coverage, new UsageAssessment(catalog, evidence, coverage, asOf), convertedFee).search(resolved);

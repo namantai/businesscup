@@ -28,6 +28,11 @@ export function SavePanel() {
   const [consent, setConsent] = useState(false);
   const [name, setName] = useState('Мой AI-профиль');
   const [selected, setSelected] = useState('');
+  const [profileTarget, setProfileTarget] = useState('');
+  const existingProfile =
+    profileTarget === 'NEW'
+      ? undefined
+      : (list.data?.find((p) => p.id === profileTarget) ?? list.data?.[0]);
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
   const [error, setError] = useState<unknown>(null);
@@ -54,7 +59,7 @@ export function SavePanel() {
     try {
       const guard = await protection(account?.id);
       if (kind === 'profile') {
-        const existing = list.data?.[0];
+        const existing = existingProfile;
         const body = {
           name,
           profile: { ...completed.profile, asOf: null },
@@ -107,6 +112,24 @@ export function SavePanel() {
         Аккаунт: {account.email}. Free — один профиль. Старые результаты
         сохраняют версию каталога, дату и неизвестные данные.
       </p>
+      {!!list.data?.length && (
+        <label className={styles.field}>
+          Как сохранить профиль
+          <select
+            value={profileTarget || list.data[0].id}
+            onChange={(e) => setProfileTarget(e.target.value)}
+          >
+            {list.data.map((p) => (
+              <option key={p.id} value={p.id}>
+                Обновить: {p.name}
+              </option>
+            ))}
+            {account.plan === 'PREMIUM' && list.data.length < 5 && (
+              <option value="NEW">Создать отдельный профиль</option>
+            )}
+          </select>
+        </label>
+      )}
       <label className={styles.field}>
         Название профиля
         <input
@@ -145,7 +168,7 @@ export function SavePanel() {
           }
           onClick={() => void save('profile')}
         >
-          {list.data?.length
+          {existingProfile
             ? 'Обновить сохранённый профиль'
             : 'Сохранить профиль'}
         </button>

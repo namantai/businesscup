@@ -1,9 +1,9 @@
 # AI Compass — фактический прогресс
 
 **План:** `../CODEX_PROMPT.md`, версия 1.0, 14.11.2026.
-**Текущее состояние:** P01–P06 = DONE. Владелец поручил окончательное закрытие P06 после повторного security review и обязательных проверок; проверки успешно выполнены.
-**Текущий этап:** P06 — DONE по явному поручению владельца. P07 — NOT_STARTED.
-**Следующее действие:** остановиться после одного разрешённого локального коммита P06. Для P07 требуется отдельное разрешение; push/PR/deploy запрещены.
+**Текущее состояние:** P01–P07 = DONE; P08 и P10.a приняты владельцем для локальной beta, локальные QA P11 также приняты (15.11.2026). Публичный запуск не разрешён.
+**Текущий этап:** финальное локальное закрытие. P08 = ACCEPTED (local beta); P09 = DEFERRED; P10.a = ACCEPTED (local beta); P10.b = DEFERRED; P11 local QA = ACCEPTED. Общий локальный статус — ACCEPTED. Independent-review, coverage и production gates остаются OPEN / NOT_RUN / NOT_VERIFIED, не объявлены DONE.
+**Следующее действие:** локальная демонстрация по `docs/DEMO_GUIDE.md`. Проверки closeout завершены; кандидат подготовлен к единственному разрешённому commit `feat: complete ai compass local beta candidate`. После фиксации работа остановлена. Дальнейшие изменения только по отдельному поручению; push/PR/merge/deployment и P12–P14 запрещены. Принятый локальный scope отделён от открытых production gates.
 **Источник состояния:** этот файл + фактический Git/code/test evidence, не обещания агента.
 
 ## 1. Маршрут
@@ -17,16 +17,17 @@
 | P04 | Recommendation Engine | DONE | Владелец явно поручил закрытие; 10 инвариантов проверены, 185 backend +18 UI +14 E2E, p95=61.19 ms; исправлена граница horizon, engine1.0.1 |
 | P05 | Гостевой frontend / R1 | DONE | По явному поручению владельца от 15.11.2026: 10 групп инвариантов проверены; повторно 185 backend +42 UI +27 E2E PASS, все обязательные команды exit 0; итог в разделе закрытия P05 |
 | P06 | Аккаунты и сохранение | DONE | Окончательное закрытие по поручению владельца 15.11.2026: исправлены 2 дефекта rate limiting, 118 unit +93 integration +53 UI +34 E2E PASS; все обязательные команды exit 0; P07 не разрешён |
-| P07 | Портфель и расходы | NOT_STARTED | — |
-| P08 | Admin, мониторинг, уведомления | NOT_STARTED | — |
-| P09 | Optional LLM explanations | NOT_STARTED | Можно DEFERRED только по решению владельца |
-| P10 | Entitlements / sandbox billing | NOT_STARTED | P10.a права; P10.b sandbox; live требует обе части |
-| P11 | Hardening и beta / R2 | NOT_STARTED | — |
+| P07 | Портфель и расходы | DONE | Владелец явно принял отчёт и поручил закрытие без commit; проверены сохранённые 146 unit +100 PostgreSQL IT +60 UI +38 E2E PASS, повторно catalog/smoke/secrets/diff PASS |
+| P08 | Admin, мониторинг, уведомления | ACCEPTED (local beta, owner 15.11.2026) | 155 unit +105 PostgreSQL IT +65 UI; 39 E2E полный запуск и 1/1 финальный целевой повтор; остальные обязательные scripts PASS |
+| P09 | Optional LLM explanations | DEFERRED | Детерминированные объяснения достаточны; LLM/SDK/платные API не подключены, OFF |
+| P10.a | Локальные Free/Premium entitlements и beta | ACCEPTED (local beta, owner 15.11.2026) | 155 unit +109 PostgreSQL IT +71 UI +40 E2E PASS; без платежей |
+| P10.b | Payment provider | DEFERRED | Нет выбранного PSP, merchant eligibility и разрешения на SDK/сети/checkout |
+| P11 | Hardening и beta / R2 | ACCEPTED — local QA only; remaining gates OPEN | 156 unit +112 PostgreSQL IT +74 UI +40 E2E PASS; local ops PASS; independent review/coverage NOT_RUN |
 | P12 | Staging / deployment / ops | NOT_STARTED | — |
 | P13 | Paid pilot / R3 | NOT_STARTED | — |
 | P14 | Данные пилота и бизнес-решение | NOT_STARTED | — |
 
-Допустимые статусы: NOT_STARTED, IN_PROGRESS, BLOCKED, AWAITING_REVIEW, ACCEPTED, DEFERRED. Агент не назначает ACCEPTED без явной приёмки владельца. Отложенная часть не считается выполненной. Для закрытия P01 владелец отдельным сообщением 14.11.2026 явно предписал статус DONE; это исключение для данного этапа, без разрешения на P02.
+Допустимые статусы: NOT_STARTED, IN_PROGRESS, BLOCKED, AWAITING_REVIEW, IMPLEMENTED_PENDING_OWNER_REVIEW, ACCEPTED, DEFERRED. IMPLEMENTED_PENDING_OWNER_REVIEW разрешён новым пакетным планом P08–P11, без самостоятельной приёмки. Агент не назначает ACCEPTED без явной приёмки владельца. Отложенная часть не считается выполненной. Для закрытия P01 владелец отдельным сообщением 14.11.2026 явно предписал статус DONE; это исключение для данного этапа, без разрешения на P02.
 
 ## 2. Зафиксированные продуктовые решения
 
@@ -45,8 +46,9 @@
 
 | Действие | Текущее разрешение |
 |---|---|
+| FINAL LOCAL BETA CLOSEOUT | Владелец 15.11.2026 принял P08/P10.a и локальный QA P11; разрешил один локальный commit всего кандидата P07–P11 после проверок. Без новых зависимостей, изменения применённых миграций, push/PR/merge/deployment. Прежние запреты commit ниже исторические и заменены только этим разрешением; production/review/coverage gates открыты |
 | P00 read-only аудит в рабочем репозитории | Выполнен и принят 14.11.2026 |
-| Локальные изменения кода | Владелец 15.11.2026 принял P05 и разрешил только P06: аккаунты, server-side auth, PostgreSQL sessions, сохранение профиля/результата, ownership, export/delete, тесты и документация. При необходимости новой прямой зависимости — остановиться до отдельного согласования; P07 запрещён |
+| Локальные изменения кода | Владелец 15.11.2026 подтвердил P07 DONE и разрешил P08 → P09 → P10.a → P11 по доступному AI_COMPASS_BATCH_P08_P11.md без промежуточных остановок. Новые фазы получают IMPLEMENTED_PENDING_OWNER_REVIEW/AWAITING_REVIEW, не DONE. P09 допускает обоснованный DEFERRED; P10 только локальные права/beta. Новые прямые зависимости требуют отдельного разрешения. Commit до итоговой приёмки, push/PR/deployment, платные API, реальные платежи/email, неразрешённый scraping, global installs и P12 запрещены |
 | Первоначальный локальный commit и ветка | Владелец 14.11.2026: четыре исходных файла без изменений, затем codex/p01-scaffold; выполнено |
 | Установка project dependencies / Docker images / browsers | P01 — ранее разрешённая локальная инфраструктура. P03 — владелец отдельно разрешил springdoc 3.2.0, react-router 8.5.1, @tanstack/react-query 5.107.1, @hey-api/openapi-ts 0.99.0 и их транзитивные зависимости; без других прямых зависимостей, sudo/global config/платных услуг |
 | Системные установки / sudo / global config | Нет |
@@ -1275,3 +1277,276 @@ Session restart/logout/reset/expiry/fixation и CSRF — PASS; concurrent reset/
 NOT_RUN/ограничения сохраняются: удалённый CI, production HTTPS/proxy/pentest и юридическая проверка не выполнялись; Arch Playwright использует прежний Ubuntu fallback. Рабочий ADMIN bootstrap не запускался, механизм проверен на Testcontainers. Реальные email/платежи/платные API/deployment/push/PR запрещены и не выполнялись. Гостевой черновик остаётся в памяти вкладки; локальные письма приватны и требуют предусмотренного удаления/очистки.
 
 **P06 = DONE. P07 = NOT_STARTED. Работа ограничена закрытием P06; после локального коммита остановиться.**
+
+
+## P07 — начало реализации, 15.11.2026
+
+Владелец явно принял P06 и разрешил P07 по вложенному поручению. Полностью перечитаны пять обязательных документов. Исходное дерево чистое, ветка codex/p01-scaffold, HEAD ffcde80860a3da71f28faa0bde29f056ab4dd348. Разрешены изменения backend/frontend/миграций после V6, документации и локальные проверки; commit до приёмки, новые прямые зависимости, push/PR/P08 и внешние действия запрещены. Исторические ограничения P06 выше не отменяют новое разрешение P07.
+
+План: один user_subscription ledger с ownership/revision и явными неизвестными компонентами; повторное использование CostCalculator/RenewalSchedule/RecommendationEngine/coverage/evidence; CURRENT/OPTIMIZED с будущим графиком и без refund; typed API/generated SDK, страница подписок, export/delete, unit/PostgreSQL/UI/E2E. V1–V6 сохраняются. Проверки P07 пока NOT_RUN; прежние результаты не являются доказательством нового этапа.
+
+### Промежуточные проверки P07
+
+Реализованы реестр/V7, typed API, финансовый timeline на CostCalculator, композиция прежнего engine, frontend/generated SDK и тесты. Новых прямых зависимостей нет. Первые compile/check прогоны выявили и устранили: сравнение строкового Evidence.status с enum; устаревшее ожидаемое число миграций; ESLint запрет совместного экспорта фабрики формы и компонента (фабрика вынесена); несоответствие SubscriptionPlan.name вместо tier; форматирование новых TS файлов. Эти неуспешные команды не считаются PASS.
+
+Первый денежный тест неверно ожидал неизвестную будущую цену уже отменённой без обязательств подписки: будущих платежей в таком сценарии действительно нет. Исправлена постановка: UNKNOWN amount/tax проверяются в CURRENT, неизвестные условия/расходы отмены — в CANCEL. UNKNOWN baseline по-прежнему даёт UNKNOWN savings, а не вымышленный ноль.
+
+Общий PostgreSQL regression воспроизвёл прежнюю гонку CatalogImportService: identical concurrent import мог конфликтовать по unique content_hash, тогда как ON CONFLICT покрывал только id. Теперь обрабатываются оба unique conflicts, после чего обязательно сверяются exact id/hash и sealed state. Существующая конкурентная проверка усилена до пяти повторений; версии/публикация/immutable данные не изменяются.
+
+Ручной review P07 нашёл две ошибки CURRENT: budget и maxTools/exclusivity не входили в итог requirementsMet. Новые два теста до исправления дали 2 FAIL /exit1 (`p07-current-regression-before.log`); после повторного использования BundleSearch.incompatible и проверки budget/maxTools все 23 SubscriptionOptimizerTest PASS /exit0 (`p07-current-regression-after.log`). Обычный гостевой engine не изменил правила/версию.
+
+Промежуточный полный `check.sh` (`p07-check-final.log`) PASS /exit0: 139 unit +100 PostgreSQL integration, 59 UI, OpenAPI/SDK, format/lint/types/build/catalog. После последующих регрессий и улучшений графика выполняется повторный check; этот результат не выдаётся за окончательную проверку. E2E P07 пока NOT_RUN. Статус остаётся IN_PROGRESS; P08 NOT_STARTED; commit/staging/push/PR не выполняются.
+
+### Проверенная сборка P07 и запуск перед E2E
+
+`bash scripts/check.sh` (`.runtime/p07-check-acceptance.log`) — PASS /exit0: **143 unit +100 PostgreSQL integration +59 UI**, failures/errors/skipped=0. Проверены clean compilation/package, npm ci существующего lockfile, OpenAPI/client drift, format/lint/typecheck/build и schema. Из новых unit cases 25 относятся к оптимизатору; дополнительно 80 seeded итераций внутри одного теста, не отдельные JUnit cases. В 100 IT входят 26 IdentityIT и 42 CatalogIT (включая пять повторений concurrent import), прежние suites сохранены.
+
+Дополнительный review выявил предоплаченный доступ с autoRenew=NO: прежняя новая проверка P07 отвергала такой CURRENT даже при paidUntil на конец горизонта. Регрессия сначала FAIL 1/1 (`p07-prepaid-regression-before.log`), после исправления входит в 25/25 PASS. Неизвестные переходные расходы теперь также не позволяют утверждать requirementsMet; сравнение может показывать условный вариант с UNKNOWN. Детерминированность проверена при разном порядке map entries. Одна промежуточная проверка lint обнаружила неиспользованный словарь подписи действий, он подключён к UI; финальный check PASS.
+
+После сборки `python3 scripts/local_processes.py stop/start` через common.sh — PASS /exit0: только собственные процессы, backend/frontend loopback. `bash scripts/smoke.sh` — PASS /exit0, 3/3. Read-only SQL: Flyway V1–V7 success, 35 таблиц compass, user_subscription пуст (0), рабочий каталог r2 UUID 03000000-0000-4000-8000-000000000002/revision2/3 products неизменён. PostgreSQL healthy на 127.0.0.1:15432; frontend/backend 5173/18080.
+
+Отдельно `bash scripts/check-catalog.sh`, `bash scripts/check-secrets.sh`, `git diff --check` — PASS /exit0. Git candidate audit: 37 файлов, 0 staged, нет .env, symlinks, кешей, логов, node_modules, target/dist и screenshots. Сравнение с HEAD подтверждает неизменность AGENTS/CODEX_PROMPT, manifests/lockfile и V1–V6. HEAD ffcde80860a3da71f28faa0bde29f056ab4dd348, ветка прежняя.
+
+E2E выполняется отдельным обязательным прогоном (`.runtime/p07-e2e.log`, 38 сценариев в suite). До завершения этого прогона и просмотра артефактов статус P07 остаётся IN_PROGRESS.
+
+### Дополнительные регрессии перед передачей P07
+
+Первый E2E завершился exit 1: 37 PASS, 1 FAIL (mustKeep checkbox). Контролируемый checkbox возвращался к прежнему значению до ответа API. Отдельный UI test с задержанным PATCH воспроизвёл ошибку (6 PASS /1 FAIL, `.runtime/p07-toggle-before.log`). Исправлено немедленное отображение выбора с блокировкой повторного запроса и откатом при HTTP 409/ошибке. До завершения запроса также блокируются профиль/режим сравнения и поля сохраняемой формы, чтобы ответ не относился к уже изменённым настройкам. После исправления 7/7 UI PASS (`p07-toggle-after.log`). E2E дополнительно ждёт завершения сохранения после обратного переключения.
+
+Проверка некорректного календаря воспроизвела две ошибки: неизвестная IANA zone не переводилась в HTTP 400, год за пределами четырёхзначного ISO проходил валидацию перед V7. Два параметризованных теста сначала FAIL 2/2 (`p07-calendar-before.log`), после исправления все 27 SubscriptionOptimizerTest PASS (`p07-calendar-after.log`). При первом отдельном запуске Maven был ошибочно вызван без проектного helper и остановился на недоступном default cache; повтор выполнен через `maven` из common.sh с `.cache/m2`, глобальная конфигурация не изменялась.
+
+Просмотрены реальные desktop/mobile screenshots первого E2E. Layout без overflow; длинные названия переносятся, CURRENT/OPTIMIZED складываются в колонку на 360px. Найденные технические идентификаторы в названиях инструментов заменены отображаемыми названиями; денежная арифметика остаётся только на сервере. Финальный полный check и повторный E2E выполняются после этих изменений. До их завершения P07 остаётся IN_PROGRESS.
+
+Повторный `check.sh` (`p07-check-release.log`) PASS: 145 unit +100 IT +60 UI. Smoke после перезапуска — 3/3 PASS. При окончательном review найдено ошибочное отнесение всех прогнозируемых продлений к неизбежным платежам при неизвестной доступной дате отмены. Это не меняло baseline horizon total, но завышало достоверность mandatoryTotal. Регрессия сначала 1 FAIL (`p07-mandatory-before.log`); исправлено на UNKNOWN для обязательной части и отдельное пояснение. Возвраты и возможность отмены по-прежнему не предполагаются. Уже запущенный повтор E2E (`p07-e2e-final.log`) штатно остановлен через SIGTERM собственного runner (exit 130, не PASS), чтобы полный финальный прогон проверял эту исправленную сборку. Собственные временные процессы/контейнер завершены finally; постоянные volumes не удалялись.
+
+### Состав изменений P07 для review
+
+Всего 37 файлов; ничего не staged. Новых зависимостей или lockfile изменений нет.
+
+```text
+README.md
+backend/src/main/java/com/aicompass/compass/catalog/CatalogImportService.java
+backend/src/main/java/com/aicompass/compass/config/OpenApiConfiguration.java
+backend/src/main/java/com/aicompass/compass/config/SecurityConfig.java
+backend/src/main/java/com/aicompass/compass/identity/IdentityGuard.java
+backend/src/main/java/com/aicompass/compass/identity/IdentityJson.java
+backend/src/main/java/com/aicompass/compass/identity/IdentityService.java
+backend/src/main/java/com/aicompass/compass/portfolio/PortfolioController.java
+backend/src/main/java/com/aicompass/compass/portfolio/PortfolioDtos.java
+backend/src/main/java/com/aicompass/compass/portfolio/SubscriptionController.java
+backend/src/main/java/com/aicompass/compass/portfolio/SubscriptionDtos.java
+backend/src/main/java/com/aicompass/compass/portfolio/SubscriptionService.java
+backend/src/main/java/com/aicompass/compass/recommendation/CandidateResolver.java
+backend/src/main/java/com/aicompass/compass/recommendation/CostCalculator.java
+backend/src/main/java/com/aicompass/compass/recommendation/OptimizationResult.java
+backend/src/main/java/com/aicompass/compass/recommendation/PreviewLoadGuard.java
+backend/src/main/java/com/aicompass/compass/recommendation/RecommendationEngine.java
+backend/src/main/java/com/aicompass/compass/recommendation/SubscriptionOptimizer.java
+backend/src/main/java/com/aicompass/compass/recommendation/SubscriptionTerms.java
+backend/src/main/resources/application.yml
+backend/src/main/resources/db/migration/V7__subscription_ledger.sql
+backend/src/test/java/com/aicompass/compass/catalog/CatalogIT.java
+backend/src/test/java/com/aicompass/compass/identity/IdentityIT.java
+backend/src/test/java/com/aicompass/compass/recommendation/SubscriptionOptimizerTest.java
+docs/ARCHITECTURE.md
+docs/PROGRESS.md
+docs/openapi.json
+frontend/src/api/account.ts
+frontend/src/api/generated/index.ts
+frontend/src/api/generated/sdk.gen.ts
+frontend/src/api/generated/types.gen.ts
+frontend/src/app/App.tsx
+frontend/src/app/Navigation.tsx
+frontend/src/subscriptions/Subscription.test.tsx
+frontend/src/subscriptions/SubscriptionPage.tsx
+frontend/src/subscriptions/form.ts
+frontend/tests/e2e/zzz-subscriptions.spec.ts
+```
+
+### Контрольные примеры P07 — только synthetic fixtures
+
+1. Три личные подписки по 12, 8 и 5 USD/месяц, 12 месяцев, известные даты, отмена доступна сейчас, без обязательств/дополнительных/переходных расходов: CURRENT 300 USD будущих списаний. Synthetic free learner+slides покрывают выбранные потребности за 0 USD; потенциальная разница 300 USD, ESTIMATED_USER_REPORTED, confirmedSavings=null. Функции личных продуктов остаются UNKNOWN; взаимозаменяемость не выдумывается. В браузерном сценарии первая цена редактируется с 12 до 10: проверяется 276 USD, а не 300.
+2. Synthetic Creator с личной ценой 1 USD/месяц покрывает требования редактора: CURRENT 12 USD за год, решение KEEP_CURRENT. Публичная цена каталога не подменяет фактическую цену владельца.
+3. Неизвестная цена/FX или условия отмены не позволяют подтвердить соответствующий расход/экономию: null + UNKNOWN, без фиктивного нуля или диапазона. Уже оплаченные 120 USD показываются отдельно и никогда не прибавляются к будущей экономии.
+
+### Матрица реализации P07 (итог проверок — ниже)
+
+| Требование | Реализация и доказательство |
+|---|---|
+| Архитектура / reuse | SubscriptionOptimizer композирует engine, resolver, coverage, usage, evidence, Money/FX/RenewalSchedule; CostCalculator расширен; новых прямых зависимостей нет |
+| Личный ledger / custom | Авторизованный CRUD, статус, actual price USER_REPORTED/CATALOG/UNKNOWN, currency, MONTH/YEAR, anchor/renewal/timezone, paid/trial/autoRenew/commitment/mustKeep/extras; custom функции UNKNOWN |
+| Database | V7, одна user_subscription; owner cascade, plan/offer FK, unique, numeric money/checks, generated dates/costs, индекс owner, revision/lock; V1–V6 неизменны |
+| Финансовые события | Paid отдельно; future/cash now/monthly/mandatory/transition/next payment; полуоткрытый календарный горизонт, годовая предоплата, leap/31st/timezone, нет refund, extras/FX UNKNOWN; 28 optimizer unit cases и 80 seeded итераций |
+| CURRENT / OPTIMIZED | REVIEW/AUGMENT, mustKeep, budget/upfront/maxTools/eligibility/shared quotas, current cheaper → KEEP_CURRENT; неполные варианты не подтверждают requirementsMet |
+| Overlap / потери | Подтверждённые capability claims и evidence IDs; INSUFFICIENT_DATA/BLOCKED_BY_REQUIREMENTS; альтернативы показаны отдельно; потери по всем известным функциям каталога, без процента качества/дублирования |
+| Экономия | Разница future totals одной валюты/горизонта, учитывает обязательства и переход; неизвестное остаётся UNKNOWN; known projection ESTIMATED_USER_REPORTED, confirmedSavings=null |
+| API / client | GET/POST collection, GET/PATCH/DELETE item, POST analyze с обоими сценариями и объяснениями; typed OpenAPI/generated SDK; 400/401/403/404/409/429/500, no-store |
+| Dashboard | /subscriptions: CRUD/toggle, prefill/manual override, profile reuse, optimize/compare/details/evidence, loading/empty/error/retry, responsive 360/768/1440 |
+| UX / provenance | Цена из каталога не повышает личную цену до VERIFIED_SOURCE; поздний ответ не подменяет новые параметры; ошибка toggle откатывает состояние; удаление записи не означает provider cancel |
+| Business scope | Compass fee прежней server policy учитывается, сейчас 0 USD; нет Premium billing, мониторинга, уведомлений, auto-cancel или гарантии экономии |
+| Privacy / security | Session/CSRF/owner predicates, A/B HTTP, strict DTO, body/account/IP/load limits, concurrent revisions 200/409, export/cascade/delete/revoke, без browser token storage и bank/provider credentials |
+| Unit / PostgreSQL / UI | Сохранены P01–P06 suites; новые денежные/calendar/unknown/no-change/shared/agent/ownership/concurrency tests; реальная PostgreSQL Testcontainers, не H2 |
+| Browser | Четыре P07 E2E cases объединяют все 12 запрошенных сценариев; собственные tmpfs DB/catalog/accounts/sink; окончательный результат фиксируется после завершения |
+| Обязательные команды | check/catalog/smoke/E2E/secrets/diff выполняются; прерванные/неуспешные прогоны выше не считаются PASS |
+| Documentation | README: запуск/user flow; ARCHITECTURE: model/rules/API/security/limits; PROGRESS: команды, факты, файлы, примеры и матрица |
+| Git / ограничения | Исходная ветка; staged 0; нет commit/push/PR/deploy/real email/payments/paid APIs, V1–V6/manifests/lockfile сохранены; P08 не начат |
+
+Ограничения: рабочий каталог r2 содержит только 3 продукта и неполные региональные цены/налоги/лимиты; tests используют явно synthetic данные. Реальные рыночные источники в P07 не обновлялись. Поиск ограничен каталогом и прежними стратегиями engine, глобальный минимум не обещается. Новые покупки начинаются сейчас; автоматический оптимальный отложенный старт не реализован. Actual costs, даты и условия — сведения пользователя, не банковское подтверждение. Usage/top-ups вводятся суммой за период или UNKNOWN. История optimizer автоматически не записывается: ответ содержит входы/versions/FX для replay, существующие профили P06 переиспользованы. Максимум 8 записей. При конфликте редактирования нужно обновить данные и заново открыть запись, черновик не перезаписывается молча.
+
+NOT_RUN / NOT_APPLICABLE: remote CI, production HTTPS/proxy/pentest, независимый a11y/privacy/legal audit и процент coverage не выполнялись; локальные regression tests не являются такими аудитами. Сохраняется ранее разрешённый Playwright Ubuntu fallback на Arch. Реальные платежи/email/API/deploy, P08 monitoring и внешние подписочные действия не входят в P07 и не выполнялись.
+
+### Финальная сборка после исправления обязательных платежей
+
+`bash scripts/check.sh` (`.runtime/p07-check-final-suite.log`) — PASS, exit 0: **146 unit +100 PostgreSQL integration +60 UI**, 0 failures/errors/skipped. Включены 28 cases SubscriptionOptimizerTest и прежние 80 seeded итераций внутри одного case. Backend clean compilation/package, existing-lock npm ci, live OpenAPI/generated SDK drift, format, lint, typecheck, frontend build и catalog schema PASS. Дополнительных зависимостей нет.
+
+В IT логе имеются сообщения Spring Session cleanup о недоступной БД после остановки контейнера предыдущего cached test context. Они относятся к фоновому завершению тестового окружения, не к работающей PostgreSQL приложения; JUnit IT 100/100 PASS. Ошибки тестов не скрывались, лог сохранён. Новый полный E2E использует эту финальную сборку (`p07-e2e-acceptance.log`); до его завершения передача AWAITING_REVIEW не объявляется.
+
+`python3 scripts/local_processes.py stop/start` после финальной сборки — PASS; `bash scripts/smoke.sh` (`p07-smoke-acceptance.log`) — PASS, exit 0, 3/3. PostgreSQL running/healthy, 127.0.0.1:15432; frontend/backend loopback 5173/18080. Read-only SQL подтвердил Flyway V1–V7 success и 0 user_subscription rows в рабочей БД. Первая диагностическая SQL-команда ошибочно указала compass.flyway_schema_history и получила relation-not-found; исправлен только запрос на public.flyway_schema_history, схема/данные не менялись.
+
+Отдельные `bash scripts/check-catalog.sh`, `bash scripts/check-secrets.sh`, `git diff --check` после исправления — PASS, exit 0 (`p07-catalog-acceptance.log`, `p07-secrets-acceptance.log`). Git audit: 37 candidates, 0 forbidden files, 0 staged; исходные AGENTS/CODEX_PROMPT, manifests/lockfile, V1–V6 неизменны. HEAD остаётся ffcde80860a3da71f28faa0bde29f056ab4dd348, ветка codex/p01-scaffold.
+
+
+### Итоговая передача P07 — AWAITING_REVIEW
+
+Все обязательные критерии матрицы P07 выше выполнены; незавершённых обязательных критериев нет. Это передача на review, не самостоятельная приёмка этапа.
+
+| Финальная команда / проверка | Фактический результат |
+|---|---|
+| `bash scripts/check.sh` | PASS, exit 0: 146 unit +100 PostgreSQL integration +60 UI, 0 failures/errors/skipped; compilation/package/install/format/lint/typecheck/build/OpenAPI+SDK/catalog PASS |
+| `bash scripts/check-catalog.sh` | PASS, exit 0: synthetic schema, 12 negative cases, оба reviewed manifests и recommendation fixture |
+| `bash scripts/smoke.sh` | PASS, exit 0: 3/3, финальная сборка работает на loopback |
+| `bash scripts/test-e2e.sh` | PASS, exit 0: 38/38, 0 failed/skipped, 10.9 min; все 12 сценариев P07 внутри четырёх cases |
+| `bash scripts/check-secrets.sh` | PASS, exit 0; secret-pattern/local-password scan, значения не выводились |
+| `git diff --check` | PASS, exit 0 |
+| Flyway / PostgreSQL | PASS: V1–V7 на чистых Testcontainers и локальной БД; V1–V6 неизменны, одна новая таблица/35 всего в compass; own PostgreSQL healthy |
+| Security / snapshots | PASS: P06 regression + subscription owner A/B, CSRF, optimistic conflict, stale catalog/revisions 409, rate limit 429, export/cascade/delete, private no-store |
+| Visual / responsive | PASS в пределах локальной проверки: фактические screenshots 360/768/1440 просмотрены, длинные названия переносятся, UNKNOWN/estimated savings видимы, overflow/pageerror отсутствуют |
+
+Всего **344 теста**, 0 failures/errors/skipped в финальных suites. Smoke 3/3 и schema checks дополнительно, не прибавлены к числу тестов. Числа unit/IT независимо сверены с Surefire/Failsafe XML. Неуспешный первый E2E и прерванный промежуточный прогон сохранены выше и не выданы за PASS.
+
+Итоговые логи (ignored): `.runtime/p07-check-final-suite.log`, `p07-catalog-acceptance.log`, `p07-smoke-acceptance.log`, `p07-e2e-acceptance.log`, `p07-secrets-acceptance.log`. Окончательные screenshots: [360](../.runtime/e2e-9473658498bd/p07-subscriptions-360.png), [768](../.runtime/e2e-9473658498bd/p07-subscriptions-768.png), [1440](../.runtime/e2e-9473658498bd/p07-subscriptions-1440.png). Только synthetic данные, auth trace/video OFF; артефакты не входят в Git.
+
+Git: `codex/p01-scaffold`, HEAD `ffcde80860a3da71f28faa0bde29f056ab4dd348` (последний P06); 25 modified +12 new files P07, staged 0. Секреты/.env/cache/logs/node_modules/build artifacts не входят. Манифесты/lockfile, AGENTS/CODEX_PROMPT и V1–V6 не изменены. Commit, push, PR и deployment не выполнялись. Финальная локальная сборка оставлена работающей; изолированные E2E процессы и собственный tmpfs контейнер завершены finally. В рабочем backend логе ERROR=0; тестовый cleanup warning описан отдельно выше.
+
+**P07 = AWAITING_REVIEW. P08 = NOT_STARTED. Работа остановлена до решения владельца.**
+
+
+## Закрытие P07 и начало разрешённого пакета P08–P11 — 15.11.2026
+
+Владелец явно сообщил «P07 ПРИНЯТ по предоставленному отчёту», поручил закрыть P07 без отдельного commit и последовательно выполнить пакет до P11. Для этого поручения отменены промежуточные остановки ради приёмки успешно проверенных фаз: после обязательных проверок можно ставить DONE и переходить дальше. Это явное разрешение владельца, а не самостоятельная смена workflow. Общий AWAITING_REVIEW ставится только после выполнения пакета; P12 не разрешён.
+
+Прочитаны AGENTS.md, общие/product/security/testing инварианты и P07–P11 в CODEX_PROMPT.md, текущие статусы и весь протокол P07 в PROGRESS.md, ARCHITECTURE.md. Проверены текущие код ledger/cost calculator, Git и сохранённые фактические отчёты. Исторические AWAITING_REVIEW/запрет P08 выше относятся к предыдущим поручениям и не отменяют новую авторизацию.
+
+### P07 = DONE
+
+- Сохранённые Surefire XML: 146 unit, failures/errors/skipped=0; Failsafe XML: 100 PostgreSQL integration, failures/errors/skipped=0. Лог окончательного check.sh подтверждает BUILD SUCCESS, 60 UI PASS, live OpenAPI/client drift и frontend checks/build. Лог окончательного E2E подтверждает 38 PASS за 10.9 min. Итого 344 теста прежнего принятого прогона; это проверка артефактов, не новый запуск этих suites.
+- Повторно выполнены сейчас `bash scripts/check-catalog.sh` — PASS/exit0; `bash scripts/smoke.sh` — PASS/exit0, 3/3; `bash scripts/check-secrets.sh` — PASS/exit0; `git diff --check` — PASS/exit0.
+- Полные check.sh/test-e2e.sh при этом документальном закрытии не перезапускались: application code/тесты не редактируются. Новых исправлений или миграций нет. Предыдущие исправления, failed-before evidence, финансовые примеры, security results, screenshots, ограничения Playwright/CI/данных и test-cleanup logging сохранены выше.
+- Git: codex/p01-scaffold, HEAD ffcde80860a3da71f28faa0bde29f056ab4dd348; 37 изменённых/новых файлов P07, staged 0. Candidate audit: forbidden files 0. AGENTS/CODEX_PROMPT, manifests/lockfile и V1–V6 неизменны. При этом закрытии меняется только этот PROGRESS.md. Commit не создан.
+
+### Блокер пакетного плана
+
+`AI_COMPASS_BATCH_P07_P11.md` отсутствует в корне репозитория. Поиск точного имени по доступному /home/mrturtle, поиск имён в AITU/attachments/tmp и поиск ссылки в доступных .md/.txt репозитория и вложений файл не обнаружили. Нельзя утверждать, что он прочитан, или подменять назначенный владельцем основной план прежним общим описанием этапов. Пользователю запрошен доступный путь либо содержание документа.
+
+P08 = BLOCKED (подготовка; реализация не начата). P09–P11 = NOT_STARTED: причины для конкретного P09 DEFERRED ещё не оценены по отсутствующему плану. Готовность закрытой beta не подтверждена; новых admin/monitoring/LLM/entitlement/analytics функций в этой части работы нет. Обязательные проверки будущих фаз NOT_RUN, потому что фазы не реализованы. Новых внешних интеграций, прямых зависимостей, commit/push/PR/deployment и P12 нет.
+
+**Общий статус пакета: BLOCKED до получения основного файла. Разрешение продолжать P08–P11 уже получено и не требует повторного запроса приёмки P07.**
+
+## Продолжение пакета P08–P11 — 15.11.2026
+
+Полностью прочитаны AGENTS, CODEX_PROMPT, новый AI_COMPASS_BATCH_P08_P11, PROGRESS и ARCHITECTURE. Предыдущий блокер снят. P07 DONE сохраняется без повторной реализации; исходные 37 изменений и добавленный владельцем план сохранены. Ветка codex/p01-scaffold, HEAD ffcde80860a3da71f28faa0bde29f056ab4dd348, индекс пуст. Новые фазы до review не объявляются DONE. План: защищённые draft/review/publish → семантические изменения и личные уведомления → локальные права beta → QA/docs. Новых прямых зависимостей не требуется. Проверки новых фаз пока NOT_RUN.
+
+### P08 — первые вертикальные срезы
+
+Добавлены V8 (catalog_draft/admin_audit), V9 (watched_stack/monitor_job/change_notice/notification_outbox), защищённые admin draft→validate→review→publish и личные monitoring endpoints. Существующие catalog_review/publication/active повторно используются, V1–V7 неизменны. Изменение черновика сбрасывает review; публикация проверяет active revision. Необходима текущая server ADMIN роль; источники не загружаются.
+
+Очередь использует append-only publication как event source; UNIQUE(watch,revision), PostgreSQL claim/lease/token, atomic notice+completion, 5 попыток, backoff, восстановление истёкшей lease. Сначала сравниваются семантические факты нужных планов/страны, движок запускается только при изменениях. Один job/minute/instance, повторный расчёт одного watch не чаще минуты. Письма только LOCAL_ONLY outbox с explicit opt-in; подтверждённая отписка отменяет outbox. Применение — только self-reported.
+
+Фактические промежуточные проверки: compile PASS; admin PostgreSQL HTTP 2/2 PASS после исправления порядка role/body-size (первый 1 PASS/1 FAIL); semantic unit 5/5 и monitoring PostgreSQL 2/2 PASS (`p08-monitor-retry.log`), UI 5/5 + lint/typecheck PASS (`p08-ui-tests-retry.log`). Первый semantic run 4 PASS/1 FAIL: неизменённое неизвестное предложение мешало подавлению малого изменения цены; исправлен отбор только изменённых offers. Первый monitoring IT 1 PASS/1 FAIL: fixtures предыдущего сценария оставляли активный watch; setup теперь явно отключает наблюдение предыдущего сценария, production limits не менялись. UI test typecheck сначала выявил неподдерживаемый Testing Library option exact, исправлен selector.
+
+OpenAPI/generated SDK получены из реального ScaffoldIT; admin/inbox UI используют SDK, отдельного HTTP/fake data слоя нет. Полный check.sh ещё выполняется: обнаружено старое ожидаемое число миграций (7 вместо новых 9), исправлено; этот неуспешный запуск не считается PASS. P08 остаётся IN_PROGRESS до полного check/E2E/smoke/security. Никаких новых прямых dependencies, commits/staging/push/PR/внешней почты.
+
+P08 полный повторный `check.sh` PASS/exit0 (`p08-check-retry.log`): 151 unit +104 PostgreSQL IT +65 UI, failures/errors/skipped=0; build/install/format/lint/typecheck/OpenAPI/schema PASS. Первый полный check FAIL только на оставшемся assertion 7 миграций вместо 9; остальные 103 IT прошли. После исправления проверены 41 таблица compass, V1–V9 и отсутствие auto-seed. Runtime перезапущен только собственными local_processes: smoke 3/3, check-catalog, check-secrets, diff --check PASS/exit0.
+
+Дополнительный `CatalogChangesTest` теперь 7/7 PASS (`p08-fx-tests.log`): регион не выводится из валюты, fresh direct FX позволяет применить порог, stale FX не выдаётся за известную оценку. Это два новых случая сверх полного check, а не повторное суммирование семи прежних. Дополненные monitoring IT 2/2 PASS (`p08-monitor-privacy.log`): экспорт watches/notices, delete каскадно удаляет jobs/outbox, после пятой неуспешной попытки FAILED. Production JAR не пересобирался во время E2E; эти дополнительные проверки меняли только tests. Полный E2E с 39 cases ещё выполняется; AWAITING_REVIEW пока не заявляется.
+
+Полный P08 E2E (`p08-e2e.log`) PASS: 39/39 за 13.0 min. Scheduler работал штатно; диагностическое чтение до очередного минутного tick показало пустую очередь, последующий tick доставил ровно 1 notice нужному owner, другой получил 0. Попытка read-only jcmd пришлась уже на штатное завершение E2E процесса и вернула non-existent PID; это не сбой приложения.
+
+Последующий review: новый regression fee-before действительно FAIL 1/1 — малая known комиссия обходила финансовый порог. Исправлено: semantic diff отделён от notification significance; все price/tax/fee/upfront компоненты проверяются по одному порогу, а изменение пригодности/решения engine не скрывается порогом. Budget 15 → цена 15.10 даёт предупреждение о потере соответствия. 9 CatalogChangesTest PASS (`p08-financial-policy.log`). Дополнительно исправлены nullable Active.versionId, UTF-8 byte limit (413 до DB constraint), экспорт без inbox LIMIT100 (регрессия 101 notice), указание горизонта и DEMO в UI. V8/V9 уже применены и с этого момента не редактируются.
+
+Повторный backend в `p08-check-final.log` PASS: 155 unit +105 IT (0 failures/errors/skipped), OpenAPI PASS. Общий script остановился на frontend typecheck: визуальная правка временно оставила неиспользуемый Link import; link implementation завершена, запускаются frontend checks и полный check повторно. Это не выдаётся за успешный check.sh. Визуально найден checkbox, растянутый общим catalog CSS: добавлены scoped overrides, подписи цен заменены читаемыми названиями, product links pinned к snapshot. Для точечной проверки E2E runner теперь передаёт аргументы Playwright; вызов без аргументов по-прежнему выполняет всю suite.
+
+Cached Spring test contexts теперь явно закрываются AFTER_CLASS (DirtiesContext) вместе со своими ресурсами: прежние фоновые cleanup ошибки после остановки PostgreSQL не маскируются, lifecycle будет перепроверен полным check. Никаких проверок не отключено.
+
+### P08: итог фазы A (15.11.2026)
+
+`bash scripts/check.sh` (`.runtime/p08-check-release.log`) exit 0: 155 unit, 105 PostgreSQL integration, 65 UI; 0 failures/errors/skips, lint/typecheck/build/API drift PASS. После @DirtiesContext нет ERROR сообщений закрытых test DB. `bash scripts/test-e2e.sh` ранее 39/39 PASS; финальный `bash scripts/test-e2e.sh tests/e2e/zzzz-monitoring.spec.ts` 1/1 PASS, 2.0 min (не дополнительные 40 уникальных тестов). Реальная публикация → worker → ровно один impacted inbox, без уведомления незатронутого пользователя. Скриншоты `.runtime/e2e-146d0d47e38c/p08-{admin,inbox}-{360,768,1440}.png`; 360 inbox просмотрен: нет overflow, DEMO и период видны. Названия тарифов загружаются отдельно по pinned version, при отсутствии ответа явное «пока недоступно».
+
+Локальные процессы перезапущены с собранным P08 JAR; smoke 3/3, check-catalog, check-secrets и diff --check exit 0. Политика значимости: semantic diff сначала отсекает нерелевантные/оформительские изменения, затем engine пересчитывает затронутое; порог цены применяется после проверки изменения допустимости/решений. Малое повышение, нарушающее budget, не скрывается. Полные counts включают regression для small fees, budget crossing, UTF-8 size и export 101 уведомления при UI limit 100.
+
+P08 = IMPLEMENTED_PENDING_OWNER_REVIEW. P09 = DEFERRED: существующие structured deterministic explanations достаточны, внешние LLM не нужны и OFF. P10.b = DEFERRED до отдельного выбора PSP и разрешения. Начата только P10.a: Free 1 профиль/current result, Premium beta 5 профилей/history/5 watches; fee 0, без оплаты. P07 сохранён без повторной реализации, commit/staging/push не выполнялись.
+
+### P10.a: вертикальный срез прав
+
+Добавлены V10 `beta_grant`/`beta_grant_audit`, серверный сервис/контроллер, ownership/expiry/revocation/idempotency/CAS/owner locks, Free profile/history и Premium monitoring gates, export/cascade, `/pricing` и `/account/billing` с ADMIN issue/revoke. Прямые зависимости/manifests/lockfile не менялись. V1–V9 сохранены.
+
+Первый targeted command с ошибочным `-Dtest=IdentitySettingsTest` остановился до IT: такого класса нет. Исправлено на `IntegrationSettingsTest`. Второй запуск: 5 unit PASS, 35 IdentityIT — 34 PASS / 1 ERROR (старый bootstrap test увидел ADMIN из предыдущего нового сценария). Это изоляция fixture, не обход bootstrap: BeforeEach теперь сбрасывает роли только в принадлежащей тесту PostgreSQL, где каждый сценарий сам создаёт ADMIN. Production bootstrap не изменён. Повтор и общие проверки ещё ожидаются.
+
+P10.a промежуточные проверки: `.runtime/p10-check.log` backend 155 unit +109 PostgreSQL IT PASS (0 failures/errors/skips), frontend typecheck FAIL выявил коллизию simple-name `Audit` между каталогом и beta, и ссылку на catalog `plans` вместо billing operation. Исправлено на `BetaGrantAudit`/`BetaPlan`/`betaPlans`; в ScaffoldIT добавлены assertions обеих схем, operationId, nullable expiry. `generate-api.sh` после исправления exit 0 (5 unit +8 ScaffoldIT). Также удалён неподдерживаемый Testing Library `exact` (строковое name уже точное). `.runtime/p10-ui-retry.log`: typecheck/lint PASS, 22/22 целевых UI tests PASS. Premium SavePanel теперь позволяет явно выбрать существующий либо отдельный профиль; regression подтверждает POST revision0 вместо перезаписи. Финальный полный check ещё выполняется.
+
+P10.a `.runtime/p10-check-release.log`: полный `bash scripts/check.sh` exit 0, 155 unit +109 PostgreSQL IT +71 UI, 0 failures/errors/skips; lint/typecheck/format/build/live OpenAPI drift/catalog/secrets PASS. V10 применяется к локальной DB при restart; после этого V10 неизменяема. Запущен полный `bash scripts/test-e2e.sh` (40 scenarios), результат ещё не объявляется. Код/JAR заморожены на время E2E.
+
+P10.a дополнительные обязательные команды после restart: smoke 3/3, check-catalog (schema +12 negative +reviewed/synthetic manifests), check-secrets и git diff --check — exit 0. V10 успешно применена локально; менять её содержимое далее нельзя. Ветка codex/p01-scaffold, индекс пуст; manifests/lockfile и V1–V6 без diff. Ручной P10 security review: backend strict JSON/DB role/owner lock/CSRF, owner export/delete и worker expiry recheck просмотрены; это внутренний review, не независимый pentest. Full E2E ещё выполняется.
+
+### Фаза B завершена локально; начало P11
+
+Полный `bash scripts/test-e2e.sh` (`.runtime/p10-e2e.log`) exit 0: **40/40 PASS, 14.1 min**. Все P01–P08 сценарии плюс настоящий admin issue → Premium → revoke → Free, fake success denial, USER admin denial, CSRF/consent, собственный audit/export и logout. P10 screenshots `.runtime/e2e-4f4d0735c915/p10-billing-{360,768,1440}.png`; 360 просмотрен. Portfolio 1440 также просмотрен: расходы/prepaid/UNKNOWN/self-reported savings разделены. Все обязательные команды фазы B завершены успешно. P10.a = IMPLEMENTED_PENDING_OWNER_REVIEW, P09/P10.b = DEFERRED.
+
+P11 начат: минимальные opt-in daily product events без профилей/email/IP, export/delete/withdrawal, local supply-chain/status/persistence checks, T01–T38, RUNBOOK/DATA_POLICY/RELEASE_CHECKLIST. Запрошено отдельное разрешение на независимого read-only агента; ответа пока нет, агент не запускается. Собственный review не будет выдаваться за независимый. Процент coverage, внешний CVE feed, remote CI, pentest/privacy/legal/production review пока NOT_RUN/NOT_VERIFIED.
+
+### P11: implementation and targeted verification
+
+V11 adds consent and three daily event types only; no profile/email/IP/free-form/payment fields. Configure/collect/delete share the owner lock, daily uniqueness deduplicates, 30-day read window plus daily cleanup, withdrawal removes stored events. Server save/read acknowledgement emits events only after consent; account revisit is opt-in. `/account` exposes consent OFF by default; export includes own preferences/events. Explicit «Прочитано» does not mark a recommendation applied.
+
+`.runtime/p11-identity.log` exit 0: 5 IntegrationSettings unit +38 IdentityIT (0 failures/errors/skips). Tests cover no collection before consent, CSRF/strict fields, no arbitrary payment event, ownership, daily dedup, concurrent withdrawal, retention, server-confirmed saves and account cascade. Existing notice test confirms CHANGE_NOTICE_VIEWED after consent. `generate-api.sh` exit 0: 5 unit +8 ScaffoldIT, actual OpenAPI/client regenerated. `.runtime/p11-ui.log`: typecheck/lint PASS and 31/31 targeted UI tests, including consent/withdrawal and source HTML rendered as text. Full engine test for source instructions is included in the pending full check.
+
+`bash scripts/check-supply-chain.sh` exit 0: 311 npm registry SHA512 lock entries, exact manifests/root lock, installed npm tree, Maven stable versions/parent/wrapper hash, pinned CI actions; cached Maven dependency plugin 3.10.0 ran offline. Resolved springdoc 3.2.0 and Spring Session JDBC/Core 4.1.1 confirmed. No downloads/new direct dependencies. External CVE/signature/provenance/license audit NOT_RUN. Added status script and stronger candidate-artifact secret scan; bash -n and diff --check PASS. Documentation RUNBOOK/DATA_POLICY/ARCHITECTURE/README and T01–T38 checklist updated. Full P11 check/E2E/persistence/benchmark still pending at this entry.
+
+P11 полный `bash scripts/check.sh` (`.runtime/p11-check.log`) exit 0: **156 unit +112 PostgreSQL IT +74 UI**, failures/errors/skips 0. Fresh V1–V11, 45 таблиц, повторная migrate без новых шагов; lint/typecheck/format/build/API drift/schema PASS. `benchmark-recommendation.sh` exit0, 1 benchmark: p50 43.18 ms, p95 51.66 ms, 102091 visited nodes =102090 непустых комбинаций +1 пустой корень; последний не рекомендуется.
+
+Smoke 3/3, check-catalog, check-secrets, status.sh и test-persistence.sh exit0. Рабочая PostgreSQL17.12 healthy; V1–V11 successful; catalog revision2 сохранён. Frontend127.0.0.1:5173, backendIPv4-mapped loopback18080, DB127.0.0.1:15432. Marker пережил stop/start; удалена только собственная probe table, volume сохранён. Рабочие ADMIN/grants/notice payloads не менялись. Финальный полный E2E запущен, результат пока pending.
+
+CI не запускался. В workflow обновлено только название: offline dependency-tree script требует ранее разрешённого cached Maven plugin и не добавлен как заведомо неработающий шаг на чистом remote runner. Локальный supply-chain script проверен, новая установка plugin/remote CI в этом проходе не выполнялась.
+
+
+### Итог пакета P08–P11 — AWAITING_REVIEW, 15.11.2026
+
+Финальный `bash scripts/test-e2e.sh` завершён **exit 0, 40/40 PASS, 14.1 min**, `.runtime/p11-e2e.log`, screenshots `.runtime/e2e-f25ab8dd505b/`. Проверены реальные изолированные publish → worker → API → inbox, отсутствие уведомления незатронутому владельцу, отдельное подтверждение прочтения, выдача/отзыв beta-прав, consent/export/delete и прежние guest/catalog/account/optimizer сценарии. Финальный код/JAR не менялся во время прогона. Просмотрены финальные account360, inbox1440, admin1440 и billing360; responsive тесты 360/768/1440 без overflow. Снимки используют synthetic fixture data; UUID аккаунта не session identifier.
+
+Итоговые уникальные счётчики последнего полного запуска: **156 backend unit, 112 PostgreSQL integration, 74 frontend UI, 40 E2E; failures/errors/skips 0**. Дополнительно 1 benchmark PASS (не суммируется с unit), smoke 3/3 и schema 12 negative cases PASS. Все обязательные команды `check.sh`, `check-catalog.sh`, `smoke.sh`, `test-e2e.sh`, `check-secrets.sh`, `git diff --check` exit 0. Supply-chain/status/persistence exit 0. После последних изменений документации secrets/diff повторно PASS /exit 0; сборки повторно не требуются для Markdown-only правок.
+
+Новые миграции пакета V8 draft/audit, V9 watches/jobs/notices/local outbox, V10 beta grants/audit/profile limits, V11 consent/daily events. Принятая V7 P07 сохранена; V1–V6 не изменены. Fresh PostgreSQL V1–V11 /45 tables PASS, повторная migrate no-op; рабочая PostgreSQL healthy, catalog revision2 и данные сохранены после stop/start. Новых direct dependencies нет. Реально разрешены Java21.0.13+9, Maven3.10.0, Boot4.1.2, Spring Session4.1.1, springdoc3.2.0; Node24.22.3/npm11.19.1, React19.3.1, TypeScript6.0.3, Vite8.3.8, Router8.5.1, Query5.107.1, openapi-ts0.99.0, Playwright1.64.1, Vitest5.1.0, PostgreSQL17.12.
+
+Полные возможности, T01–T38, исправленные регрессии, финансовые примеры, security/ops evidence и список файлов: `docs/RELEASE_CHECKLIST.md`; эксплуатация: `docs/RUNBOOK.md`. Собственный review границ доступа, денежных расчётов, UNKNOWN, опубликованных версий и diff выполнен. **Независимое read-only review NOT_RUN**: отдельное разрешение на агента запрошено, ответа нет; собственная проверка не подменяет независимую. Coverage процентов NOT_RUN (инструментирование отсутствует), цели 85%/70% не объявлены достигнутыми. External CVE/provenance/license audit, remote CI, cross-browser, backup/restore, pentest/privacy/legal/tax/production review NOT_RUN/NOT_VERIFIED. Каталог ограничен 3 продуктами/7 тарифами/11 regional observations; неизвестные данные не заполнены выдумками. Это локальный кандидат, не разрешение на публичную beta/deployment.
+
+**P07 DONE; P08 IMPLEMENTED_PENDING_OWNER_REVIEW; P09 DEFERRED; P10.a IMPLEMENTED_PENDING_OWNER_REVIEW; P10.b DEFERRED; P11 AWAITING_REVIEW. Общий статус AWAITING_REVIEW. P12–P14 NOT_STARTED.** Git: `codex/p01-scaffold`, HEAD `ffcde80860a3da71f28faa0bde29f056ab4dd348`, 42 modified +42 untracked paths (84, включая принятый P07 и план владельца), staged0/deleted0. Секреты/.env/caches/builds/logs/browser artifacts остаются ignored; commit/stage/push/PR не выполнялись. Внешние интеграции OFF; платных вызовов, платежей, отправки писем, новых прямых зависимостей и deployment нет. Работа завершена до решения владельца.
+
+
+## FINAL LOCAL BETA CLOSEOUT — 15.11.2026
+
+Владелец явно принял P08 и P10.a в пределах локальной beta, а также локальные QA-результаты P11; разрешён **один** локальный commit `feat: complete ai compass local beta candidate`. Это заменяет прежний запрет commit, но не закрывает independent-review, coverage и production gates. P09/P10.b DEFERRED; P12–P14 NOT_STARTED.
+
+Проверены исходные 84 modified/new paths (42+42), все обычные UTF-8 файлы, без binary/symlink/удалений; индекс был пуст. Список 37 файлов принятого P07 из собственного раздела журнала полностью присутствует. Зафиксированы SHA256 исходного набора в ignored `.runtime/closeout-initial-hashes.json`; при closeout код, тесты, manifests/lockfiles, инфраструктура и миграции не менялись. V1–V6 без diff к HEAD; V7–V11 сохранены побайтно относительно начала closeout. Сохранён весь согласованный кандидат P07–P11, включая план владельца.
+
+Последний полный P11 evidence переиспользован по явному разрешению: `.runtime/p11-check.log` содержит 156 unit +112 PostgreSQL IT +74 UI PASS, `.runtime/p11-e2e.log` 40/40 PASS. Ни один application source/test не новее полного прогона; позже check менялось только название CI workflow, до E2E, без изменения исполняемых шагов. Новых установок или сборок нет. Повторно `bash scripts/status.sh` exit0: healthy PostgreSQL, V1–V11 success, active catalog revision2; `bash scripts/smoke.sh` exit0: 3/3. Frontend127.0.0.1:5173, backend127.0.0.1:18080, PostgreSQL127.0.0.1:15432.
+
+Read-only браузерная проверка рабочей БД (`.runtime/closeout-live-final.log`) exit0: главная/connection, 3 реальных продукта, 2 выбранные потребности без промпта, настоящий preview HTTP200 → CONDITIONAL_ONLY/0 confirmed/3 conditional/REVIEWED; отдельный запрос с неизвестной обязательной потребностью → HTTP200/NO_MATCH, UNKNOWN и ноль подтверждённых наборов; явный data gap для отсутствующей потребности, pricing beta. Первые два запуска временного скрипта завершались на неверном позиционном selector/неуказанной частоте и неточном имени кнопки; исправлен только временный скрипт, не приложение. Эти попытки не объявлены PASS. Рабочие аккаунты/каталог не изменялись.
+
+Добавлен `docs/DEMO_GUIDE.md`: запуск подготовленной машины без загрузок, страницы/регистрация/private mail sink/сохранение/портфель/права, изолированный admin+notifications replay и пределы реального каталога. Обновлены только PROGRESS/RELEASE_CHECKLIST и новый DEMO_GUIDE. Для commit ожидаются 85 файлов (исходные 84 + руководство). Все `.env`, письма, caches/tools, логи, browser/test/build artifacts остаются ignored. Сохранённые тестовые пароли в synthetic fixtures не являются реальными учётными данными.
+
+Приёмка LOCAL: P01–P07 DONE, P08/P10.a ACCEPTED, P11 local QA ACCEPTED. OPEN: independent review, coverage targets, external CVE/provenance/license audit, remote CI, cross-browser, backup/restore, pentest/privacy/legal/tax/production review. Прежние записи AWAITING_REVIEW выше — история передачи, не текущий статус. Никакого публичного deployment, paid API, реальной почты, оплаты, push/PR/merge или P12–P14.
+
+
+Финальный closeout replay: `bash scripts/test-e2e.sh --grep 'import stays private|student with several needs|no match is honest|limited real catalog|guest result survives|UI add, actual price|admin publishes semantic|beta grants are server'` → **exit0, 8/8 PASS, 8.1 min**, `.runtime/closeout-demo-e2e.log`, artifacts `.runtime/e2e-a14693ac3b28/`. Это целевой повтор восьми существующих сценариев, не восемь новых тестов и не замена сохранённой полной suite40. Реально проверены все восемь запрошенных групп demo: live главная/каталог, несколько потребностей, backend preview, NO_MATCH/UNKNOWN, регистрация/сохранение, подписки/расходы, изолированные admin/notifications, Free/Premium без оплаты. Новых ошибок приложения не найдено, исходный код не менялся; обязательные сборки не перезапускались согласно разрешению владельца.
+
+Перед фиксацией повторные `check-secrets.sh`, `git diff --check` PASS/exit0. В commit включается точный набор85 путей; служебный manifest списка и SHA256 остаётся ignored, применённые миграции неизменны. Сообщение commit: `feat: complete ai compass local beta candidate`. Hash и итоговый чистый Git status фиксируются в финальном ответе и истории Git, без дополнительного commit ради собственного hash. Работа на этом завершена; принятие относится только к локальному MVP.

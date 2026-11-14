@@ -12,6 +12,7 @@ import static com.aicompass.compass.catalog.CatalogTypes.*;
 final class CostCalculator {
     record Amounts(BigDecimal recurring, BigDecimal now, BigDecimal upfront, BigDecimal horizon,
                    boolean confirmed, List<Reason> reasons, List<FxUsed> fx) {}
+    final List<FxUsed> ledgerFx = new ArrayList<>();
     private final PublishedCatalogSnapshot catalog;
     private final EvidenceAssessment evidence;
     private final RecommendationProfile profile;
@@ -91,6 +92,70 @@ final class CostCalculator {
             reasons.add(reason(Code.FX_MISSING, "FX conversion exceeds supported monetary bounds", f.evidenceId())); return null;
         }
     }
+    OptimizationResult.Timeline newPurchase(String id, CatalogManifest.PriceOffer offer) {
+        var c=offer(offer);var used=new ArrayList<FxUsed>();var reasons=new ArrayList<Reason>();
+        BigDecimal recurringCharge=convert(add(add(number(offer.amount()),number(offer.additionalTax())),number(offer.additionalFee())),offer.currency(),used,reasons);
+        ledgerFx.addAll(used);
+        var today=asOf.atZone(ZoneOffset.UTC).toLocalDate();var charges=new ArrayList<OptimizationResult.Charge>();
+        int period=offer.billingPeriod()==BillingPeriod.YEAR?12:1;
+        for(int month=0;month<profile.horizonMonths();month+=period)
+            charges.add(new OptimizationResult.Charge(id,today.plusMonths(month),"UTC",decimal(month==0?c.now():recurringCharge),false));
+        return new OptimizationResult.Timeline("0",decimal(c.now()),decimal(c.recurring()),decimal(c.horizon()),"0","0",today,List.copyOf(charges),
+                c.confirmed()?List.of():List.of(id+": UNKNOWN — неизвестны полная цена или её подтверждение"));
+    }
+    OptimizationResult.Timeline ledger(String id, SubscriptionTerms t, boolean cancel) {
+        var reasons = new ArrayList<Reason>(); var used = new ArrayList<FxUsed>();
+        var unknowns = new ArrayList<String>(); var charges = new ArrayList<OptimizationResult.Charge>();
+        var zone = ZoneId.of(t.billingZone()); var today = asOf.atZone(zone).toLocalDate();
+        var end = today.plusMonths(profile.horizonMonths());
+        BigDecimal paid = convert(number(t.paidAmount()), t.currency(), used, reasons);
+        BigDecimal charge = convert(add(number(t.amount()),number(t.additionalPerPeriod())),t.currency(),used,reasons);
+        BigDecimal transition = cancel ? convert(number(t.transitionCost()),t.currency(),used,reasons) : BigDecimal.ZERO;
+        boolean active = t.status()!=SubscriptionTerms.Status.ENDED;
+        boolean scheduleKnown = !active || t.autoRenew()==SubscriptionTerms.Renewal.NO && t.obligation()==SubscriptionTerms.Obligation.NONE
+                || t.nextRenewal()!=null && t.autoRenew()!=SubscriptionTerms.Renewal.UNKNOWN && t.obligation()!=SubscriptionTerms.Obligation.UNKNOWN;
+        if(t.status()==SubscriptionTerms.Status.UNKNOWN) scheduleKnown=false;
+        if(cancel && (t.cancellationAvailableFrom()==null || t.obligation()==SubscriptionTerms.Obligation.UNKNOWN)) scheduleKnown=false;
+        if(!scheduleKnown)unknowns.add(id+": UNKNOWN — неизвестен график платежей или отмены");
+        if(paid==null)unknowns.add(id+": UNKNOWN — неизвестна уже оплаченная сумма; она не входит в будущую экономию");
+        if(cancel && transition==null)unknowns.add(id+": UNKNOWN — неизвестны расходы на переход");
+        LocalDate stop = cancel ? t.cancellationAvailableFrom() : null;
+        if(cancel && stop!=null && t.commitmentUntil()!=null && stop.isBefore(t.commitmentUntil()))stop=t.commitmentUntil();
+        BigDecimal total=scheduleKnown?BigDecimal.ZERO:null, mandatory=scheduleKnown?BigDecimal.ZERO:null;
+        BigDecimal now=scheduleKnown?BigDecimal.ZERO:null;
+        boolean mandatoryUnknown = false;
+        if(active && t.nextRenewal()!=null) {
+            int period=t.billingPeriod()==RecommendationProfile.Period.YEAR?12:1;
+            var schedule=new RenewalSchedule(t.renewalAnchor(),zone,period);
+            var first=t.nextRenewal().isAfter(today)?t.nextRenewal():schedule.nextOnOrAfter(today.atStartOfDay(zone).toInstant()).atZone(zone).toLocalDate();
+            long index=java.time.temporal.ChronoUnit.MONTHS.between(t.renewalAnchor().withDayOfMonth(1),first.withDayOfMonth(1))/period;
+            for(int count=0;count<25;count++) {
+                var day=schedule.occurrence(index+count).atZone(zone).toLocalDate();
+                if(!day.isBefore(end))break;
+                boolean obligated=t.commitmentUntil()!=null && day.isBefore(t.commitmentUntil());
+                boolean unavoidable=obligated || t.cancellationAvailableFrom()!=null && day.isBefore(t.cancellationAvailableFrom());
+                if(t.autoRenew()==SubscriptionTerms.Renewal.NO && !obligated)continue;
+                if(cancel && stop!=null && !day.isBefore(stop))continue;
+                // A renewal projection is not proof that cancellation is impossible.
+                if (!obligated && t.cancellationAvailableFrom()==null && (charge==null || charge.signum()!=0)) {
+                    mandatory=null;
+                    mandatoryUnknown=true;
+                }
+                charges.add(new OptimizationResult.Charge(id,day,t.billingZone(),decimal(charge),unavoidable));
+                total=add(total,charge);if(unavoidable)mandatory=add(mandatory,charge);
+                if(day.equals(today))now=add(now,charge);
+            }
+        }
+        if(mandatoryUnknown)unknowns.add(id+": UNKNOWN — сумма обязательных платежей зависит от неизвестных условий отмены");
+        if(!charges.isEmpty() && charge==null)unknowns.add(id+": UNKNOWN — неизвестны цена, налоги, сборы, дополнительные кредиты или курс");
+        boolean continues=active && t.autoRenew()==SubscriptionTerms.Renewal.YES && !cancel;
+        BigDecimal monthly=!active || t.autoRenew()==SubscriptionTerms.Renewal.NO && t.obligation()==SubscriptionTerms.Obligation.NONE || cancel && scheduleKnown && charges.isEmpty() ? BigDecimal.ZERO
+                : (continues || cancel && scheduleKnown && !charges.isEmpty()) && charge!=null ? charge.divide(BigDecimal.valueOf(t.billingPeriod()==RecommendationProfile.Period.YEAR?12:1),6,RoundingMode.CEILING):null;
+        ledgerFx.addAll(used);
+        return new OptimizationResult.Timeline(decimal(paid),decimal(add(now,transition)),decimal(monthly),decimal(add(total,transition)),
+                decimal(mandatory),decimal(transition),charges.isEmpty()?null:charges.getFirst().date(),List.copyOf(charges),List.copyOf(unknowns));
+    }
+    static BigDecimal number(String value) {return value==null?null:new BigDecimal(value);}
     static BigDecimal add(BigDecimal a, BigDecimal b) { return a == null || b == null ? null : a.add(b); }
     static String decimal(BigDecimal value) { return value == null ? null : value.stripTrailingZeros().toPlainString(); }
     static Reason reason(Code code, String detail, String... ids) { return new Reason(code, detail, List.of(ids)); }

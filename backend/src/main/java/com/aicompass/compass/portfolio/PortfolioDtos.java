@@ -15,5 +15,5 @@ public final class PortfolioDtos {
     public record SavedRecommendation(UUID id, RecommendationProfile profile, RecommendationResult result, Instant savedAt) {}
     public record StackWrite(@NotNull UUID snapshotId, @NotBlank @Size(max=200) String bundleId) {}
     public record SavedStack(UUID id, UUID snapshotId, String bundleId, Instant createdAt) {}
-    public record DataExport(Account account, List<SavedProfile> profiles, List<SavedRecommendation> recommendations, List<SavedStack> stacks) {}
+    public record DataExport(Account account, List<SavedProfile> profiles, List<SavedRecommendation> recommendations, List<SavedStack> stacks, List<SubscriptionDtos.SubscriptionEntry> subscriptions, List<com.aicompass.compass.monitoring.MonitoringService.Watch> watches, List<com.aicompass.compass.monitoring.MonitoringService.Notice> notices, com.aicompass.compass.billing.EntitlementService.Entitlements entitlements, List<com.aicompass.compass.billing.EntitlementService.BetaGrantAudit> entitlementAudit, com.aicompass.compass.analytics.UsageAnalyticsService.AnalyticsPreferences analytics) {}
 }

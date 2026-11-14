@@ -16,12 +16,14 @@ import static com.aicompass.compass.portfolio.PortfolioDtos.*;
 @Service
 @Transactional
 public class PortfolioService {
+    private final com.aicompass.compass.billing.EntitlementService entitlements;
+    private final com.aicompass.compass.analytics.UsageAnalyticsService analytics;
     private final JdbcTemplate jdbc;
     private final IdentityJson json;
     private final ProfileValidator validator;
     private final CatalogReadService catalog;
     private final Clock clock;
-    public PortfolioService(JdbcTemplate jdbc,IdentityJson json,ProfileValidator validator,CatalogReadService catalog,Clock clock){this.jdbc=jdbc;this.json=json;this.validator=validator;this.catalog=catalog;this.clock=clock;}
+    public PortfolioService(com.aicompass.compass.analytics.UsageAnalyticsService analytics,com.aicompass.compass.billing.EntitlementService entitlements,JdbcTemplate jdbc,IdentityJson json,ProfileValidator validator,CatalogReadService catalog,Clock clock){this.analytics=analytics;this.entitlements=entitlements;this.jdbc=jdbc;this.json=json;this.validator=validator;this.catalog=catalog;this.clock=clock;}
     private void lockOwner(UUID owner){
         if(jdbc.queryForList("SELECT id FROM compass.user_account WHERE id=? AND verified_at IS NOT NULL FOR UPDATE",UUID.class,owner).isEmpty())
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"Authentication required");
@@ -34,7 +36,7 @@ public class PortfolioService {
     public SavedProfile create(UUID owner,ProfileWrite input){
         lockOwner(owner);validator.read(json.write(input.profile()),clock.instant());
         if(input.revision()!=0)throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"New profile revision must be zero");
-        if(!profiles(owner).isEmpty())throw new ResponseStatusException(HttpStatus.CONFLICT,"Free accounts allow one saved profile");
+        if(profiles(owner).size()>=entitlements.current(owner).profileLimit())throw new ResponseStatusException(HttpStatus.CONFLICT,"Saved profile limit reached");
         UUID id=UUID.randomUUID();var now=Timestamp.from(clock.instant());
         jdbc.update("INSERT INTO compass.saved_profile(id,owner_id,name,profile_json,created_at,updated_at) VALUES (?,?,?,CAST(? AS jsonb),?,?)",id,owner,input.name().strip(),json.write(input.profile()),now,now);
         return profile(owner,id);
@@ -48,6 +50,15 @@ public class PortfolioService {
     public void deleteProfile(UUID owner,UUID id){if(jdbc.update("DELETE FROM compass.saved_profile WHERE id=? AND owner_id=?",id,owner)!=1)throw missing();}
     public List<SavedRecommendation> recommendations(UUID owner){
         return jdbc.query("SELECT * FROM compass.recommendation_snapshot WHERE owner_id=? ORDER BY saved_at DESC,id",(r,n)->new SavedRecommendation(r.getObject("id",UUID.class),json.read(r.getString("profile_json"),RecommendationProfile.class),json.read(r.getString("result_json"),RecommendationResult.class),r.getTimestamp("saved_at").toInstant()),owner);
+    }
+    public List<SavedRecommendation> visibleRecommendations(UUID owner) {
+        var all=recommendations(owner);
+        return entitlements.current(owner).history()?all:all.stream().limit(1).toList();
+    }
+    public SavedRecommendation visibleRecommendation(UUID owner,UUID id) {
+        var owned=recommendation(owner,id);
+        if(visibleRecommendations(owner).stream().noneMatch(r->r.id().equals(id))) entitlements.requirePremium(owner);
+        return owned;
     }
     public SavedRecommendation recommendation(UUID owner,UUID id){return recommendations(owner).stream().filter(r->r.id().equals(id)).findFirst().orElseThrow(PortfolioService::missing);}
     public SavedRecommendation save(UUID owner,SnapshotWrite input){
@@ -63,12 +74,13 @@ public class PortfolioService {
         UUID id=UUID.randomUUID();result=result.withRequestId(id.toString());
         var now=clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         jdbc.update("INSERT INTO compass.recommendation_snapshot VALUES (?,?,CAST(? AS jsonb),CAST(? AS jsonb),?,?,?,?,?)",id,owner,json.write(profile),json.write(result),result.catalogVersion(),result.engineVersion(),result.policyVersion(),Timestamp.from(result.asOf()),Timestamp.from(now));
+        analytics.record(owner,com.aicompass.compass.analytics.UsageAnalyticsService.Event.RESULT_SAVED);
         return new SavedRecommendation(id,profile,result,now);
     }
     public void deleteRecommendation(UUID owner,UUID id){if(jdbc.update("DELETE FROM compass.recommendation_snapshot WHERE id=? AND owner_id=?",id,owner)!=1)throw missing();}
     public List<SavedStack> stacks(UUID owner){return jdbc.query("SELECT * FROM compass.saved_stack WHERE owner_id=? ORDER BY created_at,id",(r,n)->new SavedStack(r.getObject("id",UUID.class),r.getObject("snapshot_id",UUID.class),r.getString("bundle_id"),r.getTimestamp("created_at").toInstant()),owner);}
     public SavedStack stack(UUID owner,StackWrite input){
-        lockOwner(owner);var snapshot=recommendation(owner,input.snapshotId());
+        lockOwner(owner);var snapshot=visibleRecommendation(owner,input.snapshotId());
         if(java.util.stream.Stream.concat(snapshot.result().bundles().stream(),snapshot.result().conditionalAlternatives().stream()).noneMatch(b->b.id().equals(input.bundleId())))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Bundle is not part of this result");
         UUID id=UUID.randomUUID();var now=clock.instant().truncatedTo(java.time.temporal.ChronoUnit.MICROS);

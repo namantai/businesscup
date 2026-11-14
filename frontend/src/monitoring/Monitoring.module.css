@@ -1,0 +1,68 @@
+.workspace {
+  max-width: 1100px;
+  min-width: 0;
+}
+.workspace fieldset {
+  min-width: 0;
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid #c8d2c9;
+  border-radius: 14px;
+}
+.workspace legend {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.workspace label {
+  display: block;
+  margin: 14px 0;
+  line-height: 1.5;
+}
+.workspace label:has(input[type='checkbox']) {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-weight: 400;
+}
+.workspace input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  min-height: 20px;
+  flex: 0 0 20px;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: #214d36;
+}
+.workspace textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 230px;
+  box-sizing: border-box;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid #839781;
+  border-radius: 8px;
+  font: 13px/1.5 monospace;
+}
+.workspace button {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  margin: 6px 8px 6px 0;
+  padding: 10px 14px;
+  min-height: 44px;
+  font: inherit;
+  cursor: pointer;
+  color: #214d36;
+  background: #fff;
+  border: 1px solid #859d80;
+  border-radius: 9px;
+}
+.workspace button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.workspace article {
+  margin: 22px 0;
+}

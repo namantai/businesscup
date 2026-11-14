@@ -16,7 +16,7 @@ public class CatalogPublicationService {
         this.policy = policy;
     }
 
-    public record Active(UUID versionId, long revision) {}
+    public record Active(@io.swagger.v3.oas.annotations.media.Schema(nullable = true) UUID versionId, long revision) {}
 
     public Active current() {
         return jdbc.queryForObject("SELECT version_id, revision FROM compass.catalog_active WHERE singleton",

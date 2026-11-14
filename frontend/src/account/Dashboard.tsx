@@ -107,6 +107,10 @@ export function Dashboard() {
       </h1>
       <PersonalGate>
         <p>
+          Free показывает текущий результат; Premium beta — историю. Полный
+          экспорт и удаление доступны всегда в настройках аккаунта.
+        </p>
+        <p>
           <Link to="/account">Настройки аккаунта</Link> ·{' '}
           <Link to="/onboarding">Новый подбор</Link>
         </p>
@@ -120,7 +124,7 @@ export function Dashboard() {
         {data.data && (
           <>
             <section className={styles.panel}>
-              <h2>Сохранённый профиль</h2>
+              <h2>Сохранённые профили</h2>
               {!data.data.profiles.length && (
                 <p>
                   Пока нет профиля. Сохраните его после подбора; Free позволяет

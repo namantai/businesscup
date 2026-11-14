@@ -29,6 +29,33 @@ export type ApiProblem = {
   type: string;
 };
 
+export type Budget = {
+  currency: string;
+  monthlyMax: string;
+  scope: 'ALL_AI';
+  upfrontMax: string;
+};
+
+export type Bundle = {
+  conditions: Array<string>;
+  costs: Costs;
+  coverage: Array<Coverage>;
+  eligibility: 'ELIGIBLE' | 'CONDITIONAL' | 'UNKNOWN' | 'INELIGIBLE';
+  factualReasons: Array<Reason>;
+  id: string;
+  items: Array<Item>;
+  policyReasons: Array<Reason>;
+  portfolioActions: Array<PortfolioAction>;
+  strategies: Array<'ECONOMY' | 'BALANCED' | 'EXPANDED'>;
+  usageFit: string;
+};
+
+export type CandidateAssessment = {
+  eligibility: 'ELIGIBLE' | 'CONDITIONAL' | 'UNKNOWN' | 'INELIGIBLE';
+  id: string;
+  reasons: Array<Reason>;
+};
+
 export type Capability = {
   category:
     | 'FUNCTION'
@@ -49,6 +76,35 @@ export type CapabilityAssertion = {
   planId: string | null;
   productId: string | null;
   state: 'SUPPORTED' | 'PARTIAL' | 'UNSUPPORTED' | 'UNKNOWN';
+};
+
+export type Costs = {
+  cashDueNow: string | null;
+  comparableBaselineMonthly: string | null;
+  compassFeeMonthly: string | null;
+  confidence: 'CONFIRMED_COMPONENTS' | 'ESTIMATED' | 'INCOMPLETE';
+  confirmedBudgetFit: boolean;
+  currency: string;
+  futureMonthly: string | null;
+  horizonTotal: string | null;
+  potentialNetMonthlySavings: string | null;
+  recurringMonthly: string | null;
+  upfront: string | null;
+};
+
+export type Coverage = {
+  acceptedForRequirement: boolean;
+  capabilityId: string;
+  confirmed: boolean;
+  evidenceIds: Array<string>;
+  required: boolean;
+  state: 'SUPPORTED' | 'PARTIAL' | 'UNSUPPORTED' | 'UNKNOWN';
+  weight: number;
+};
+
+export type CsrfResponse = {
+  headerName: string;
+  token: string;
 };
 
 export type Detail = {
@@ -93,6 +149,50 @@ export type Evidence = {
   verifiedAt: string | null;
 };
 
+export type ExistingSubscription = {
+  amount: string | null;
+  billingPeriod: 'MONTH' | 'YEAR';
+  billingZone: string;
+  currency: string;
+  id: string;
+  mustKeep: boolean;
+  nextRenewal: string;
+  offerId: string | null;
+  planId: string | null;
+  renewalAnchor: string;
+};
+
+export type Feature = {
+  capabilityId: string;
+  required: boolean;
+  weight: number;
+};
+
+export type FxUsed = {
+  baseCurrency: string;
+  evidenceId: string;
+  id: string;
+  observedAt: string;
+  quoteCurrency: string;
+  rate: string;
+};
+
+export type Item = {
+  action: 'KEEP' | 'ADD' | 'CANCEL_AT_RENEWAL' | 'REVIEW';
+  billingPeriod: string;
+  evidenceIds: Array<string>;
+  id: string;
+  includedAgentIds: Array<string>;
+  modelIds: Array<string>;
+  nextRenewal: string | null;
+  offerId: string | null;
+  originalCharge: string | null;
+  originalCurrency: string;
+  planId: string | null;
+  productId: string | null;
+  sharedPoolIds: Array<string>;
+};
+
 export type Meta = {
   asOf: string | null;
   capabilities: Array<Capability>;
@@ -111,6 +211,13 @@ export type ModelFamily = {
   id: string;
   name: string;
   providerId: string;
+};
+
+export type Need = {
+  id: string;
+  intensity: 'OCCASIONAL' | 'WEEKLY' | 'DAILY';
+  required: boolean;
+  weight: number;
 };
 
 export type NeedCapability = {
@@ -298,6 +405,12 @@ export type PlanModelAccess = {
   state: 'AVAILABLE' | 'CONDITIONAL' | 'UNKNOWN';
 };
 
+export type PortfolioAction = {
+  action: 'KEEP' | 'ADD' | 'CANCEL_AT_RENEWAL' | 'REVIEW';
+  explanation: string;
+  subscriptionId: string;
+};
+
 export type PriceOffer = {
   additionalFee: string | null;
   additionalTax: string | null;
@@ -351,10 +464,114 @@ export type QuotaPool = {
   unit: string;
 };
 
+export type Reason = {
+  code:
+    | 'WITHIN_BUDGET'
+    | 'PRICE_INCOMPLETE'
+    | 'ANNUAL_UPFRONT_REQUIRED'
+    | 'STUDENT_VERIFICATION_REQUIRED'
+    | 'REGION_UNKNOWN'
+    | 'REGION_INELIGIBLE'
+    | 'MISSING_REQUIRED_FEATURE'
+    | 'SHARED_QUOTA'
+    | 'TRIAL_NOT_RECURRING'
+    | 'KEEP_EXISTING'
+    | 'INCLUDED_AGENT'
+    | 'INCLUDED_MODEL'
+    | 'UNKNOWN_QUALITY'
+    | 'STALE_EVIDENCE'
+    | 'BUDGET_CONFLICT'
+    | 'UPFRONT_CONFLICT'
+    | 'NO_DISTINCT_ALTERNATIVE'
+    | 'LIMITED_CATALOG'
+    | 'SEARCH_TRUNCATED'
+    | 'NO_PUBLISHED_CATALOG'
+    | 'ELIGIBILITY_UNKNOWN'
+    | 'PLATFORM_UNKNOWN'
+    | 'PRIVACY_UNKNOWN'
+    | 'LANGUAGE_UNKNOWN'
+    | 'USAGE_UNKNOWN'
+    | 'USAGE_EXCEEDED'
+    | 'FX_MISSING'
+    | 'CONDITION_ACCEPTED'
+    | 'CONDITIONAL_EVIDENCE'
+    | 'CONFLICTED_EVIDENCE'
+    | 'RETAINED_CONFLICT'
+    | 'INCOMPATIBLE_PLAN'
+    | 'NOT_ACTIVE'
+    | 'PURCHASE_CHANNEL_MISMATCH'
+    | 'NO_MATCH'
+    | 'BASELINE_INCOMPLETE'
+    | 'USER_SUPPLIED_COST'
+    | 'CANCEL_AT_RENEWAL'
+    | 'COMPASS_FEE'
+    | 'UNKNOWN_CAPABILITY'
+    | 'API_NOT_APPLICATION';
+  detail: string;
+  evidenceIds: Array<string>;
+};
+
+export type RecommendationProfile = {
+  acceptedConditionEvidenceIds: Array<string>;
+  allowAnnualBilling: boolean;
+  asOf: string | null;
+  budget: Budget;
+  country: string;
+  existingSubscriptions: Array<ExistingSubscription>;
+  horizonMonths: number;
+  interfaceLanguage: string;
+  maxTools: number;
+  needs: Array<Need>;
+  outputLanguages: Array<string>;
+  portfolioMode: 'AUGMENT' | 'REVIEW';
+  priority: 'ECONOMY' | 'BALANCE' | 'CAPABILITIES';
+  profileSchemaVersion: number;
+  purchaseChannel: string;
+  requirements: Requirements;
+  studentStatus: 'NONE' | 'SELF_DECLARED' | 'USER_REPORTED_PROVIDER_VERIFIED';
+};
+
+export type RecommendationResult = {
+  asOf: string;
+  assessments: Array<CandidateAssessment>;
+  bundles: Array<Bundle>;
+  catalogVersion: string | null;
+  conditionalAlternatives: Array<Bundle>;
+  datasetKind: string;
+  engineVersion: string;
+  evidence: Array<Evidence>;
+  fxSnapshots: Array<FxUsed>;
+  policyVersion: string;
+  requestId: string;
+  search: Search;
+  searchComplete: boolean;
+  sources: Array<Source>;
+  status: string;
+  unmetRequirements: Array<Unmet>;
+  warnings: Array<Reason>;
+};
+
 export type Region = {
   countryCode: string;
   id: string;
   name: string;
+};
+
+export type Requirements = {
+  features: Array<Feature>;
+  platforms: Array<string>;
+  privacy: 'NO_STRICT_REQUIREMENT' | 'LOCAL_ONLY';
+  usage: Array<Usage>;
+};
+
+export type Search = {
+  candidateCount: number;
+  catalogProducts: number;
+  consideredCandidates: number;
+  dominatedCombinations: number;
+  feasibleCombinations: number;
+  limitation: string;
+  visitedCombinations: number;
 };
 
 export type Source = {
@@ -374,6 +591,61 @@ export type SubscriptionPlan = {
   tier: string;
 };
 
+export type Unmet = {
+  capabilityId: string;
+  reason:
+    | 'WITHIN_BUDGET'
+    | 'PRICE_INCOMPLETE'
+    | 'ANNUAL_UPFRONT_REQUIRED'
+    | 'STUDENT_VERIFICATION_REQUIRED'
+    | 'REGION_UNKNOWN'
+    | 'REGION_INELIGIBLE'
+    | 'MISSING_REQUIRED_FEATURE'
+    | 'SHARED_QUOTA'
+    | 'TRIAL_NOT_RECURRING'
+    | 'KEEP_EXISTING'
+    | 'INCLUDED_AGENT'
+    | 'INCLUDED_MODEL'
+    | 'UNKNOWN_QUALITY'
+    | 'STALE_EVIDENCE'
+    | 'BUDGET_CONFLICT'
+    | 'UPFRONT_CONFLICT'
+    | 'NO_DISTINCT_ALTERNATIVE'
+    | 'LIMITED_CATALOG'
+    | 'SEARCH_TRUNCATED'
+    | 'NO_PUBLISHED_CATALOG'
+    | 'ELIGIBILITY_UNKNOWN'
+    | 'PLATFORM_UNKNOWN'
+    | 'PRIVACY_UNKNOWN'
+    | 'LANGUAGE_UNKNOWN'
+    | 'USAGE_UNKNOWN'
+    | 'USAGE_EXCEEDED'
+    | 'FX_MISSING'
+    | 'CONDITION_ACCEPTED'
+    | 'CONDITIONAL_EVIDENCE'
+    | 'CONFLICTED_EVIDENCE'
+    | 'RETAINED_CONFLICT'
+    | 'INCOMPATIBLE_PLAN'
+    | 'NOT_ACTIVE'
+    | 'PURCHASE_CHANNEL_MISMATCH'
+    | 'NO_MATCH'
+    | 'BASELINE_INCOMPLETE'
+    | 'USER_SUPPLIED_COST'
+    | 'CANCEL_AT_RENEWAL'
+    | 'COMPASS_FEE'
+    | 'UNKNOWN_CAPABILITY'
+    | 'API_NOT_APPLICATION';
+  state: 'SUPPORTED' | 'PARTIAL' | 'UNSUPPORTED' | 'UNKNOWN';
+};
+
+export type Usage = {
+  capabilityId: string;
+  mode: string;
+  monthlyQuantity: string;
+  required: boolean;
+  unit: string;
+};
+
 export type UsageLimit = {
   capabilityId: string;
   id: string;
@@ -387,6 +659,22 @@ export type UserNeed = {
   id: string;
   name: string;
 };
+
+export type CsrfData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: '/api/v1/auth/csrf';
+};
+
+export type CsrfResponses = {
+  /**
+   * OK
+   */
+  200: CsrfResponse;
+};
+
+export type CsrfResponse2 = CsrfResponses[keyof CsrfResponses];
 
 export type AgentAccessData = {
   body?: never;
@@ -1204,3 +1492,40 @@ export type UsageLimitsResponses = {
 
 export type UsageLimitsResponse =
   UsageLimitsResponses[keyof UsageLimitsResponses];
+
+export type PreviewData = {
+  body: RecommendationProfile;
+  path?: never;
+  query?: never;
+  url: '/api/v1/recommendations/preview';
+};
+
+export type PreviewErrors = {
+  /**
+   * Invalid profile
+   */
+  400: ApiProblem;
+  /**
+   * Missing or invalid session CSRF token
+   */
+  403: ApiProblem;
+  /**
+   * Request exceeds 64 KiB
+   */
+  413: ApiProblem;
+  /**
+   * Rate or concurrency limit; Retry-After supplied
+   */
+  429: ApiProblem;
+};
+
+export type PreviewError = PreviewErrors[keyof PreviewErrors];
+
+export type PreviewResponses = {
+  /**
+   * OK
+   */
+  200: RecommendationResult;
+};
+
+export type PreviewResponse = PreviewResponses[keyof PreviewResponses];

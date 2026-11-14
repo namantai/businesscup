@@ -114,6 +114,146 @@
         ],
         "type": "object"
       },
+      "Budget": {
+        "properties": {
+          "currency": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "monthlyMax": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "scope": {
+            "enum": [
+              "ALL_AI"
+            ],
+            "type": "string"
+          },
+          "upfrontMax": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency",
+          "monthlyMax",
+          "scope",
+          "upfrontMax"
+        ],
+        "type": "object"
+      },
+      "Bundle": {
+        "properties": {
+          "conditions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "costs": {
+            "$ref": "#/components/schemas/Costs"
+          },
+          "coverage": {
+            "items": {
+              "$ref": "#/components/schemas/Coverage"
+            },
+            "type": "array"
+          },
+          "eligibility": {
+            "enum": [
+              "ELIGIBLE",
+              "CONDITIONAL",
+              "UNKNOWN",
+              "INELIGIBLE"
+            ],
+            "type": "string"
+          },
+          "factualReasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
+            "type": "array"
+          },
+          "policyReasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "type": "array"
+          },
+          "portfolioActions": {
+            "items": {
+              "$ref": "#/components/schemas/PortfolioAction"
+            },
+            "type": "array"
+          },
+          "strategies": {
+            "items": {
+              "enum": [
+                "ECONOMY",
+                "BALANCED",
+                "EXPANDED"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "usageFit": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "conditions",
+          "costs",
+          "coverage",
+          "eligibility",
+          "factualReasons",
+          "id",
+          "items",
+          "policyReasons",
+          "portfolioActions",
+          "strategies",
+          "usageFit"
+        ],
+        "type": "object"
+      },
+      "CandidateAssessment": {
+        "properties": {
+          "eligibility": {
+            "enum": [
+              "ELIGIBLE",
+              "CONDITIONAL",
+              "UNKNOWN",
+              "INELIGIBLE"
+            ],
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "eligibility",
+          "id",
+          "reasons"
+        ],
+        "type": "object"
+      },
       "Capability": {
         "properties": {
           "category": {
@@ -203,6 +343,130 @@
           "planId",
           "productId",
           "state"
+        ],
+        "type": "object"
+      },
+      "Costs": {
+        "properties": {
+          "cashDueNow": {
+            "nullable": true,
+            "type": "string"
+          },
+          "comparableBaselineMonthly": {
+            "nullable": true,
+            "type": "string"
+          },
+          "compassFeeMonthly": {
+            "nullable": true,
+            "type": "string"
+          },
+          "confidence": {
+            "enum": [
+              "CONFIRMED_COMPONENTS",
+              "ESTIMATED",
+              "INCOMPLETE"
+            ],
+            "type": "string"
+          },
+          "confirmedBudgetFit": {
+            "type": "boolean"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "futureMonthly": {
+            "nullable": true,
+            "type": "string"
+          },
+          "horizonTotal": {
+            "nullable": true,
+            "type": "string"
+          },
+          "potentialNetMonthlySavings": {
+            "nullable": true,
+            "type": "string"
+          },
+          "recurringMonthly": {
+            "nullable": true,
+            "type": "string"
+          },
+          "upfront": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "cashDueNow",
+          "comparableBaselineMonthly",
+          "compassFeeMonthly",
+          "confidence",
+          "confirmedBudgetFit",
+          "currency",
+          "futureMonthly",
+          "horizonTotal",
+          "potentialNetMonthlySavings",
+          "recurringMonthly",
+          "upfront"
+        ],
+        "type": "object"
+      },
+      "Coverage": {
+        "properties": {
+          "acceptedForRequirement": {
+            "type": "boolean"
+          },
+          "capabilityId": {
+            "type": "string"
+          },
+          "confirmed": {
+            "type": "boolean"
+          },
+          "evidenceIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "state": {
+            "enum": [
+              "SUPPORTED",
+              "PARTIAL",
+              "UNSUPPORTED",
+              "UNKNOWN"
+            ],
+            "type": "string"
+          },
+          "weight": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "acceptedForRequirement",
+          "capabilityId",
+          "confirmed",
+          "evidenceIds",
+          "required",
+          "state",
+          "weight"
+        ],
+        "type": "object"
+      },
+      "CsrfResponse": {
+        "properties": {
+          "headerName": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "headerName",
+          "token"
         ],
         "type": "object"
       },
@@ -432,6 +696,209 @@
         ],
         "type": "object"
       },
+      "ExistingSubscription": {
+        "properties": {
+          "amount": {
+            "nullable": true,
+            "type": "string"
+          },
+          "billingPeriod": {
+            "enum": [
+              "MONTH",
+              "YEAR"
+            ],
+            "type": "string"
+          },
+          "billingZone": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "currency": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "id": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string"
+          },
+          "mustKeep": {
+            "type": "boolean"
+          },
+          "nextRenewal": {
+            "format": "date",
+            "type": "string"
+          },
+          "offerId": {
+            "maxLength": 80,
+            "minLength": 0,
+            "nullable": true,
+            "type": "string"
+          },
+          "planId": {
+            "maxLength": 80,
+            "minLength": 0,
+            "nullable": true,
+            "type": "string"
+          },
+          "renewalAnchor": {
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "billingPeriod",
+          "billingZone",
+          "currency",
+          "id",
+          "mustKeep",
+          "nextRenewal",
+          "offerId",
+          "planId",
+          "renewalAnchor"
+        ],
+        "type": "object"
+      },
+      "Feature": {
+        "properties": {
+          "capabilityId": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "weight": {
+            "format": "int32",
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "capabilityId",
+          "required",
+          "weight"
+        ],
+        "type": "object"
+      },
+      "FxUsed": {
+        "properties": {
+          "baseCurrency": {
+            "type": "string"
+          },
+          "evidenceId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "observedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "quoteCurrency": {
+            "type": "string"
+          },
+          "rate": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "baseCurrency",
+          "evidenceId",
+          "id",
+          "observedAt",
+          "quoteCurrency",
+          "rate"
+        ],
+        "type": "object"
+      },
+      "Item": {
+        "properties": {
+          "action": {
+            "enum": [
+              "KEEP",
+              "ADD",
+              "CANCEL_AT_RENEWAL",
+              "REVIEW"
+            ],
+            "type": "string"
+          },
+          "billingPeriod": {
+            "type": "string"
+          },
+          "evidenceIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "id": {
+            "type": "string"
+          },
+          "includedAgentIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "modelIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "nextRenewal": {
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "offerId": {
+            "nullable": true,
+            "type": "string"
+          },
+          "originalCharge": {
+            "nullable": true,
+            "type": "string"
+          },
+          "originalCurrency": {
+            "type": "string"
+          },
+          "planId": {
+            "nullable": true,
+            "type": "string"
+          },
+          "productId": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sharedPoolIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "action",
+          "billingPeriod",
+          "evidenceIds",
+          "id",
+          "includedAgentIds",
+          "modelIds",
+          "nextRenewal",
+          "offerId",
+          "originalCharge",
+          "originalCurrency",
+          "planId",
+          "productId",
+          "sharedPoolIds"
+        ],
+        "type": "object"
+      },
       "Meta": {
         "properties": {
           "asOf": {
@@ -529,6 +996,39 @@
           "id",
           "name",
           "providerId"
+        ],
+        "type": "object"
+      },
+      "Need": {
+        "properties": {
+          "id": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string"
+          },
+          "intensity": {
+            "enum": [
+              "OCCASIONAL",
+              "WEEKLY",
+              "DAILY"
+            ],
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "weight": {
+            "format": "int32",
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "intensity",
+          "required",
+          "weight"
         ],
         "type": "object"
       },
@@ -1362,6 +1862,31 @@
         ],
         "type": "object"
       },
+      "PortfolioAction": {
+        "properties": {
+          "action": {
+            "enum": [
+              "KEEP",
+              "ADD",
+              "CANCEL_AT_RENEWAL",
+              "REVIEW"
+            ],
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "subscriptionId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "explanation",
+          "subscriptionId"
+        ],
+        "type": "object"
+      },
       "PriceOffer": {
         "properties": {
           "additionalFee": {
@@ -1691,6 +2216,303 @@
         ],
         "type": "object"
       },
+      "Reason": {
+        "properties": {
+          "code": {
+            "enum": [
+              "WITHIN_BUDGET",
+              "PRICE_INCOMPLETE",
+              "ANNUAL_UPFRONT_REQUIRED",
+              "STUDENT_VERIFICATION_REQUIRED",
+              "REGION_UNKNOWN",
+              "REGION_INELIGIBLE",
+              "MISSING_REQUIRED_FEATURE",
+              "SHARED_QUOTA",
+              "TRIAL_NOT_RECURRING",
+              "KEEP_EXISTING",
+              "INCLUDED_AGENT",
+              "INCLUDED_MODEL",
+              "UNKNOWN_QUALITY",
+              "STALE_EVIDENCE",
+              "BUDGET_CONFLICT",
+              "UPFRONT_CONFLICT",
+              "NO_DISTINCT_ALTERNATIVE",
+              "LIMITED_CATALOG",
+              "SEARCH_TRUNCATED",
+              "NO_PUBLISHED_CATALOG",
+              "ELIGIBILITY_UNKNOWN",
+              "PLATFORM_UNKNOWN",
+              "PRIVACY_UNKNOWN",
+              "LANGUAGE_UNKNOWN",
+              "USAGE_UNKNOWN",
+              "USAGE_EXCEEDED",
+              "FX_MISSING",
+              "CONDITION_ACCEPTED",
+              "CONDITIONAL_EVIDENCE",
+              "CONFLICTED_EVIDENCE",
+              "RETAINED_CONFLICT",
+              "INCOMPATIBLE_PLAN",
+              "NOT_ACTIVE",
+              "PURCHASE_CHANNEL_MISMATCH",
+              "NO_MATCH",
+              "BASELINE_INCOMPLETE",
+              "USER_SUPPLIED_COST",
+              "CANCEL_AT_RENEWAL",
+              "COMPASS_FEE",
+              "UNKNOWN_CAPABILITY",
+              "API_NOT_APPLICATION"
+            ],
+            "type": "string"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "evidenceIds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "code",
+          "detail",
+          "evidenceIds"
+        ],
+        "type": "object"
+      },
+      "RecommendationProfile": {
+        "properties": {
+          "acceptedConditionEvidenceIds": {
+            "items": {
+              "maxLength": 80,
+              "minLength": 0,
+              "type": "string"
+            },
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array"
+          },
+          "allowAnnualBilling": {
+            "type": "boolean"
+          },
+          "asOf": {
+            "format": "date-time",
+            "nullable": true,
+            "type": "string"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/Budget"
+          },
+          "country": {
+            "minLength": 1,
+            "pattern": "[A-Z]{2}",
+            "type": "string"
+          },
+          "existingSubscriptions": {
+            "items": {
+              "$ref": "#/components/schemas/ExistingSubscription"
+            },
+            "maxItems": 8,
+            "minItems": 0,
+            "type": "array"
+          },
+          "horizonMonths": {
+            "format": "int32",
+            "maximum": 24,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "interfaceLanguage": {
+            "minLength": 1,
+            "pattern": "[a-z]{2,3}(-[A-Z]{2})?",
+            "type": "string"
+          },
+          "maxTools": {
+            "format": "int32",
+            "maximum": 4,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "needs": {
+            "items": {
+              "$ref": "#/components/schemas/Need"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "type": "array"
+          },
+          "outputLanguages": {
+            "items": {
+              "minLength": 1,
+              "pattern": "[a-z]{2,3}(-[A-Z]{2})?",
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 0,
+            "type": "array"
+          },
+          "portfolioMode": {
+            "enum": [
+              "AUGMENT",
+              "REVIEW"
+            ],
+            "type": "string"
+          },
+          "priority": {
+            "enum": [
+              "ECONOMY",
+              "BALANCE",
+              "CAPABILITIES"
+            ],
+            "type": "string"
+          },
+          "profileSchemaVersion": {
+            "format": "int32",
+            "maximum": 1,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "purchaseChannel": {
+            "maxLength": 40,
+            "minLength": 0,
+            "type": "string"
+          },
+          "requirements": {
+            "$ref": "#/components/schemas/Requirements"
+          },
+          "studentStatus": {
+            "enum": [
+              "NONE",
+              "SELF_DECLARED",
+              "USER_REPORTED_PROVIDER_VERIFIED"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "acceptedConditionEvidenceIds",
+          "allowAnnualBilling",
+          "asOf",
+          "budget",
+          "country",
+          "existingSubscriptions",
+          "horizonMonths",
+          "interfaceLanguage",
+          "maxTools",
+          "needs",
+          "outputLanguages",
+          "portfolioMode",
+          "priority",
+          "profileSchemaVersion",
+          "purchaseChannel",
+          "requirements",
+          "studentStatus"
+        ],
+        "type": "object"
+      },
+      "RecommendationResult": {
+        "properties": {
+          "asOf": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "assessments": {
+            "items": {
+              "$ref": "#/components/schemas/CandidateAssessment"
+            },
+            "type": "array"
+          },
+          "bundles": {
+            "items": {
+              "$ref": "#/components/schemas/Bundle"
+            },
+            "type": "array"
+          },
+          "catalogVersion": {
+            "format": "uuid",
+            "nullable": true,
+            "type": "string"
+          },
+          "conditionalAlternatives": {
+            "items": {
+              "$ref": "#/components/schemas/Bundle"
+            },
+            "type": "array"
+          },
+          "datasetKind": {
+            "type": "string"
+          },
+          "engineVersion": {
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array"
+          },
+          "fxSnapshots": {
+            "items": {
+              "$ref": "#/components/schemas/FxUsed"
+            },
+            "type": "array"
+          },
+          "policyVersion": {
+            "type": "string"
+          },
+          "requestId": {
+            "type": "string"
+          },
+          "search": {
+            "$ref": "#/components/schemas/Search"
+          },
+          "searchComplete": {
+            "type": "boolean"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "type": "array"
+          },
+          "status": {
+            "type": "string"
+          },
+          "unmetRequirements": {
+            "items": {
+              "$ref": "#/components/schemas/Unmet"
+            },
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/Reason"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "asOf",
+          "assessments",
+          "bundles",
+          "catalogVersion",
+          "conditionalAlternatives",
+          "datasetKind",
+          "engineVersion",
+          "evidence",
+          "fxSnapshots",
+          "policyVersion",
+          "requestId",
+          "search",
+          "searchComplete",
+          "sources",
+          "status",
+          "unmetRequirements",
+          "warnings"
+        ],
+        "type": "object"
+      },
       "Region": {
         "properties": {
           "countryCode": {
@@ -1715,6 +2537,91 @@
           "countryCode",
           "id",
           "name"
+        ],
+        "type": "object"
+      },
+      "Requirements": {
+        "properties": {
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/Feature"
+            },
+            "maxItems": 32,
+            "minItems": 0,
+            "type": "array"
+          },
+          "platforms": {
+            "items": {
+              "maxLength": 40,
+              "minLength": 0,
+              "type": "string"
+            },
+            "maxItems": 8,
+            "minItems": 0,
+            "type": "array"
+          },
+          "privacy": {
+            "enum": [
+              "NO_STRICT_REQUIREMENT",
+              "LOCAL_ONLY"
+            ],
+            "type": "string"
+          },
+          "usage": {
+            "items": {
+              "$ref": "#/components/schemas/Usage"
+            },
+            "maxItems": 16,
+            "minItems": 0,
+            "type": "array"
+          }
+        },
+        "required": [
+          "features",
+          "platforms",
+          "privacy",
+          "usage"
+        ],
+        "type": "object"
+      },
+      "Search": {
+        "properties": {
+          "candidateCount": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "catalogProducts": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "consideredCandidates": {
+            "format": "int32",
+            "type": "integer"
+          },
+          "dominatedCombinations": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "feasibleCombinations": {
+            "format": "int64",
+            "type": "integer"
+          },
+          "limitation": {
+            "type": "string"
+          },
+          "visitedCombinations": {
+            "format": "int64",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "candidateCount",
+          "catalogProducts",
+          "consideredCandidates",
+          "dominatedCombinations",
+          "feasibleCombinations",
+          "limitation",
+          "visitedCombinations"
         ],
         "type": "object"
       },
@@ -1796,6 +2703,108 @@
         ],
         "type": "object"
       },
+      "Unmet": {
+        "properties": {
+          "capabilityId": {
+            "type": "string"
+          },
+          "reason": {
+            "enum": [
+              "WITHIN_BUDGET",
+              "PRICE_INCOMPLETE",
+              "ANNUAL_UPFRONT_REQUIRED",
+              "STUDENT_VERIFICATION_REQUIRED",
+              "REGION_UNKNOWN",
+              "REGION_INELIGIBLE",
+              "MISSING_REQUIRED_FEATURE",
+              "SHARED_QUOTA",
+              "TRIAL_NOT_RECURRING",
+              "KEEP_EXISTING",
+              "INCLUDED_AGENT",
+              "INCLUDED_MODEL",
+              "UNKNOWN_QUALITY",
+              "STALE_EVIDENCE",
+              "BUDGET_CONFLICT",
+              "UPFRONT_CONFLICT",
+              "NO_DISTINCT_ALTERNATIVE",
+              "LIMITED_CATALOG",
+              "SEARCH_TRUNCATED",
+              "NO_PUBLISHED_CATALOG",
+              "ELIGIBILITY_UNKNOWN",
+              "PLATFORM_UNKNOWN",
+              "PRIVACY_UNKNOWN",
+              "LANGUAGE_UNKNOWN",
+              "USAGE_UNKNOWN",
+              "USAGE_EXCEEDED",
+              "FX_MISSING",
+              "CONDITION_ACCEPTED",
+              "CONDITIONAL_EVIDENCE",
+              "CONFLICTED_EVIDENCE",
+              "RETAINED_CONFLICT",
+              "INCOMPATIBLE_PLAN",
+              "NOT_ACTIVE",
+              "PURCHASE_CHANNEL_MISMATCH",
+              "NO_MATCH",
+              "BASELINE_INCOMPLETE",
+              "USER_SUPPLIED_COST",
+              "CANCEL_AT_RENEWAL",
+              "COMPASS_FEE",
+              "UNKNOWN_CAPABILITY",
+              "API_NOT_APPLICATION"
+            ],
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "SUPPORTED",
+              "PARTIAL",
+              "UNSUPPORTED",
+              "UNKNOWN"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "capabilityId",
+          "reason",
+          "state"
+        ],
+        "type": "object"
+      },
+      "Usage": {
+        "properties": {
+          "capabilityId": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string"
+          },
+          "mode": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string"
+          },
+          "monthlyQuantity": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "unit": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string"
+          }
+        },
+        "required": [
+          "capabilityId",
+          "mode",
+          "monthlyQuantity",
+          "required",
+          "unit"
+        ],
+        "type": "object"
+      },
       "UsageLimit": {
         "properties": {
           "capabilityId": {
@@ -1868,12 +2877,32 @@
     }
   },
   "info": {
-    "description": "Read-only published catalog. Money is a decimal string; null is unknown. Use version to pin reads.",
-    "title": "AI Compass catalog",
+    "description": "Published catalog and deterministic read-only recommendation preview. Money is a decimal string; null is unknown. Use version to pin reads.",
+    "title": "AI Compass public API",
     "version": "1.0.0"
   },
   "openapi": "3.0.1",
   "paths": {
+    "/api/v1/auth/csrf": {
+      "get": {
+        "operationId": "csrf",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CsrfResponse"
+                }
+              }
+            },
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "recommendation-controller"
+        ]
+      }
+    },
     "/api/v1/catalog/agent-access": {
       "get": {
         "operationId": "agentAccess",
@@ -4305,6 +5334,77 @@
         },
         "tags": [
           "catalog-controller"
+        ]
+      }
+    },
+    "/api/v1/recommendations/preview": {
+      "post": {
+        "operationId": "preview",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendationProfile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendationResult"
+                }
+              }
+            },
+            "description": "OK"
+          },
+          "400": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            },
+            "description": "Invalid profile"
+          },
+          "403": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            },
+            "description": "Missing or invalid session CSRF token"
+          },
+          "413": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            },
+            "description": "Request exceeds 64 KiB"
+          },
+          "429": {
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            },
+            "description": "Rate or concurrency limit; Retry-After supplied"
+          }
+        },
+        "summary": "Deterministic preview without saving a profile",
+        "tags": [
+          "recommendation-controller"
         ]
       }
     }

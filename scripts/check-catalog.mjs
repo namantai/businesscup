@@ -35,3 +35,7 @@ for (const file of readdirSync(new URL('../data/catalog/', import.meta.url)).fil
   if (manifest.datasetKind !== 'REVIEWED') throw new Error(`${file}: reviewed catalog required`);
   console.log(`PASS: reviewed manifest schema ${file}`);
 }
+
+const recommendation = JSON.parse(readFileSync(new URL('../data/fixtures/recommendation-demo.json', import.meta.url)));
+if (!validate(recommendation) || recommendation.datasetKind !== 'DEMO') throw new Error('Invalid synthetic recommendation catalog: ' + JSON.stringify(validate.errors));
+console.log('PASS: synthetic recommendation catalog schema (never production seed).');

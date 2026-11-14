@@ -12,8 +12,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfiguration {
     @Bean OpenAPI catalogOpenApi() {
-        return new OpenAPI().info(new Info().title("AI Compass catalog").version("1.0.0")
-                .description("Read-only published catalog. Money is a decimal string; null is unknown. Use version to pin reads."))
+        return new OpenAPI().info(new Info().title("AI Compass public API").version("1.0.0")
+                .description("Published catalog and deterministic read-only recommendation preview. Money is a decimal string; null is unknown. Use version to pin reads."))
                 .servers(List.of(new Server().url("/")));
     }
 

@@ -1,8 +1,8 @@
-# AI Compass — архитектура P01–P03
+# AI Compass — архитектура P01–P04
 
 ## Граница
 
-Модульный монолит: React/TypeScript → same-origin Vite proxy → Java/Spring Boot → PostgreSQL. В P01 Docker Compose управляет локальной БД; frontend и backend работают на хосте с закреплёнными инструментами. В P02 добавлены схема и внутренний импорт каталога; в P03 — явная публикация, read-only catalog API, OpenAPI и frontend каталога. Production images/Caddy, аккаунты и Recommendation Engine ещё не реализованы. Их границы остаются по CODEX_PROMPT.md.
+Модульный монолит: React/TypeScript → same-origin Vite proxy → Java/Spring Boot → PostgreSQL. В P01 Docker Compose управляет локальной БД; frontend и backend работают на хосте с закреплёнными инструментами. В P02 добавлены схема и внутренний импорт каталога; в P03 — явная публикация, read-only catalog API, OpenAPI и frontend каталога. В P04 добавлен детерминированный recommendation preview. Production images/Caddy и аккаунты ещё не реализованы. Их границы остаются по CODEX_PROMPT.md.
 
 Неизменённая миграция V1 создаёт схему `compass`; V2 добавляет каталог, V3 — защиту снимков. Служебная таблица Flyway ведёт историю миграций. Hibernate использует `validate`; `open-in-view` отключён. Пустая БД не получает демонстрационные тарифы.
 
@@ -178,7 +178,7 @@ CatalogCommand запускается только при явном --catalog-c
 
 ### Контракт и frontend
 
-`GET /api/v1/openapi` генерируется springdoc из реальных контроллеров, а не ручной спецификации. Schema ограничена `/api/v1/catalog/**`, относительный server `/` сохраняет same-origin. DTO records сериализуют все поля: OpenApiConfiguration отмечает их required, nullable размечен явно у допускающих null полей. BigDecimal стоимости публично передаются строками; UNKNOWN и отсутствие значения не превращаются в 0/false. Контракт 200 содержит конкретный DTO, 400/404 — общий публичный ApiProblem. Schema не содержит import/review/publish/rollback и внутренних reviewer/hash/manifest.
+`GET /api/v1/openapi` генерируется springdoc из реальных контроллеров, а не ручной спецификации. Schema ограничена `/api/v1/catalog/**`, `/api/v1/recommendations/preview`, `/api/v1/auth/csrf`, относительный server `/` сохраняет same-origin. DTO records сериализуют все поля: OpenApiConfiguration отмечает их required, nullable размечен явно у допускающих null полей. BigDecimal стоимости публично передаются строками; UNKNOWN и отсутствие значения не превращаются в 0/false. Контракт 200 содержит конкретный DTO, 400/404 — общий публичный ApiProblem. Schema не содержит import/review/publish/rollback и внутренних reviewer/hash/manifest.
 
 ScaffoldIT получает схему настоящим HTTP-запросом с реальной PostgreSQL, проверяет её и сохраняет в target/openapi.json. `generate-api.sh` обновляет docs/openapi.json и генерируемые TS-типы/SDK/native-fetch client через закреплённый openapi-ts. `check.sh` независимо сравнивает backend schema, затем повторно генерирует клиент во временный ignored каталог и проверяет отсутствие diff. Prettier вызывается программно с путём `.ts`, чтобы вывод не зависел от subprocess/имени временного каталога. Генерируемый код проверяется TypeScript; ESLint исключает только generated файлы. Ручных DTO-копий нет.
 
@@ -189,3 +189,73 @@ React Router: `/`, `/catalog`, `/catalog/:slug`, 404. TanStack Query кешир�
 Backend: unit + настоящая PostgreSQL; публикация/конкуренция/rollback/история, demo isolation, nullable money, freshness, публичные GET и запрет записи. Frontend: 18 UI-тестов, включая 11 каталога, с generated SDK и подменой HTTP только в unit tests. E2E: 11 браузерных тестов, включая 8 каталога, настоящий backend и CLI. Отдельный PostgreSQL запускается с tmpfs, случайным паролем и loopback-портом; постоянных volumes нет. Завершение останавливает только собственные процессы и контейнер. Dev data не изменяются. Проверяются три ширины, keyboard skip link, отсутствие горизонтального overflow/page errors, обновление/rollback, UNKNOWN/FREE и региональные суммы без конвертации.
 
 Playwright на Arch использует прежний Ubuntu 24.04 fallback; официальная поддержка Arch не заявляется. CI содержит отдельную загрузку закреплённого Chromium, но удалённый workflow ещё не выполнялся. Наличие workflow не является результатом CI. Полный accessibility/security/load audit и production DB role separation остаются задачами последующих этапов; текущие checks не заменяют их.
+
+## P04: детерминированный Recommendation Engine
+
+Граница модуля: `recommendation` получает immutable `PublishedCatalogSnapshot` через `catalog.CatalogReadService.currentSnapshot()`. UUID активной публикации читается один раз в транзакции PostgreSQL REPEATABLE READ; все нормализованные таблицы читаются с этим UUID. После копирования списков транзакция заканчивается, перебор не держит DB connection. Движок не читает manifest JSON, HTTP, системное время или LLM. Каталог не зависит от recommendation. Новых таблиц, миграций и dependencies в P04 нет.
+
+| Компонент | Ответственность |
+|---|---|
+| `ProfileValidator` / `RecommendationProfile` | Строгий JSON, Bean Validation, деньги, уникальность, календарь и ограничения размера |
+| `RecommendationService` | Один Clock/asOf, один опубликованный snapshot, вызов чистого ядра |
+| `EvidenceAssessment` | Свежесть на asOf, CONDITIONAL/UNKNOWN/STALE/CONFLICTED, явное принятие условия |
+| `EligibilityAssessment` / `CandidateResolver` | Страна, канал, платформа, языки, privacy, студент, active periods, retained subscriptions |
+| `CostCalculator` | BigDecimal/Money/FX, recurring/upfront/cash now/horizon, календарь продлений |
+| `CapabilityCoverage` | Объединение функций, hard requirements, веса без вымышленного качества |
+| `UsageAssessment` | Проверенный объём действий с режимом и единицами, общие пулы и срок кредита |
+| `BundleSearch` | Ограниченный перебор, отсечения, безопасное доминирование, три стратегии |
+| `RecommendationEngine` / `RecommendationResult` | Версии, дедупликация, причины, альтернативы, неопределённость |
+| `RecommendationController` / `PreviewLoadGuard` | HTTP, CSRF, Problem Details, ограничение нагрузки |
+
+### Профиль v1
+
+Все поля присутствуют; nullable передаются как `null`. Непредусмотренные поля, duplicate JSON keys, numeric money, отрицательные суммы, неправильные enum/currency/date отвергаются с 400. `asOf` — UTC ISO string с Z либо null (серверное время), не будущее, максимум год назад, не раньше asOf активного snapshot. Старый `catalogVersion` клиенту подставлять нельзя: public preview работает только с текущей публикацией. Чистое ядро воспроизводит старый результат при передаче прежнего immutable snapshot, профиля, asOf и policy.
+
+- `needs`: 1–12 уникальных id из taxonomy, weight 1–5, required, intensity OCCASIONAL/WEEKLY/DAILY. Неизвестная потребность остаётся unmet UNKNOWN.
+- `budget`: ISO currency, decimal strings monthlyMax/upfrontMax, scope=ALL_AI. Суммы профиля до 999999999.999999, максимум 6 дробных знаков. `horizonMonths` 1–24, `maxTools` 1–4, annual требует явного opt-in.
+- country ISO2, interfaceLanguage и outputLanguages; platforms и privacy LOCAL_ONLY/NO_STRICT_REQUIREMENT. Факты ограничений используют capability ids `platform-linux`, `interface-language-ru`, `output-language-en`, `privacy-local-only`. Отсутствующий id не означает поддержку. Ограничения проверяются для каждого инструмента набора.
+- `requirements.features`: до 32 явных функций с весом/required. `usage`: до 16 запросов capabilityId/mode/monthlyQuantity/unit/required. Интенсивность сама по себе не превращается в число генераций.
+- `existingSubscriptions`: до 8, id, planId/offerId или оба null для custom, currency/amount (null допустим), MONTH/YEAR, **исходная renewalAnchor**, nextRenewal, billingZone, mustKeep. Валидатор сверяет nextRenewal с исходным календарным якорем: 31 января → февраль → 31 марта, а не постоянное смещение на 28-е.
+- `portfolioMode=AUGMENT` сохраняет все существующие покупки, REVIEW разрешает исключить только не mustKeep. Известный существующий plan не покупается повторно. Custom учитывается в стоимости, но его функции/доступность UNKNOWN.
+- `acceptedConditionEvidenceIds` разрешает конкретное подтверждённое PARTIAL или CONDITIONAL условие функции; UNKNOWN/STALE/CONFLICTED не становится доказательством. SELF_DECLARED и даже USER_REPORTED_PROVIDER_VERIFIED не дают гарантированную студенческую скидку.
+
+### Стоимость и пригодность
+
+Деньги — BigDecimal/Money с валютой, JSON — строки или null. All-in charge = base + известные дополнительные tax + fee; неизвестные компоненты сохраняют null. Для годового тарифа recurring = charge / 12 с округлением вверх до 6 знаков, но cashDueNow/upfront требуют всю сумму. Horizon считает первый платёж и последующие календарные периоды до исключающей верхней даты. Это проекция условий snapshot, не обещание неизменности будущих цен. Явное окончание тарифа раньше горизонта делает полный итог неизвестным.
+
+Горизонт existing subscriptions имеет дневную точность в billingZone: от начала текущей локальной даты включительно до начала даты `today + horizonMonths` исключительно. Час расчёта не добавляет платёж на правой границе; исправление помечено engineVersion=1.0.1.
+
+Существующий amount — пользовательская сумма с налогами/сборами, confidence=ESTIMATED; продления идут от original anchor в billingZone. Уже оплаченный период не оплачивается повторно. Предложение CANCEL_AT_RENEWAL не создаёт refund и не отменяет подписку. FutureMonthly — регулярный расход предложенного портфеля после предполагаемых отмен; potentialNetMonthlySavings — только разница с известной пользовательской базой, может быть отрицательной. Без базы/цены/FX экономия null.
+
+Trial, ONE_TIME и USAGE_BASED не доказывают постоянную бесплатную подписку. Срок кредита, reset, unit и mode проверяются отдельно. Поддерживается подтверждённое месячное потребление в `actions` с unitsPerUse; ежедневные квоты, неизвестная стоимость дополнительных кредитов и произвольные межпровайдерские credit conversions не додумываются. Обязательный объём должен целиком размещаться в проверенном пуле; разделение одной потребности между несколькими пулами пока не доказывается. Общий pool ID учитывается единожды. Без количественной потребности `usageFit=UNKNOWN`, а не «лимита точно хватит».
+
+FX — только прямой подтверждённый snapshot моложе 24 часов, не из будущего, с округлением вверх до minor unit целевой валюты. Все использованные FX возвращаются с provenance. Нулевая сумма не требует обменного курса. Compass fee задаёт серверная policy как Money (в P04 0 USD); пользователь не присылает её. Для гипотетического платного сценария fee конвертируется и входит в cash/upfront/monthly/horizon/net savings. Версия policy включает исходную валюту и сумму fee.
+
+ELIGIBLE, CONDITIONAL, UNKNOWN, INELIGIBLE не смешиваются. Основные bundles требуют подтверждённых стоимости и hard constraints; условные/неизвестные предложения доступны отдельно только при выполненном hard функциональном покрытии и отсутствии известного превышения бюджета. Публичная региональная цена не доказывает доступность покупки. API-only план не заменяет приложение.
+
+### Покрытие, перебор, стратегии
+
+Need→capability берётся из snapshot. Пересекающаяся функция считается один раз с максимальным весом и required=OR; максимум 256 разрешённых функций. SUPPORTED с актуальным evidence даёт подтверждённое покрытие; PARTIAL не получает коэффициент 0.5. Для необязательных UNKNOWN/UNSUPPORTED/непринятого PARTIAL вес не начисляется. W — доля суммы подтверждённых весов, **не рейтинг качества**. Конфликтующие утверждения дают UNKNOWN. Независимые benchmark scores моделей не переносятся на продукты и не участвуют в P04 без сопоставимых данных; `UNKNOWN_QUALITY` видим.
+
+1. Сохраняются все mandatory, остальные сортируются по стабильному id. При >40 суммарных кандидатов берётся детерминированное подмножество, `searchComplete=false` и SEARCH_TRUNCATED; глобальная оптимальность не заявляется.
+2. Перебираются сочетания до maxTools (не порядок перестановок). Известные нижние границы monthly/cash и конфликт продукта/explicit exclusivity group отсекают ветку. Разные продукты одного vendor совместимы, если нет конкретного ограничения.
+3. Hard functions и shared quotas проверяются до ранжирования. Для распределения квот лимит 10 000 попыток на сочетание; превышение даёт неопределённость и `searchComplete=false`.
+4. Доминирующие удаления безопасны: необязательная новая покупка удалима лишь при неизменном confirmed/accepted покрытии, отсутствии количественного usage и неотрицательных расходах. MustKeep/retained не удаляются. Никаких quality/brand/affiliate отсечений.
+5. ECONOMY: минимальная monthly cost, затем больший W, меньше инструментов/новых покупок, меньше cash now, stable id. EXPANDED: максимальный W, затем та же стоимость/простота. BALANCED: W не дальше 0.05 от максимума, затем минимальная стоимость/простота. Допуск — versioned product policy. Priority меняет порядок показа стратегий, не hard constraints.
+6. Одинаковые item sets возвращаются один раз с несколькими strategy labels. Отсутствие трёх разных наборов честно помечается. Матрица coverage, factual/policy reasons, evidence/source ids и unmet сохраняются.
+
+Основные codes: WITHIN_BUDGET, PRICE_INCOMPLETE, ANNUAL_UPFRONT_REQUIRED, STUDENT_VERIFICATION_REQUIRED, REGION_UNKNOWN/INELIGIBLE, PLATFORM_UNKNOWN, LANGUAGE_UNKNOWN, PRIVACY_UNKNOWN, MISSING_REQUIRED_FEATURE, UNKNOWN_CAPABILITY, SHARED_QUOTA, USAGE_UNKNOWN/EXCEEDED, TRIAL_NOT_RECURRING, KEEP_EXISTING, INCLUDED_AGENT/MODEL, UNKNOWN_QUALITY, STALE_EVIDENCE, CONFLICTED_EVIDENCE, BUDGET_CONFLICT, UPFRONT_CONFLICT, RETAINED_CONFLICT, FX_MISSING, LIMITED_CATALOG, SEARCH_TRUNCATED, NO_DISTINCT_ALTERNATIVE, NO_MATCH. Полный enum и DTO — в generated OpenAPI.
+
+### Preview HTTP и границы безопасности
+
+`GET /api/v1/auth/csrf` выдаёт session-bound token, `POST /api/v1/recommendations/preview` принимает профиль, возвращает 200 для MATCH/CONDITIONAL_ONLY/NO_MATCH/NO_PUBLISHED_CATALOG. Ошибки 400/403/413/429 используют ApiProblem и requestId. Оба endpoint `Cache-Control: no-store`; body до 64 KiB. In-memory fixed-window limit: 30 запросов/минуту на remote IP, 120 глобально, максимум 2 параллельных; 429 содержит Retry-After=60. Forwarded headers не считаются доверенными. При same-origin proxy клиенты могут делить один IP: это консервативный локальный лимит, distributed production limiter — вне P04.
+
+CSRF и session cookie защита не отключены. Локальный HTTP/test снимает только Secure-флаг cookie; production default сохраняется. Ни профиль, ни результаты не сохраняются, нет profile/account/payment write endpoints. Публикация по-прежнему только CLI; source-fetch/LLM/payments OFF. Frontend получает generated DTO/SDK, но анкета/страница результатов P05 не создаётся.
+
+### Воспроизводимые проверки и benchmark
+
+`RecommendationEngineTest`, `ProfileAndInvariantTest`: синтетические edge cases и 160 профилей с seed 4042026; budget/upfront/required/uniqueness/determinism. `RecommendationIT`: реальная PostgreSQL, import→review→publish→HTTP, пустая БД, конкурентная активация/rollback, ограниченный реальный r2, CSRF/413/429 и отсутствие публичной записи. E2E использует отдельный tmpfs PostgreSQL и браузерный same-origin POST, не dev-каталог.
+
+`bash scripts/benchmark-recommendation.sh` отдельно запускает RecommendationBenchmark: 40 синтетических кандидатов, maxTools=4, высокий бюджет, 5 warmup + 20 измерений System.nanoTime, p95 nearest rank (19-е из 20). Измеряется чистый engine с фиксированными input/snapshot/asOf, не DB/network/startup и не production RPS. Проверяются 102 091 посещённый узел поиска (102 090 непустых сочетаний +1 пустой корень) и p95<1000 ms; результат в ignored `backend/target/recommendation-benchmark.txt`. Benchmark не маскируется пропущенным тестом в стандартной suite. Цифры фактического запуска и матрица T01–T36 приведены в PROGRESS.md.
+
+Поле API `search.visitedCombinations` сохранено для совместимости: это число вызовов перебора, включая корень (пустой либо состоящий из mandatory subscriptions) и узлы до проверки ограничений. Оно не равно числу допустимых наборов. В benchmark без mandatory и отсечений `Σ C(40,k), k=1..4 = 40+780+9880+91390 =102090`; ещё один вызов — корень. Пустой корень никогда не становится feasible/recommendation. Отчёт отдельно печатает visited_search_nodes/non_empty_combinations/empty_root_nodes; для произвольного запроса с mandatory/отсечениями вычитать единицу как универсальную метрику нельзя.

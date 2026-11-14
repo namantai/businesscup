@@ -2,7 +2,7 @@
 
 Локальный каркас B2C-сервиса подбора сочетаний AI-подписок и агентов по нескольким потребностям, бюджету и ограничениям — без ввода конкретного задания.
 
-Реализованы P01/P02 и каталог P03: публичный API чтения, локальные import/review/publish/rollback, небольшой manifest с официальными источниками, React-каталог и генерируемый OpenAPI-клиент. P03 закрыт после финальной проверки источников и тестов по поручению владельца. Анкета, Recommendation Engine, аккаунты и платежи ещё не реализованы. HTML в `reference/` — только референс, не проверенная база цен.
+Реализованы P01/P02, каталог P03 и детерминированный Recommendation Engine P04: публичный API чтения, локальные import/review/publish/rollback, небольшой manifest с официальными источниками, React-каталог и генерируемый OpenAPI-клиент. P03 закрыт после финальной проверки источников и тестов по поручению владельца. P04 закрыт после финальной приёмочной проверки; preview API подбирает наборы без LLM и сохранения профиля. Анкета P05, аккаунты и платежи ещё не реализованы. HTML в `reference/` — только референс, не проверенная база цен.
 
 ## Требования
 
@@ -137,7 +137,7 @@ bash scripts/catalog.sh rollback --version='PREVIOUS_UUID' --expected-revision=2
 
 ## OpenAPI и TypeScript-клиент
 
-Схема доступна через backend и Vite proxy: `GET /api/v1/openapi`. Springdoc строит OpenAPI 3.0.1 из реальных catalog endpoints и Java DTO; в контракте только публичное чтение. Nullable-поля остаются явно присутствующим `null` (например, неизвестная цена), суммы — строки. Ошибки 400/404 описаны как Problem Details.
+Схема доступна через backend и Vite proxy: `GET /api/v1/openapi`. Springdoc строит OpenAPI 3.0.1 из реальных catalog/preview/CSRF endpoints и Java DTO; операции не сохраняют профиль. Nullable-поля остаются явно присутствующим `null` (например, неизвестная цена), суммы — строки. Ошибки 400/404 описаны как Problem Details.
 
 После изменения API/DTO:
 
@@ -150,4 +150,47 @@ bash scripts/check.sh
 
 Frontend использует React Router для списка/деталей и TanStack Query для загрузки, кеша по versionId и повторов после ошибки. Поиск, тип продукта, возможность, сортировка и пагинация передаются API и сохраняются в URL; модели и агенты показаны отдельно. Детальные ссылки закрепляют snapshot. Кнопка обновления получает новую активную версию; предыдущие активированные снимки остаются доступными.
 
-Покрытие стартового каталога ограничено 3 продуктами, 7 тарифами и 11 предложениями; это не полный рынок. UNKNOWN, устаревшие и условные утверждения видимы вместе с источником и датой. Региональная цена не означает подтверждённое право покупки; годовой эквивалент не заменяет платёж за год. Рекомендации и анкета относятся к следующим этапам.
+Покрытие стартового каталога ограничено 3 продуктами, 7 тарифами и 11 предложениями; это не полный рынок. UNKNOWN, устаревшие и условные утверждения видимы вместе с источником и датой. Региональная цена не означает подтверждённое право покупки; годовой эквивалент не заменяет платёж за год. Preview-рекомендации P04 описаны ниже; анкета относится к P05.
+
+## Recommendation preview P04
+
+Подбор работает без LLM, ввода конкретного задания и сохранения личного профиля. API использует только активный опубликованный каталог; полный контракт — [OpenAPI](docs/openapi.json), правила и ограничения — [архитектура P04](docs/ARCHITECTURE.md#p04-детерминированный-recommendation-engine). Суммы — строки с явной валютой, UNKNOWN — null/явный статус. `searchComplete` относится к ограниченному каталогу, не ко всему AI-рынку.
+
+- `GET /api/v1/auth/csrf`: сессионный CSRF token/headerName.
+- `POST /api/v1/recommendations/preview`: RecommendationProfile → RecommendationResult; нужны cookie полученной сессии и CSRF header. Ответ содержит версии, время, источники, основные и условные наборы, матрицу функций, раздельные расходы, причины и непокрытые требования.
+- `GET /api/v1/openapi`: актуальный code-first контракт и nullable DTO. Generated TypeScript `csrf()` / `preview()` находятся в `frontend/src/api/generated/`; передавать полученный headerName/token и same-origin credentials.
+
+Примеры полных входных профилей: `data/fixtures/profiles/student.json` (study/coding/presentations, Linux) и `editor.json` (image/video, web). Это синтетические сценарии с фиксированным asOf, не персональные данные. Для запроса к текущему dev-каталогу использовать asOf=null. Следующая команда работает из fish и Bash, не выводит токен и не пишет файл с cookie:
+
+```sh
+python3 -c '
+import json, http.cookiejar, urllib.request
+base = "http://127.0.0.1:5173"
+client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+with client.open(base + "/api/v1/auth/csrf") as response:
+    csrf = json.load(response)
+with open("data/fixtures/profiles/editor.json") as file:
+    profile = json.load(file)
+profile["asOf"] = None
+request = urllib.request.Request(base + "/api/v1/recommendations/preview",
+    data=json.dumps(profile).encode(),
+    headers={"Content-Type": "application/json", csrf["headerName"]: csrf["token"]})
+with client.open(request) as response:
+    result = json.load(response)
+print(json.dumps({key: result[key] for key in ["status", "catalogVersion", "searchComplete", "bundles", "unmetRequirements", "warnings"]}, ensure_ascii=False, indent=2))
+'
+```
+
+На текущем реальном r2-каталоге (ChatGPT/Claude/GitHub Copilot) подтверждённого video-набора нет; UNKNOWN по KZ, налогам, языкам и платформам не выдаётся за гарантированную пригодность. Новый пустой каталог возвращает NO_PUBLISHED_CATALOG. Для проверки полного выбора тесты импортируют `recommendation-demo.json` **только в изолированную тестовую БД**; он никогда не публикуется как реальные тарифы.
+
+Выполняемые HTTP-примеры сохраняются RecommendationIT в ignored `backend/target/p04-{student,editor,real-catalog}-response.json`. Сокращённые результаты реальных тестовых HTTP-запросов и подтверждённые числа тестов — в [PROGRESS.md](docs/PROGRESS.md). Fixture-профили не заменяют API статическими массивами.
+
+Для existingSubscriptions нужны исходная `renewalAnchor`, `nextRenewal` и `billingZone`, а также фактические currency/amount (включая налоги/сборы). Неизвестная сумма — null. Полная схема описывает required поля даже когда их значение null. REVIEW разрешает предложить отказ от необязательной подписки к продлению, не выполняя отмену и не обещая refund.
+
+Дополнительный benchmark, отдельно от обязательного полного check:
+
+```sh
+bash scripts/benchmark-recommendation.sh
+```
+
+Он измеряет 40 кандидатов / до 4 инструментов, 5 прогревов + 20 расчётов, проверяет p95<1 секунды. Это локальная производительность чистого ядра, не нагрузочный тест production API. Стандартный `check.sh` проверяет ядро, 160 сгенерированных профилей, PostgreSQL и API; `test-e2e.sh` дополнительно проверяет студента/монтажёра, CSRF, неизвестную функцию и mass-assignment через реальный сервер/браузер. Форму P05 эти тесты не создают.

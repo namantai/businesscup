@@ -1,0 +1,53 @@
+{
+  "profileSchemaVersion": 1,
+  "country": "KZ",
+  "interfaceLanguage": "ru",
+  "outputLanguages": [
+    "ru",
+    "en"
+  ],
+  "needs": [
+    {
+      "id": "study",
+      "weight": 4,
+      "required": true,
+      "intensity": "WEEKLY"
+    },
+    {
+      "id": "coding",
+      "weight": 5,
+      "required": true,
+      "intensity": "DAILY"
+    },
+    {
+      "id": "presentations",
+      "weight": 3,
+      "required": true,
+      "intensity": "WEEKLY"
+    }
+  ],
+  "budget": {
+    "currency": "USD",
+    "monthlyMax": "20",
+    "upfrontMax": "30",
+    "scope": "ALL_AI"
+  },
+  "allowAnnualBilling": false,
+  "maxTools": 4,
+  "horizonMonths": 12,
+  "priority": "BALANCE",
+  "studentStatus": "SELF_DECLARED",
+  "portfolioMode": "AUGMENT",
+  "purchaseChannel": "WEB",
+  "requirements": {
+    "platforms": [
+      "LINUX"
+    ],
+    "privacy": "NO_STRICT_REQUIREMENT",
+    "features": [],
+    "usage": []
+  },
+  "existingSubscriptions": [],
+  "acceptedConditionEvidenceIds": [],
+  "asOf": "2026-11-14T12:00:00Z"
+}

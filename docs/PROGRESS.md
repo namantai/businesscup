@@ -1,9 +1,9 @@
 # AI Compass — фактический прогресс
 
 **План:** `../CODEX_PROMPT.md`, версия 1.0, 14.11.2026.
-**Текущее состояние:** P03 закрыт по прямому поручению владельца после финальной проверки источников и обязательных тестов.
-**Текущий этап:** P03 — DONE (финальная приёмочная проверка по поручению владельца).
-**Следующее действие:** остановиться после одного разрешённого локального коммита P03. P04 = NOT_STARTED; push/PR/P04 запрещены без отдельного разрешения.
+**Текущее состояние:** финальная приёмка P04 выполнена по прямому поручению владельца; результаты и исправление зафиксированы в разделе закрытия P04.
+**Текущий этап:** P04 — DONE.
+**Следующее действие:** один разрешённый локальный commit закрытия P04 и остановка. P05 = NOT_STARTED; push/PR/deploy и начало P05 запрещены.
 **Источник состояния:** этот файл + фактический Git/code/test evidence, не обещания агента.
 
 ## 1. Маршрут
@@ -13,8 +13,8 @@
 | P00 | Read-only аудит | ACCEPTED | Владелец 14.11.2026: «P00 ПРИНЯТ. Переходим к P01» |
 | P01 | Каркас и инфраструктура | ACCEPTED | Закрыт commit d895c04; затем владелец явно сообщил «P01 ПРИНЯТ» и разрешил P02 |
 | P02 | Типы, schema, fixtures | ACCEPTED | Владелец явно сообщил «P02 ПРИНЯТ» и разрешил P03; закрыт commit 8fc3304 |
-| P03 | Проверенный каталог и API | DONE | Владелец поручил финальную проверку 5 утверждений, все проверки и один commit; выполнено 14.11.2026, итог в последнем разделе |
-| P04 | Recommendation Engine | NOT_STARTED | — |
+| P03 | Проверенный каталог и API | ACCEPTED | Владелец поручил финальную проверку 5 утверждений, все проверки и один commit; выполнено 14.11.2026, итог в разделе закрытия P03 |
+| P04 | Recommendation Engine | DONE | Владелец явно поручил закрытие; 10 инвариантов проверены, 185 backend +18 UI +14 E2E, p95=61.19 ms; исправлена граница horizon, engine1.0.1 |
 | P05 | Гостевой frontend / R1 | NOT_STARTED | — |
 | P06 | Аккаунты и сохранение | NOT_STARTED | — |
 | P07 | Портфель и расходы | NOT_STARTED | — |
@@ -46,7 +46,7 @@
 | Действие | Текущее разрешение |
 |---|---|
 | P00 read-only аудит в рабочем репозитории | Выполнен и принят 14.11.2026 |
-| Локальные изменения кода | P03 явно разрешён; backend/frontend каталога, OpenAPI/client, тесты и документация; P04 запрещён |
+| Локальные изменения кода | Разрешено только закрытие P04: архитектурная проверка, подтверждённые исправления/регрессии, проверки и документация; P05 запрещён |
 | Первоначальный локальный commit и ветка | Владелец 14.11.2026: четыре исходных файла без изменений, затем codex/p01-scaffold; выполнено |
 | Установка project dependencies / Docker images / browsers | P01 — ранее разрешённая локальная инфраструктура. P03 — владелец отдельно разрешил springdoc 3.2.0, react-router 8.5.1, @tanstack/react-query 5.107.1, @hey-api/openapi-ts 0.99.0 и их транзитивные зависимости; без других прямых зависимостей, sudo/global config/платных услуг |
 | Системные установки / sudo / global config | Нет |
@@ -54,6 +54,7 @@
 | Реальные письма/уведомления внешним адресатам | Нет |
 | Production платежи / тестовые списания | Нет |
 | VPS/домен/хостинг/облако | Нет |
+| Локальный commit P04 | Владелец 14.11.2026 разрешил один commit после проверки инвариантов и обязательных checks: `feat: implement personalized ai recommendation engine`; без push/PR/P05 |
 | Локальный commit P03 | Владелец 14.11.2026 разрешил один commit после проверки 5 источников и обязательных checks: `feat: implement verified ai catalog and public api`; без push/PR/P04 |
 | Локальный commit P02 | Владелец 14.11.2026 разрешил один commit после архитектурной проверки и успешных тестов: `feat: implement versioned ai catalog data model`; без push/PR |
 | Локальный commit закрытия P01 | Владелец 14.11.2026: один commit только P01, сообщение `feat: bootstrap ai compass infrastructure`; без push/PR |
@@ -591,3 +592,347 @@ AGENTS.md требует explicit permission для project dependency installat
 Не включены .env, секреты, caches, logs, node_modules, target/dist, screenshots/test-results, __pycache__ и локальные tools. Нет symlinks. AGENTS.md, CODEX_PROMPT.md, HTML reference, V1–V3 и dev Compose не изменены. Индекс до staging был пустой; staging выполняется по проверенному явному списку этих 68 путей.
 
 Разрешён один локальный commit: **`feat: implement verified ai catalog and public api`** в `codex/p01-scaffold`; фактический hash и итоговый git status проверяются после создания и выводятся в отчёте. Push, PR, новые ветки и P04 не выполняются. После коммита остановиться.
+
+## P04 — Recommendation Engine, 14.11.2026 (исторический отчёт перед закрытием)
+
+**Основание:** владелец явно принял P03 и разрешил P04 в приложенном поручении. Ветка сохранена `codex/p01-scaffold`; исходный HEAD `9f3e48f68d41ae40f32281f553a32349de4b4429`. Коммит, push, PR, P05 и новые зависимости не разрешены и не выполнялись. Существующие версии manifests/lockfile не менялись. После обязательных проверок итоговый статус приведён в конце этого раздела.
+
+### Реализация и ручное ревью
+
+Чистое Java-ядро отделено от HTTP/DB: validation → one active immutable snapshot → eligibility → BigDecimal costs → capability coverage → bounded combinations/shared quota allocation → три стратегии → причины/условные альтернативы. Controller делегирует service; snapshot снимается в REPEATABLE READ. Public profile/DTO/SDK code-first; endpoints POST preview и GET CSRF. Сохранения профилей, LLM и новых таблиц нет. Подробные правила входа/ранжирования/денег/лимитов зафиксированы в ARCHITECTURE.md, запуск и запрос — в README.md.
+
+При ручном ревью исправлены и покрыты регрессиями: валюта Compass fee и отсутствие FX; исходный календарный anchor после февраля; окончание offer раньше billing horizon; квота без подтверждённой функции; явный searchComplete=false при превышении лимита распределения квот; nullable/ошибочные типы JSON, включая null внутри языкового списка; CSRF query parameter и неверные error response schemas в автоматически полученной OpenAPI. Ручной diff review проверяет регион/налог/FX/UNKNOWN, retained costs, отсутствие paid/brand fields в objective, product-scoped conflicts, публичность internal writes и отсутствие изменения рыночных данных. Старый алгоритм HTML не использован.
+
+До финального прогона были промежуточные ошибки: неверный порядок аргументов activate в новом IT, неправильное имя State accessor при уточнении usage, неправильное имя exactVersion в тестовой мутации. Они исправлены; промежуточные неуспешные команды не считаются PASS. Проверки не отключались и ожидаемый победитель не менялся ради зелёного результата.
+
+### Матрица сценариев плана
+
+| Проверки | Доказательство / граница |
+|---|---|
+| T01 multi-needs | studentAndEditorHaveDifferentBundlesAndFreeWins: study/coding/pptx присутствуют в coverage; реальные HTTP/E2E |
+| T02, T03 free/unknown/trial | Бесплатный learner+slides побеждает; unknownPriceAndTrialNeverBecomeFreeRecurring; seeded budgets включают 0 |
+| T04 student | SELF_DECLARED и USER_REPORTED_PROVIDER_VERIFIED остаются CONDITIONAL; NONE — INELIGIBLE |
+| T05 annual | annualRequiresOptInAndEnoughUpfront: 120/год не помещается в upfront=30; при 120 проходит с recurring=10 |
+| T06 mustKeep | mustKeepCountsCostAndCoverageExactlyOnce: retained 12 при budget=10 даёт конфликт, сумма не теряется |
+| T07, T08 agent/vendor | Included agent не отдельная покупка, разные продукты одного provider разрешены |
+| T09 conflicts | mandatoryCountAndTwoProductTiersCannotBeSilentlyDropped + uniqueness invariant |
+| T10 platform | Обязательные Linux/web подтверждаются отдельно; creator без Linux исключается |
+| T11, T12 credits | One-time reset NEVER не доказывает recurring usage; 5 image ×10 +2 video ×25=100, третий video превышает общий pool |
+| T13 tax/FX | Неизвестный налог/прямой FX не даёт confirmed fit; fresh USD→KZT только из synthetic FX; currency fee также конвертируется |
+| T14, T15 language/privacy | outputLanguage отдельно от interface; неизвестный Japanese/LOCAL_ONLY не становится ELIGIBLE |
+| T16 stale | STALE/CONFLICTED/UNKNOWN support не превращается в UNSUPPORTED или подтверждённого победителя |
+| T17 unmet | Нет опубликованного каталога/функции/совместимого набора; PARTIAL нужен explicit accepted evidence |
+| T18 paid bias | Бесплатный набор выигрывает; optionalFeaturesSeparateStrategiesWithoutPaidBonus проверяет раздельные стратегии |
+| T19 dedup | Три совпавшие стратегии → один bundle с тремя labels и NO_DISTINCT_ALTERNATIVE |
+| T20 model version | Смена exactVersion не переносит benchmark quality: engine вообще не принимает benchmark observations, UNKNOWN_QUALITY сохраняется |
+| T21 API vs app | apiOnlyPricesCannotSubstituteForApplicationSubscriptions |
+| T22 replay | Полное равенство результата pure engine для input/snapshot/asOf/policy. Public preview намеренно не принимает старый UUID, только active snapshot |
+| T23 concurrent catalog | Реальная PostgreSQL: 6 переключений active pointer +16 snapshot reads, цена 15 или 18 строго по UUID; rollback восстанавливает 15 |
+| T24 affiliate | Affiliate flag в текущей schema отсутствует: переключение флага NOT_APPLICABLE. Структурный контроль objective + тест изменения brand/provider names: ranking не зависит от бренда/affiliate текста |
+| T25 Compass fee | Fee=4.99 USD при retained 12 → total16.99 и net savings=-4.99; missing FX не даёт fee=0 |
+| T26 annual cancel | Уже оплаченная годовая подписка не создаёт refund; только CANCEL_AT_RENEWAL и будущая регулярная разница |
+| T33 maxTools | Два locked при maxTools=1 → RETAINED_CONFLICT; ни один не удаляется молча |
+| T34 limited catalog | LIMITED_CATALOG всегда; integration с реальным r2: 3 продукта, video UNKNOWN/no-match, не иллюзия полного рынка |
+| T35 notifications | NOT_APPLICABLE: monitoring/change notifications относятся к P08; P04 их не создаёт. Preview не добавляет publication events |
+| T36 LLM OFF | Все unit/HTTP/E2E выполняются без LLM/API adapter; factual и policy explanations возвращаются локальным кодом |
+
+Дополнительно: 160 сгенерированных профилей seed 4042026 с бюджетом, upfront, annual и maxTools проверяют hard requirements, детерминированность, уникальность и отсутствие бесплатного student baseline; строгий JSON/enum/duplicate/currency/size validation; 40-candidate cap и 10 000 quota-allocation cap не скрываются; CSRF/429/413, no-store, private import/publish/profile endpoints. Большая fixture проверяет полный перебор до четырёх инструментов.
+
+### Критерии P04
+
+| Критерий | Реализация и проверка |
+|---|---|
+| Profile validation и taxonomy | Typed v1, веса/required/интенсивность; taxonomy одного snapshot, неизвестный need явно UNKNOWN |
+| Нормализация offers/horizon/existing | Money, tax/fee, calendar anchor, FX snapshot, mustKeep/AUGMENT/REVIEW |
+| ELIGIBLE/CONDITIONAL/UNKNOWN/INELIGIBLE | Раздельные assessments и conditionalAlternatives; регион/канал/язык/platform/privacy/student |
+| Hard requirements/maxTools/exclusivity/shared pools | Unit, 160 generated cases, отдельная квотная regression; отсутствуют vendor-wide bans |
+| Три стратегии без LLM и bias | ECONOMY/BALANCED/EXPANDED, 0.05 policy tolerance, stable tie-breaking/dedup |
+| Typed costs/upfront/recurring/renewal/confidence | Nullable decimal strings, Item.nextRenewal, usageFit, negative net savings при fee |
+| Reason codes/unmet/evidence/alternatives | Публичные DTO с factual/policy reasons, источниками/conditions, limited-market предупреждениями |
+| Preview, rate limit, version metadata | Real HTTP + OpenAPI/generated SDK + E2E; без persistence и public import |
+| Производительность/детерминированность | Отдельный benchmark 40×4; показатели и итог ниже |
+| Студент и видеомонтажёр отличаются | Синтетические HTTP/E2E: free learner+slides против creator15; реальные рыночные данные не подменены |
+
+### Сохранённые ограничения
+
+Каталог real r2: только ChatGPT/Claude/GitHub Copilot; taxonomy содержит development/research, image/video потребности не покрыты, KZ checkout totals и часть ограничений неизвестны. NO_MATCH здесь честен. Новых рыночных утверждений и source fetching в P04 нет. Фиктивные тарифы существуют только в DEMO fixture и изолированных тестах.
+
+Нет сопоставимого независимого quality ranking; coverage — функции, не процент качества. Частота без количества не доказывает достаточный лимит. Поддержка usage ограничена mode-qualified monthly actions; daily allowances, split одной потребности между пулами, неизвестные top-up prices не выдумываются. Горизонт — проекция текущих условий, не гарантия будущей цены. Fee в публичной policy равен 0 USD; платный вариант проверяется только синтетическим unit test, не платежом.
+
+Rate limiter — один процесс и remote IP; same-origin proxy может объединять клиентов. Production capacity/security/accessibility audit, профили/анкета P05, аккаунты, monitoring и payment flow не реализуются в P04. Playwright на Arch по-прежнему использует Ubuntu fallback; remote CI **NOT_RUN**. Проценты line/branch coverage **NOT_RUN**: инструмент не настроен, новый dependency не устанавливался в соответствии с запретом владельца; 85%/70% не заявляются, сценарная матрица не подменяется процентами. Отдельное включение инструмента покрытия требует согласования. Production deploy и платные/внешние интеграции **NOT_RUN / запрещены**.
+
+### Изменённые файлы P04
+
+39 изменённых/новых файлов на момент отчёта; manifests/lockfile и исходные рыночные manifests не изменены. Изменения не staged, commit запрещён. Полный список:
+
+```text
+README.md
+backend/src/main/java/com/aicompass/compass/catalog/CatalogReadService.java
+backend/src/main/java/com/aicompass/compass/catalog/PublishedCatalogSnapshot.java
+backend/src/main/java/com/aicompass/compass/config/OpenApiConfiguration.java
+backend/src/main/java/com/aicompass/compass/config/SecurityConfig.java
+backend/src/main/java/com/aicompass/compass/recommendation/BundleSearch.java
+backend/src/main/java/com/aicompass/compass/recommendation/Candidate.java
+backend/src/main/java/com/aicompass/compass/recommendation/CandidateResolver.java
+backend/src/main/java/com/aicompass/compass/recommendation/CapabilityCoverage.java
+backend/src/main/java/com/aicompass/compass/recommendation/CostCalculator.java
+backend/src/main/java/com/aicompass/compass/recommendation/EligibilityAssessment.java
+backend/src/main/java/com/aicompass/compass/recommendation/EvidenceAssessment.java
+backend/src/main/java/com/aicompass/compass/recommendation/PreviewLoadGuard.java
+backend/src/main/java/com/aicompass/compass/recommendation/ProfileValidator.java
+backend/src/main/java/com/aicompass/compass/recommendation/RecommendationController.java
+backend/src/main/java/com/aicompass/compass/recommendation/RecommendationEngine.java
+backend/src/main/java/com/aicompass/compass/recommendation/RecommendationProfile.java
+backend/src/main/java/com/aicompass/compass/recommendation/RecommendationResult.java
+backend/src/main/java/com/aicompass/compass/recommendation/RecommendationService.java
+backend/src/main/java/com/aicompass/compass/recommendation/UsageAssessment.java
+backend/src/main/resources/application.yml
+backend/src/test/java/com/aicompass/compass/ScaffoldIT.java
+backend/src/test/java/com/aicompass/compass/recommendation/EngineFixtures.java
+backend/src/test/java/com/aicompass/compass/recommendation/ProfileAndInvariantTest.java
+backend/src/test/java/com/aicompass/compass/recommendation/RecommendationBenchmark.java
+backend/src/test/java/com/aicompass/compass/recommendation/RecommendationEngineTest.java
+backend/src/test/java/com/aicompass/compass/recommendation/RecommendationIT.java
+data/fixtures/profiles/editor.json
+data/fixtures/profiles/student.json
+data/fixtures/recommendation-demo.json
+docs/ARCHITECTURE.md
+docs/PROGRESS.md
+docs/openapi.json
+frontend/src/api/generated/index.ts
+frontend/src/api/generated/sdk.gen.ts
+frontend/src/api/generated/types.gen.ts
+frontend/tests/e2e/recommendation.spec.ts
+scripts/benchmark-recommendation.sh
+scripts/check-catalog.mjs
+```
+
+### Фактические финальные команды и результаты
+
+Все обязательные проверки P04 выполнены на окончательной реализации. Никакие падающие проверки не пропущены.
+
+| Команда | Результат | Exit / фактические числа |
+|---|---|---|
+| `bash scripts/generate-api.sh` | PASS | 0; actual HTTP schema экспортирована, nullable request/response и ApiProblem/CSRF schema проверены, TS SDK/DTO обновлены |
+| `bash scripts/check.sh` | PASS | 0; 114 unit +69 integration = **183 backend**, failures/errors/skipped **0/0/0**; npm ci, API drift, format/lint/typecheck PASS; **18 UI**, 0 fail; production frontend build PASS |
+| `bash scripts/check-catalog.sh` | PASS | 0; 2 synthetic +2 reviewed manifests +12 negative cases = **16 schema checks** |
+| `bash scripts/smoke.sh` | PASS | 0; **3/3**: backend readiness, proxy readiness, HTML |
+| `bash scripts/test-e2e.sh` | PASS | 0; **14/14**, 0 failed/skipped, итог 1.2 min; 3 новых recommendation tests, 11 прежних; реальный browser/backend/PostgreSQL |
+| `bash scripts/benchmark-recommendation.sh` | PASS | 0; **1/1**, 0 failed/skipped; 40 candidates, maxTools4, 5 warmup +20 measured |
+| `bash scripts/check-secrets.sh` | PASS | 0; tracked/untracked nonignored + local password scan без совпадений; не полный коммерческий secret scanner |
+| `git diff --check` | PASS | 0; whitespace ошибок нет |
+| `bash scripts/dev-down.sh` + `bash scripts/dev-up.sh --no-build` | PASS | 0; остановлены/запущены только собственные процессы и Compose postgres; volume сохранён |
+| Read-only HTTP preview через frontend proxy | PASS | 0; CSRF + HttpOnly cookie, no-store, HTTP200/NO_MATCH/UNKNOWN video; r2 UUID и revision2 не изменились |
+| Команда preview из README через `fish --no-config` | PASS | 0; выполнена без редактирования, ответ реального dev-каталога проверен, token не печатался |
+
+Unit-часть P04: **29 RecommendationEngineTest +21 ProfileAndInvariantTest =50** тестовых случаев (в одном property/invariant test дополнительно 160 генераций, seed 4042026). Новых IT **8**, существующих IT61. Всего уникальных исполняемых тестовых случаев основного backend/frontend/E2E **215** (183+18+14), плюс **1** отдельный benchmark; schema checks и smoke считаются отдельно, повторные прогоны не суммируются. Результаты взяты из Maven XML, Vitest и Playwright, не из наличия файлов тестов.
+
+Benchmark: **p50=63.383349 ms, p95=77.538516 ms**, 102 091 посещённая комбинация, searchComplete=true. Среда: Linux x86_64, Intel Core i5-12450H, 12 logical CPUs, Java21.0.13; 5 прогревов и 20 последовательных измерений pure engine. JVM startup/DB/HTTP не входят; это не universal production SLA. Первичный замер до финальных регрессий был p95≈77.90 ms; итоговый отчёт использует только повторный финальный результат. Raw report: ignored `backend/target/recommendation-benchmark.txt`.
+
+Игнорируемые логи финальных прогонов: `.runtime/p04-check-final.log`, `p04-generate-final.log`, `p04-e2e-final.log`, `p04-benchmark-final.log`, `p04-dev-start.log`. Они не включаются в Git. PostgreSQL17.12 healthy, Flyway V1–V4 валидны, P04 не добавлял миграций. Временных P04 integration/E2E контейнеров после завершения нет; dev PostgreSQL сохранён. Сервисы слушают loopback: 5173/18080/15432. `LLM_MODE=OFF`, `PAYMENTS_MODE=OFF`, `EMAIL_MODE=LOCAL`, `SOURCE_FETCH_ENABLED=false`.
+
+### Реальные ответы HTTP на тестовые сценарии
+
+Ниже выбранные поля из ответов RecommendationIT, а не вручную придуманные результаты. DEMO не является рыночным каталогом; полный response содержит evidence, sources, assessments, причины и версии. Input примеры — `data/fixtures/profiles/`; ответы сохраняются только в ignored target.
+
+student:
+
+```json
+{
+  "status": "MATCH",
+  "catalogVersion": "04000000-0000-4000-8000-000000000001",
+  "datasetKind": "DEMO",
+  "engineVersion": "1.0.0",
+  "policyVersion": "p04-1-fee-USD-0",
+  "asOf": "2026-11-14T12:00:00Z",
+  "searchComplete": true,
+  "bundles": [
+    {
+      "strategies": [
+        "BALANCED",
+        "ECONOMY",
+        "EXPANDED"
+      ],
+      "products": [
+        "learner",
+        "slides"
+      ],
+      "costs": {
+        "currency": "USD",
+        "cashDueNow": "0",
+        "upfront": "0",
+        "recurringMonthly": "0",
+        "horizonTotal": "0",
+        "futureMonthly": "0",
+        "comparableBaselineMonthly": null,
+        "potentialNetMonthlySavings": null,
+        "compassFeeMonthly": "0",
+        "confidence": "CONFIRMED_COMPONENTS",
+        "confirmedBudgetFit": true
+      },
+      "usageFit": "UNKNOWN",
+      "coverage": [
+        {
+          "capabilityId": "coding",
+          "state": "SUPPORTED"
+        },
+        {
+          "capabilityId": "pptx",
+          "state": "SUPPORTED"
+        },
+        {
+          "capabilityId": "study",
+          "state": "SUPPORTED"
+        }
+      ]
+    }
+  ],
+  "unmetRequirements": []
+}
+```
+
+editor:
+
+```json
+{
+  "status": "MATCH",
+  "catalogVersion": "04000000-0000-4000-8000-000000000001",
+  "datasetKind": "DEMO",
+  "engineVersion": "1.0.0",
+  "policyVersion": "p04-1-fee-USD-0",
+  "asOf": "2026-11-14T12:00:00Z",
+  "searchComplete": true,
+  "bundles": [
+    {
+      "strategies": [
+        "BALANCED",
+        "ECONOMY",
+        "EXPANDED"
+      ],
+      "products": [
+        "creator"
+      ],
+      "costs": {
+        "currency": "USD",
+        "cashDueNow": "15",
+        "upfront": "15",
+        "recurringMonthly": "15",
+        "horizonTotal": "180",
+        "futureMonthly": "15",
+        "comparableBaselineMonthly": null,
+        "potentialNetMonthlySavings": null,
+        "compassFeeMonthly": "0",
+        "confidence": "CONFIRMED_COMPONENTS",
+        "confirmedBudgetFit": true
+      },
+      "usageFit": "UNKNOWN",
+      "coverage": [
+        {
+          "capabilityId": "editing",
+          "state": "SUPPORTED"
+        },
+        {
+          "capabilityId": "image",
+          "state": "SUPPORTED"
+        },
+        {
+          "capabilityId": "video",
+          "state": "SUPPORTED"
+        }
+      ]
+    }
+  ],
+  "unmetRequirements": []
+}
+```
+
+real-catalog:
+
+```json
+{
+  "status": "NO_MATCH",
+  "catalogVersion": "03000000-0000-4000-8000-000000000002",
+  "datasetKind": "REVIEWED",
+  "engineVersion": "1.0.0",
+  "policyVersion": "p04-1-fee-USD-0",
+  "asOf": "2026-11-14T16:00:00Z",
+  "searchComplete": true,
+  "bundles": [],
+  "unmetRequirements": [
+    {
+      "capabilityId": "need:images",
+      "state": "UNKNOWN",
+      "reason": "UNKNOWN_CAPABILITY"
+    },
+    {
+      "capabilityId": "need:video",
+      "state": "UNKNOWN",
+      "reason": "UNKNOWN_CAPABILITY"
+    }
+  ]
+}
+```
+
+Студент получил learner+slides за 0 USD, покрытие study/coding/pptx; это не условная студенческая скидка. Видеомонтажёр получил creator за 15 USD сейчас/месяц, 180 USD за 12 месяцев; image/video/editing подтверждены в DEMO. У обоих нет количественной заявки, поэтому usageFit=UNKNOWN. При отсутствии существующей базы savings=null. Три стратегии в этих двух кейсах совпали и объединены в один результат; отдельный unit scenario с необязательными images разводит ECONOMY и BALANCED/EXPANDED. Реальный r2 возвращает пустые bundles и UNKNOWN по отсутствующим images/video needs, с предупреждением об ограниченном каталоге из 3 продуктов.
+
+### Итог P04
+
+Все 10 функциональных критериев таблицы P04 выше — **PASS**. Применимая матрица сценариев выполнена; T24 именно переключение несуществующего affiliate flag и T35 notifications — **NOT_APPLICABLE** с причинами выше. Не заявляются: remote CI, проценты покрытия, production SLA/полный market coverage, независимый рейтинг качества и функциональность P05.
+
+**P04 = AWAITING_REVIEW. P05 = NOT_STARTED.** Работа остановлена до приёмки владельцем. Ветка `codex/p01-scaffold`, HEAD остаётся `9f3e48f68d41ae40f32281f553a32349de4b4429`; **новых commit/push/PR нет**, index пуст. 39 изменённых/новых файлов перечислены выше; .env, secrets, caches, logs, target/dist, node_modules и browser artifacts остаются ignored и не входят в набор Git. Следующее действие — приёмка P04 владельцем и отдельное разрешение на commit/следующий этап.
+
+## Финальная приёмка и закрытие P04 — 14.11.2026
+
+Владелец предварительно принял P04 и явно разрешил финальную проверку, исправление реальных ошибок с регрессиями, статус DONE при отсутствии блокеров и один локальный commit `feat: implement personalized ai recommendation engine`. P05, push и PR по-прежнему запрещены. Предыдущий раздел сохраняет исторический отчёт первоначальной реализации и его реальные результаты; актуальное закрытие описано здесь.
+
+### Проверка 10 архитектурных инвариантов
+
+| № | Инвариант | Проверенное основание |
+|---|---|---|
+| 1 | Чистое детерминированное ядро и границы модулей | Controller вызывает Service; только Service получает Clock и CatalogReadService. Engine не обращается к БД, HTTP, LLM, random или системному времени; catalog не зависит от recommendation. Без анкеты P05 и новых dependencies |
+| 2 | Только один опубликованный immutable snapshot | currentSnapshot разрешает active UUID один раз; class-level REPEATABLE_READ и version_id во всех выборках. PublishedCatalogSnapshot копирует списки; транзакция завершается до перебора. RecommendationIT повторно проверяет concurrent activation, чтение и rollback |
+| 3 | Воспроизводимость и версии | Явные asOf/catalog/engine/policy/FX, стабильные сортировки и сравнения без бренда. Чистый результат воспроизводим; HTTP requestId — отдельная транспортная метка. Изменение денежного расчёта в этом закрытии обозначено engineVersion=1.0.1 |
+| 4 | Строгий ввод и неизменность границы продукта | Typed multi-needs profile; денежные строки, ISO currency, даты, duplicate/null/range/unknown-field validation. Нет обязательного задания, prompt/upload или сохранения профиля; mass assignment premium отклоняется |
+| 5 | Неопределённость, доказательства и hard requirements | EvidenceAssessment вычисляет свежесть на asOf; UNKNOWN/STALE/CONFLICTED не дают confirmed coverage. PARTIAL не получает 0.5; explicit accepted condition не делает его полным. Region/platform/languages/privacy/student не обходят ограничения |
+| 6 | Деньги, календарь, FX и Compass fee | BigDecimal/Money, явная валюта, неизвестные tax/fee/FX не становятся нулём. Annual upfront отдельно от monthly equivalent; fee включена в итог/savings. Найдена и исправлена ошибка правой границы календарного горизонта existing subscriptions — описание ниже |
+| 7 | MustKeep и честные действия с портфелем | Mandatory никогда не удаляются; их costs/capabilities учитываются один раз, over-budget/maxTools/conflict дают отказ. REVIEW не выполняет отмену; CANCEL_AT_RENEWAL не обещает refund. Savings только с известной базой |
+| 8 | Раздельные сущности, конфликты и shared pools | Model/product/plan/offer/agent различаются. Included agent не дополнительный платёж; exact model access не означает quality score. Конфликты scoped к продукту, не vendor. UsageAssessment распределяет mode-qualified потребление по pool ID без двойного счёта |
+| 9 | Стратегии, безопасный поиск и честные метрики | Hard constraints до ranking; ECONOMY/BALANCED/EXPANDED, tolerance0.05, stable tie-break/dedup, без paid/affiliate/brand бонуса. Удаляется только доказуемо избыточная необязательная новая покупка. Cap40/usage cap дают searchComplete=false. Пустой корень счётчика разобран и проверен отдельно |
+| 10 | Read-only публичный API и безопасность | POST preview с session CSRF; strict body limit64KiB, per-IP/global/concurrency limits, Problem Details и no-store. Import/publish/profile writes недоступны. Реальные HTTP/E2E тесты; LLM/payments/source-fetch OFF, внешняя почта отсутствует |
+
+### Найденная ошибка и регрессия
+
+`CostCalculator.existing` раньше задавал конец горизонта как `asOf + horizonMonths` с часами расчёта, но дни продлений учитывал с полуночи. При продлении сегодня и расчёте в полдень это захватывало ещё одно продление на конечной календарной дате. Воспроизведение: 12 USD/MONTH, nextRenewal=2026-11-14, asOf=2026-11-14T12:00Z, horizon=12 → **156 вместо 144 USD**.
+
+До исправления целевой тест `existingRenewalTodayDoesNotIncludeExtraPaymentAtHorizonEnd` действительно упал: **1 run /1 failure /0 errors /0 skipped**, Maven exit1, `.runtime/p04-close-regression-before.log`. Это не зачтено как PASS.
+
+Исправление: правая граница — начало даты `today + horizonMonths` в **billingZone**, исключительная, как и дневная точность nextRenewal/cashDueNow. Это сохраняет исходный anchor и не меняет правила upfront/annual opt-in. Регрессия проверяет MONTH/YEAR, UTC/Asia-Almaty, полночь/полдень/поздний вечер: 12×12=144 и 1×120=120. Годовой тест использует upfront=120, чтобы проверять календарь, а не отказ по unrelated budget. Версия движка повышена до **1.0.1**, policy и schema не менялись. После исправления отдельный RecommendationEngineTest: **31/31 PASS**, exit0; `.runtime/p04-close-regression-after.log`.
+
+### Почему 102091, а не 102090
+
+Для 40 кандидатов и размеров 1–4: `C(40,1)+C(40,2)+C(40,3)+C(40,4) =40+780+9880+91390 =102090` непустых сочетаний. `BundleSearch.enumerate` увеличивает счётчик при каждом вызове, включая **начальный пустой корень**. Поэтому `visitedCombinations=102091` означает 102090 непустых сочетаний +1 корень, а не лишнюю рекомендацию. Пустой набор явно исключается из feasible/recommendations. Старое описание «102091 комбинация» было неточным.
+
+Поле API сохранено для совместимости; Java comment и ARCHITECTURE уточняют семантику. Benchmark теперь печатает `visited_search_nodes`, `non_empty_combinations`, `empty_root_nodes` отдельно и проверяет **точное** равенство 102091/102090 вместо слабого `>=100000`. Regression `searchCountsTheEmptyRootButNeverRecommendsIt`: 4 кандидата →16 узлов, 15 feasible непустых сочетаний, в ответах нет пустого набора. Для поиска с mandatory/отсечениями метрика не преобразуется простым вычитанием единицы.
+
+### Повторные обязательные проверки закрытия
+
+| Команда / проверка | Статус | Фактический результат |
+|---|---|---|
+| `bash scripts/check.sh` | PASS, exit0 | **116 unit +69 integration =185 backend**, 0 failed/errors/skipped; **18 frontend UI**, 0 failed; install/build/format/lint/typecheck, OpenAPI drift и generated client PASS |
+| `bash scripts/check-catalog.sh` | PASS, exit0 | **16 schema checks** (2 synthetic, 2 reviewed manifests, 12 negative cases) |
+| `bash scripts/smoke.sh` | PASS, exit0 | **3/3**: backend readiness, proxy readiness, frontend HTML |
+| `bash scripts/test-e2e.sh` | PASS, exit0 | **14/14**, 0 failed/skipped; 1.1 min, isolated PostgreSQL/backend/Chromium |
+| `bash scripts/benchmark-recommendation.sh` | PASS, exit0 | **1/1**; p50=57.539629 ms, **p95=61.192790 ms**; exact 102091 nodes /102090 nonempty /1 empty root |
+| `bash scripts/check-secrets.sh` | PASS, exit0 | tracked +untracked nonignored, pattern/local password scan; совпадений нет |
+| `git diff --check` | PASS, exit0 | whitespace ошибок нет; новые файлы также проверены отдельно |
+| `bash scripts/dev-down.sh` + `bash scripts/dev-up.sh --no-build` | PASS, exit0 | Только собственные процессы/Compose PostgreSQL; volume сохранён |
+| Actual POST preview через frontend proxy | PASS, exit0 | CSRF session; engine1.0.1; real r2 UUID `03000000-0000-4000-8000-000000000002`, revision2 неизменны; video NO_MATCH/UNKNOWN |
+| 10 архитектурных инвариантов выше | **10/10 PASS после исправления** | Код, ограничения, регрессии и действующие PostgreSQL/API/E2E checks; блокеров закрытия не осталось |
+
+Новые регрессии: два JUnit случая (календарная граница с 12 сочетаниями period/zone/hour и пустой корень поиска). Property/invariant test по-прежнему исполняет 160 сгенерированных профилей. Все финальные прогоны имеют 0 failed/errors/skipped; ранее воспроизведённая ошибка не скрыта. 185+18+14=**217** основных тестовых случаев, отдельно 1 benchmark; повторные запуски не суммируются. Новые зависимости не устанавливались, manifests/lockfile не менялись. Benchmark среда прежняя: Linux x86_64, i5-12450H, 12 logical CPUs, Java21.0.13, 5 warmup +20 measured; измеряется pure engine, не HTTP/DB и не production SLA.
+
+Логи закрытия остаются ignored: `.runtime/p04-close-{check,e2e,benchmark,dev,regression-before,regression-after}.log`. Перед staging проверены ровно **39 файлов P04** из списка предыдущего раздела, пустой исходный index, отсутствие .env/секретов/logs/cache/build/node_modules/browser artifacts/symlinks и посторонних изменений. Статические примеры предыдущего раздела относятся к его запуску engine1.0.0; актуальные повторно выполненные HTTP examples в `backend/target/p04-*-response.json` имеют engine1.0.1.
+
+Ограничения сохранены: remote CI и line/branch coverage percentages **NOT_RUN**; новый инструмент покрытия не разрешён. Playwright на Arch использует Ubuntu fallback. Ограниченный каталог/UNKNOWN, отсутствие независимого quality ranking, ограниченная модель usage и локальный rate limiter не выдаются за production readiness. T24 переключение отсутствующего affiliate flag и T35 notifications остаются NOT_APPLICABLE с прежними основаниями. P05, платные API/платежи, внешняя почта, deployment, push и PR не запускались.
+
+**P04 = DONE, P05 = NOT_STARTED** — статус DONE явно предписан владельцем для этого закрытия при успешных проверках. Разрешён ровно один локальный commit `feat: implement personalized ai recommendation engine` на существующей `codex/p01-scaffold`, только с проверенными файлами P04; hash выводится в финальном отчёте и доступен через `git log -1`. После коммита работа прекращается, начало P05 требует отдельного разрешения.

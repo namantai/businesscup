@@ -21,6 +21,8 @@ import type {
   CapabilitiesData,
   CapabilitiesErrors,
   CapabilitiesResponses,
+  CsrfData,
+  CsrfResponses,
   DetailData,
   DetailErrors,
   DetailResponses,
@@ -54,6 +56,9 @@ import type {
   PlansData,
   PlansErrors,
   PlansResponses,
+  PreviewData,
+  PreviewErrors,
+  PreviewResponses,
   ProductsData,
   ProductsErrors,
   ProductsResponses,
@@ -91,6 +96,14 @@ export type Options<
    */
   meta?: keyof ClientMeta extends never ? Record<string, unknown> : ClientMeta;
 };
+
+export const csrf = <ThrowOnError extends boolean = false>(
+  options?: Options<CsrfData, ThrowOnError>,
+): RequestResult<CsrfResponses, unknown, ThrowOnError> =>
+  (options?.client ?? client).get<CsrfResponses, unknown, ThrowOnError>({
+    url: '/api/v1/auth/csrf',
+    ...options,
+  });
 
 export const agentAccess = <ThrowOnError extends boolean = false>(
   options?: Options<AgentAccessData, ThrowOnError>,
@@ -281,3 +294,22 @@ export const usageLimits = <ThrowOnError extends boolean = false>(
     UsageLimitsErrors,
     ThrowOnError
   >({ url: '/api/v1/catalog/usage-limits', ...options });
+
+/**
+ * Deterministic preview without saving a profile
+ */
+export const preview = <ThrowOnError extends boolean = false>(
+  options: Options<PreviewData, ThrowOnError>,
+): RequestResult<PreviewResponses, PreviewErrors, ThrowOnError> =>
+  (options.client ?? client).post<
+    PreviewResponses,
+    PreviewErrors,
+    ThrowOnError
+  >({
+    url: '/api/v1/recommendations/preview',
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  });

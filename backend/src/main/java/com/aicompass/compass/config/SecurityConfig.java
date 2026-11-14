@@ -18,11 +18,13 @@ import tools.jackson.databind.ObjectMapper;
 @org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication(type = org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication.Type.SERVLET)
 public class SecurityConfig {
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper mapper) throws Exception {
-        // Accounts arrive in P06. Only scaffold reads are public; CSRF stays enabled.
+    SecurityFilterChain securityFilterChain(HttpSecurity http, ObjectMapper mapper, java.time.Clock clock) throws Exception {
+        // Guest preview is read-only but uses POST; session CSRF remains mandatory.
         return http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/**", "/api/v1/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/recommendations/preview").permitAll()
                 .anyRequest().denyAll())
+                .addFilterBefore(new com.aicompass.compass.recommendation.PreviewLoadGuard(clock, mapper), org.springframework.security.web.csrf.CsrfFilter.class)
                 .exceptionHandling(errors -> errors
                         .authenticationEntryPoint((request, response, exception) -> forbidden(request, response, mapper))
                         .accessDeniedHandler((request, response, exception) -> forbidden(request, response, mapper)))

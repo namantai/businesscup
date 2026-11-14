@@ -130,11 +130,20 @@ class ScaffoldIT {
         assertTrue(schema.at("/components/schemas/Offer/properties/allInUpfront/nullable").asBoolean());
         assertTrue(schema.get("paths").has("/api/v1/catalog/products/{slug}"));
         for (var entry : schema.get("paths").properties()) {
-            assertTrue(entry.getKey().startsWith("/api/v1/catalog/"));
+            if (!entry.getKey().startsWith("/api/v1/catalog/")) continue;
             assertEquals(1, entry.getValue().size());
             assertTrue(entry.getValue().has("get"));
             assertTrue(entry.getValue().at("/get/responses/200/content/application~1json/schema/$ref").isString(), entry.toString());
         }
+        assertTrue(schema.at("/paths/~1api~1v1~1recommendations~1preview/post").isObject());
+        assertTrue(schema.at("/paths/~1api~1v1~1auth~1csrf/get").isObject());
+        assertFalse(schema.at("/paths/~1api~1v1~1auth~1csrf/get").has("parameters"));
+        var preview = schema.at("/paths/~1api~1v1~1recommendations~1preview/post");
+        assertEquals("#/components/schemas/RecommendationProfile", preview.at("/requestBody/content/application~1json/schema/$ref").asString());
+        for (String code : java.util.List.of("400", "403", "413", "429"))
+            assertEquals("#/components/schemas/ApiProblem", preview.at("/responses/" + code + "/content/application~1problem+json/schema/$ref").asString());
+        assertTrue(schema.at("/components/schemas/Costs/properties/recurringMonthly/nullable").asBoolean());
+        assertEquals("string", schema.at("/components/schemas/Costs/properties/recurringMonthly/type").asString());
         assertFalse(response.body().contains("manifest_json"));
         assertFalse(response.body().contains("reviewer"));
     }

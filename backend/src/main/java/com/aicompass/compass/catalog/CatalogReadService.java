@@ -48,6 +48,25 @@ public class CatalogReadService {
                         evidence.stream().filter(e -> e.effectiveStatus().equals("STALE")).count()), version);
     }
 
+    /** Resolves the active pointer once; all normalized reads share REPEATABLE_READ. */
+    public PublishedCatalogSnapshot currentSnapshot() {
+        UUID version = visible(null);
+        if (version == null) return null;
+        var meta = jdbc.queryForMap("SELECT dataset_kind, as_of FROM compass.catalog_version WHERE id = ?", version);
+        return new PublishedCatalogSnapshot(version, (String) meta.get("dataset_kind"),
+                conversion.convert(meta.get("as_of"), Instant.class),
+                rows(PRODUCT, version, Product.class), rows(SUBSCRIPTION_PLAN, version, SubscriptionPlan.class),
+                rows(PRICE_OFFER, version, PriceOffer.class), rows(REGION, version, Region.class),
+                rows(USER_NEED, version, UserNeed.class), rows(NEED_CAPABILITY, version, NeedCapability.class),
+                rows(CAPABILITY, version, Capability.class), rows(CAPABILITY_ASSERTION, version, CapabilityAssertion.class),
+                rows(PLAN_AGENT_ACCESS, version, PlanAgentAccess.class), rows(AGENT, version, Agent.class),
+                rows(PLAN_MODEL_ACCESS, version, PlanModelAccess.class), rows(AI_MODEL, version, AiModel.class),
+                rows(QUOTA_POOL, version, QuotaPool.class), rows(USAGE_LIMIT, version, UsageLimit.class),
+                rows(ELIGIBILITY_RULE, version, EligibilityRule.class),
+                jdbc.query("SELECT id, base_currency, quote_currency, rate, observed_at, evidence_id FROM compass.fx_snapshot WHERE version_id = ? ORDER BY id", mapper(FxSnapshot.class), version),
+                evidenceRows(version), sourceRows(version));
+    }
+
     private UUID visible(UUID requested) {
         UUID version = requested == null ? publication.current().versionId() : requested;
         if (version == null) return null;

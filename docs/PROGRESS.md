@@ -1,9 +1,9 @@
 # AI Compass — фактический прогресс
 
 **План:** `../CODEX_PROMPT.md`, версия 1.0, 14.11.2026.
-**Текущее состояние:** финальная приёмка P04 выполнена по прямому поручению владельца; результаты и исправление зафиксированы в разделе закрытия P04.
-**Текущий этап:** P04 — DONE.
-**Следующее действие:** один разрешённый локальный commit закрытия P04 и остановка. P05 = NOT_STARTED; push/PR/deploy и начало P05 запрещены.
+**Текущее состояние:** P01–P05 = DONE. Владелец предварительно принял P05 и явно разрешил окончательное закрытие; повторные обязательные проверки выполнены 15.11.2026.
+**Текущий этап:** P05 — DONE.
+**Следующее действие:** остановиться после одного разрешённого локального commit P05. P06 = NOT_STARTED; начало P06 требует отдельного разрешения. Push/PR/deploy запрещены.
 **Источник состояния:** этот файл + фактический Git/code/test evidence, не обещания агента.
 
 ## 1. Маршрут
@@ -11,11 +11,11 @@
 | Этап | Название | Статус | Приёмка владельца / доказательство |
 |---|---|---|---|
 | P00 | Read-only аудит | ACCEPTED | Владелец 14.11.2026: «P00 ПРИНЯТ. Переходим к P01» |
-| P01 | Каркас и инфраструктура | ACCEPTED | Закрыт commit d895c04; затем владелец явно сообщил «P01 ПРИНЯТ» и разрешил P02 |
-| P02 | Типы, schema, fixtures | ACCEPTED | Владелец явно сообщил «P02 ПРИНЯТ» и разрешил P03; закрыт commit 8fc3304 |
-| P03 | Проверенный каталог и API | ACCEPTED | Владелец поручил финальную проверку 5 утверждений, все проверки и один commit; выполнено 14.11.2026, итог в разделе закрытия P03 |
+| P01 | Каркас и инфраструктура | DONE | Закрыт commit d895c04; затем владелец явно сообщил «P01 ПРИНЯТ» и разрешил P02 |
+| P02 | Типы, schema, fixtures | DONE | Владелец явно сообщил «P02 ПРИНЯТ» и разрешил P03; закрыт commit 8fc3304 |
+| P03 | Проверенный каталог и API | DONE | Владелец поручил финальную проверку 5 утверждений, все проверки и один commit; выполнено 14.11.2026, итог в разделе закрытия P03 |
 | P04 | Recommendation Engine | DONE | Владелец явно поручил закрытие; 10 инвариантов проверены, 185 backend +18 UI +14 E2E, p95=61.19 ms; исправлена граница horizon, engine1.0.1 |
-| P05 | Гостевой frontend / R1 | NOT_STARTED | — |
+| P05 | Гостевой frontend / R1 | DONE | По явному поручению владельца от 15.11.2026: 10 групп инвариантов проверены; повторно 185 backend +42 UI +27 E2E PASS, все обязательные команды exit 0; итог в разделе закрытия P05 |
 | P06 | Аккаунты и сохранение | NOT_STARTED | — |
 | P07 | Портфель и расходы | NOT_STARTED | — |
 | P08 | Admin, мониторинг, уведомления | NOT_STARTED | — |
@@ -46,7 +46,7 @@
 | Действие | Текущее разрешение |
 |---|---|
 | P00 read-only аудит в рабочем репозитории | Выполнен и принят 14.11.2026 |
-| Локальные изменения кода | Разрешено только закрытие P04: архитектурная проверка, подтверждённые исправления/регрессии, проверки и документация; P05 запрещён |
+| Локальные изменения кода | Владелец 15.11.2026 разрешил окончательное закрытие P05: проверка инвариантов, исправления реальных ошибок с регрессиями, обязательные проверки и документация; P06 запрещён |
 | Первоначальный локальный commit и ветка | Владелец 14.11.2026: четыре исходных файла без изменений, затем codex/p01-scaffold; выполнено |
 | Установка project dependencies / Docker images / browsers | P01 — ранее разрешённая локальная инфраструктура. P03 — владелец отдельно разрешил springdoc 3.2.0, react-router 8.5.1, @tanstack/react-query 5.107.1, @hey-api/openapi-ts 0.99.0 и их транзитивные зависимости; без других прямых зависимостей, sudo/global config/платных услуг |
 | Системные установки / sudo / global config | Нет |
@@ -54,6 +54,7 @@
 | Реальные письма/уведомления внешним адресатам | Нет |
 | Production платежи / тестовые списания | Нет |
 | VPS/домен/хостинг/облако | Нет |
+| Локальный commit P05 | Владелец 15.11.2026 разрешил один commit после успешных обязательных проверок: `feat: implement personalized ai stack builder ui`; без push/PR/P06 |
 | Локальный commit P04 | Владелец 14.11.2026 разрешил один commit после проверки инвариантов и обязательных checks: `feat: implement personalized ai recommendation engine`; без push/PR/P05 |
 | Локальный commit P03 | Владелец 14.11.2026 разрешил один commit после проверки 5 источников и обязательных checks: `feat: implement verified ai catalog and public api`; без push/PR/P04 |
 | Локальный commit P02 | Владелец 14.11.2026 разрешил один commit после архитектурной проверки и успешных тестов: `feat: implement versioned ai catalog data model`; без push/PR |
@@ -936,3 +937,148 @@ real-catalog:
 Ограничения сохранены: remote CI и line/branch coverage percentages **NOT_RUN**; новый инструмент покрытия не разрешён. Playwright на Arch использует Ubuntu fallback. Ограниченный каталог/UNKNOWN, отсутствие независимого quality ranking, ограниченная модель usage и локальный rate limiter не выдаются за production readiness. T24 переключение отсутствующего affiliate flag и T35 notifications остаются NOT_APPLICABLE с прежними основаниями. P05, платные API/платежи, внешняя почта, deployment, push и PR не запускались.
 
 **P04 = DONE, P05 = NOT_STARTED** — статус DONE явно предписан владельцем для этого закрытия при успешных проверках. Разрешён ровно один локальный commit `feat: implement personalized ai recommendation engine` на существующей `codex/p01-scaffold`, только с проверенными файлами P04; hash выводится в финальном отчёте и доступен через `git log -1`. После коммита работа прекращается, начало P05 требует отдельного разрешения.
+
+## P05 — AI Stack Builder UI (14–15.11.2026, Asia/Almaty)
+
+**Разрешение:** владелец явно принял P04 и разрешил только P05. Начальное рабочее дерево чистое; ветка `codex/p01-scaffold`, HEAD `67516620e1dcf20ca46feea69f02dd5b33700001`. Commit/push/PR/P06 запрещены. P01–P04 отмечены DONE по прямому поручению владельца.
+
+### Реализовано
+
+- Главная с переходом к подбору; `/onboarding` с тремя шагами; `/results`; `/methodology`; сохранены `/catalog` и `/catalog/:slug`. Общая навигация, адаптивная сетка и видимый focus.
+- Multi-select taxonomy из backend, приоритет 1–5, обязательность и частота; дополнительные функции, страна/языки/платформа/privacy, явно заданный объём, бюджет/предоплата/годовая оплата/горизонт/число инструментов/студент.
+- Existing subscriptions: опубликованный offer или custom, собственная фактическая цена либо UNKNOWN, календарь продления, AUGMENT/REVIEW/mustKeep. Они передаются в P04 и участвуют в стоимости, а не только отображаются.
+- Generated SDK: pinned paginated Catalog API → CSRF → POST preview. AbortController, блокировка повторной отправки, номер запроса, отмена, HTTP 400/403/413/429/500/network, Retry-After и новый CSRF при повторе. Версия результата сверяется с версией формы.
+- Результаты: фактическое количество наборов и стратегии сервера, условные варианты отдельно; названия тарифов/продуктов, модели/агенты, покрытие/unmet, причины, ограничения, источники/даты/статусы, денежные компоненты без frontend-арифметики. Условный вариант без strategy label получает заголовок из состава.
+- Черновик/шаг/результат только в React memory; переходы их сохраняют, изменение профиля инвалидирует результат, «Очистить анкету» сбрасывает контекст. Нет localStorage/sessionStorage/profile DB и обязательного задания.
+- Никаких новых зависимостей, backend-алгоритмов, DTO вручную, миграций, изменений реальных manifest или внешних интеграций.
+
+### Проверки и найденные случаи
+
+Первый `bash scripts/check.sh`: exit 0; backend 116 unit +69 PostgreSQL IT =185 PASS, 0 failures/errors/skipped; OpenAPI/client consistency PASS; frontend format/lint/typecheck/build PASS; UI 37 PASS; catalog schemas PASS. Отдельные check-catalog/check-secrets/diff и smoke (3 проверки localhost) выполнены с exit 0. После расширения UI suite отдельный `npm test`: 41 PASS, 0 FAIL.
+
+Промежуточные ошибки не скрыты: UI-тест обнаружил задержку кнопки при Retry-After=0, исправлена синхронизация времени ответа. Ручной реальный preview выявил пустой заголовок условного варианта (strategies=[]), добавлен заголовок по составу и регрессионный тест. Базовая цена неполного предложения теперь явно отделена от полной стоимости. Первые два E2E-прогона: по 14 PASS /1 FAIL /9 NOT_RUN из-за точного label selector и неоднозначного H1/H3 в тесте; селекторы исправлены. Третий прогон: 21 PASS /1 FAIL /5 NOT_RUN — тест запросил 200 кредитов при общем pool=100, сервер правильно вернул NO_MATCH. Сценарий сохранён как отрицательная проверка, затем пользователь снижает потребление до ровно 100 и ожидает подтверждённый набор. Лимиты/engine/источники ради теста не изменялись. Следующий прогон: 14 PASS /1 setup FAIL /12 NOT_RUN — стандартный beforeAll timeout 30 секунд короче обязательной паузы rate window; для этого setup-hook установлен timeout 120 секунд.
+
+Следующая полная E2E-серия: 27 PASS /0 FAIL /0 skipped (3.7m). Визуальный просмотр реальных скриншотов обнаружил отдельный UX-дефект: переиспользованный DOM button менял type с button на submit при переходе к бюджету и показывал преждевременные ошибки. Исправлены key/preventDefault, ошибки снимаются при редактировании, label отделён от сообщения. Добавлены UI и E2E-assertions отсутствия alert до отправки. После исправления полная check.sh повторена: 185 backend +42 UI PASS, build/lint/typecheck/OpenAPI/catalog PASS. Дополнительная проверка фокуса выявила перенос на H2 при очистке ошибки: поле оставалось со значением «2» вместо «20». Тест сначала воспроизвёл FAIL, эффекты фокуса разделены по смене шага и ошибкам; затем frontend lint/typecheck/42 tests/build повторены. После исправления фокуса E2E: 27 PASS /0 FAIL /0 skipped (3.6m), в том числе новые assertions отсутствия преждевременных ошибок. Визуально устранено наследование общих стилей каталога для checkbox row и primary button; frontend lint/typecheck/build повторены, контрольный E2E со свежими скриншотами выполняется. Статус пока IN_PROGRESS.
+
+### Ручной прогон и ограничения
+
+Через in-app Browser проверены главная, настоящая анкета, preview по реальному r2 (US/en/USD, данные введены явно), NO_MATCH и условные варианты с неизвестной полной ценой, каталог, ChatGPT detail, возврат с сохранённым бюджетом 20, методология. На viewport 360 измерено clientWidth=scrollWidth=345 (полоса прокрутки учтена), на 768 — 753=753; ошибки приложения в console log отсутствовали. Встроенный screenshot/click API иногда возвращал CDP timeout; DOM/CUA-взаимодействие работало. Review-скриншоты снимаются настоящим Chromium в E2E и проверяются отдельно.
+
+Реальный опубликованный dev-каталог остался `03000000-0000-4000-8000-000000000002`, revision 2, три продукта. Только две сферы: «Разработка программ» и «Поиск информации». Отсутствующая обязательная сфера вызывает явное ограничение, не создаёт frontend need ID. Для полноценных положительных сценариев используются только изолированные DEMO fixtures, в том числе дополнительная terminal-agent capability внутри E2E manifest. Все такие экраны обозначены DEMO.
+
+Годовой итог берётся из backend horizonTotal при 12 месяцах; для другого горизонта предлагается изменить период, без умножения monthly на 12. Неизвестный all-in/FX/регион/льгота не становится гарантией доступности. Временные 500/429 для UI recovery вводятся HTTP route fixture; повтор обращается к настоящему серверу. Реальная CSRF/413/429-защита покрыта PostgreSQL RecommendationIT. Между предыдущей API suite и Builder suite выдерживается окно 60 секунд, лимитер не отключается.
+
+Playwright на Arch по-прежнему использует ранее разрешённый Ubuntu 24.04 Chromium fallback. Удалённый CI, полный accessibility/security audit, процент coverage и production load testing — NOT_RUN, не являются результатом локального запуска. Новых установок браузера и системных зависимостей нет. Платные AI API, реальные платежи, deployment — NOT_APPLICABLE для P05 и не выполнялись.
+
+### Изменённые файлы P05
+
+```text
+README.md
+docs/ARCHITECTURE.md
+docs/PROGRESS.md
+frontend/src/api/builder.ts
+frontend/src/app/App.module.css
+frontend/src/app/App.tsx
+frontend/src/app/Home.tsx
+frontend/src/app/Methodology.tsx
+frontend/src/app/Navigation.tsx
+frontend/src/builder/Builder.module.css
+frontend/src/builder/Builder.test.tsx
+frontend/src/builder/BuilderPage.tsx
+frontend/src/builder/BuilderSession.tsx
+frontend/src/builder/ExistingSubscriptions.tsx
+frontend/src/builder/ResultsPage.tsx
+frontend/src/builder/draft.ts
+frontend/src/builder/test-data.ts
+frontend/src/catalog/Catalog.module.css
+frontend/src/catalog/CatalogLayout.tsx
+frontend/tests/e2e/stack-builder.spec.ts
+```
+
+`.env`, `.cache`, `.tools`, `.runtime`, `frontend/node_modules`, `frontend/dist`, `frontend/test-results`, `backend/target` игнорируются Git. Index пуст; чужих файлов/правок в начальном дереве не было. Commit не создавался. P06 = NOT_STARTED.
+
+
+### Финальное выполнение P05 — 15.11.2026 (UTC 14.11.2026)
+
+**P05 = AWAITING_REVIEW. P06 = NOT_STARTED.** Все обязательные технические критерии выполнены; владелец ещё не принимал P05. Никакого commit/push/PR/deploy.
+
+| Проверка | Результат | Фактические данные |
+|---|---|---|
+| `bash scripts/check.sh` | PASS, exit 0 | 116 unit +69 PostgreSQL IT =185 backend, 0 failures/errors/skipped; 42 UI; npm ci, format/lint/typecheck/build, OpenAPI/client consistency, catalog schemas |
+| Frontend после последней правки фокуса/стилей | PASS, exit 0 | format:check/lint/typecheck/build повторены; итоговый `npm test`: 42 passed, 0 failed/skipped (7 Home +11 Catalog +24 Builder) |
+| `bash scripts/check-catalog.sh` | PASS, exit 0 | Synthetic manifest, 12 negative cases, оба reviewed manifest, recommendation DEMO schema |
+| `bash scripts/smoke.sh` | PASS, exit 0 | 3 проверки: backend readiness 18080, frontend 5173, HTML; только loopback |
+| `bash scripts/test-e2e.sh` | PASS, exit 0 | Последний прогон 27 passed, 0 failed/skipped, 3.6m; 14 существующих +13 P05; отдельный PostgreSQL tmpfs и локальные app processes, штатная очистка только своих ресурсов |
+| `bash scripts/check-secrets.sh` | PASS, exit 0 | Совпадений с шаблонами секретов и локальным паролем нет; проверены tracked + untracked кандидаты |
+| `git diff --check` | PASS, exit 0 | Нет whitespace errors |
+| Git/artifacts review | PASS | 20 файлов P05 (8 modified +12 new), index пуст; .env/cache/logs/node_modules/build artifacts не входят в изменения |
+
+Логи находятся в ignored `.runtime/p05-check-final.log`, `.runtime/p05-ui-review.log`, `.runtime/p05-e2e-release-review.log`, `.runtime/p05-format-final.log`. Промежуточные failures и их исправления описаны выше, не заменены обещанием PASS.
+
+### Матрица технических критериев приёмки
+
+| ID | Критерий | Результат / доказательство |
+|---|---|---|
+| C01 | Landing/onboarding/results/catalog/product/methodology и работающая навигация | PASS: маршруты, existing catalog tests, ручной browser review |
+| C02 | Multi-select из опубликованной taxonomy, отсутствие выдуманных категорий | PASS: UI + реальный r2 E2E; missing mandatory need блокирует фиктивный подбор |
+| C03 | Важность/required/frequency, функции, страна, язык, платформа, privacy и объём | PASS: generated profile assertions; E2E A/C/D |
+| C04 | Monthly/upfront/annual, существующие подписки и mustKeep участвуют в расчёте | PASS: UI поля и реальные API-проверки zero budget/retained charge once |
+| C05 | Generated SDK, CSRF, строгий профиль, повторные/устаревшие запросы | PASS: UI transport/race/cancel/snapshot tests, API security IT/E2E |
+| C06 | Реальные 1/2/3 набора, стратегии, NO_MATCH и условные варианты отдельно | PASS: UI counts, реальные E2E, заголовок при пустом strategies |
+| C07 | Money/UNKNOWN/FREE/условия, источники/даты, модели и агенты отдельно | PASS: UI nullable cost rendering, региональный r2 E2E H, Linux included agent C; нет frontend money/ranking arithmetic |
+| C08 | Loading/empty/errors 400/403/413/429/500/network, retry, local draft/reset | PASS: 24 Builder UI tests, E2E recovery/edit, Storage.setItem не вызывается |
+| C09 | Keyboard/focus/labels, 360/768/1440, отсутствие overflow/console errors | PASS: E2E assert + просмотр screenshots; focus correction regression сначала воспроизведён, затем исправлен |
+| C10 | Персоны A/C/D/E/H, mustKeep, недостаток видео-данных, нет фиктивных рекомендаций | PASS: 13 новых E2E с настоящим сервером, синтетика только в изолированной БД |
+| C11 | Нет prompt/task requirement, нового алгоритма, лишних dependencies или внешних действий | PASS: diff/manual review; backend/manifests/lockfile/real catalog неизменны, внешние режимы OFF |
+| C12 | README/ARCHITECTURE/PROGRESS, ручная инструкция, проверки и Git review | PASS: 2 сценария R1 в README; все обязательные команды выполнены; commit не создавался |
+
+### Review-артефакты и Git
+
+Актуальные 13 PNG скопированы без изменения из последнего E2E в ignored `.runtime/p05-review/`: `p05-home-{360,768,1440}.png`, `p05-form-{360,768,1440}.png`, `p05-results-{360,768,1440}.png`, `p05-catalog-{360,768,1440}.png`, `p05-student-results.png`. Визуально просмотрены desktop home/results, формы 360/768 и mobile home; новые формы без преждевременных ошибок, с checkbox row и выделенной primary button. В формах/результатах screenshots — изолированные DEMO-данные, не реальная рыночная рекомендация.
+
+Git: `codex/p01-scaffold`; HEAD остался `67516620e1dcf20ca46feea69f02dd5b33700001` (P04). Все 20 перечисленных файлов P05 остаются unstaged. Приёмка владельца — следующий шаг; commit и P06 требуют отдельного разрешения.
+
+## Окончательное закрытие P05 — 15.11.2026
+
+**Основание:** владелец сообщил «P05 предварительно принят. Разрешаю выполнить его окончательное закрытие», поручил повторные проверки, статус DONE при успехе и один локальный commit `feat: implement personalized ai stack builder ui`. P06 не разрешён. Повторно прочитаны AGENTS.md, общие правила/инварианты и раздел P05 в CODEX_PROMPT.md, актуальные записи PROGRESS.md; проверены код, тесты и Git. Ветка `codex/p01-scaffold`, исходный HEAD `67516620e1dcf20ca46feea69f02dd5b33700001`.
+
+### Десять групп инвариантов
+
+Отдельного прежнего нумерованного списка «10 инвариантов P05» в доступном поручении и документах нет. Ниже явно сгруппированы требования исходного задания P05, AGENTS.md и матрицы C01–C12, без изменения требований.
+
+| № | Инвариант | Итог и проверенное доказательство |
+|---|---|---|
+| 1 | Подбор по постоянным потребностям, без задания/промпта/регистрации и второго алгоритма | PASS: маршруты App, BuilderPage и generated preview SDK; расчёт/ранжирование остаются в P04, E2E проходит гостевой путь |
+| 2 | Только backend taxonomy и согласованная версия каталога | PASS: readBuilderCatalog загружает страницы с одним UUID и сверяет versionId; неизвестная обязательная сфера блокирует подбор; UI snapshot mismatch test и реальный r2 E2E |
+| 3 | Выбор потребностей и ограничений действительно отправляется в профиль | PASS: веса, required, частота, страна/языки/платформы/privacy, функции и объём проверены UI; E2E Linux/terminal agent и shared quota; частота не превращается в выдуманный объём |
+| 4 | Деньги, UNKNOWN, FREE, предоплата, годовой период и FX не подменяются | PASS: decimal strings/null, без денежной арифметики на frontend; FREE требует подтверждённых нулевых компонентов; годовая сумма только при horizon=12; fee/baseline/net savings — серверные поля; zero budget и региональный UNKNOWN E2E |
+| 5 | Текущие подписки и включённые возможности учитываются без удвоения | PASS: existing subscriptions/mustKeep отправлены в backend; E2E сохраняет creator-plan ровно один раз с расходом 15 USD; модели/агенты отдельно, общий pool=100 проверен на превышении 200 и ровно 100 |
+| 6 | Количество, порядок и стратегии серверных наборов сохранены; NO_MATCH честный | PASS: ResultsPage отображает bundles без сортировки/добавления, UI проверяет 1/2/3; условные варианты отдельно, без придуманной стратегии; NO_MATCH → изменение бюджета → новый реальный requestId |
+| 7 | Утверждения имеют видимые основания и ограничения | PASS: evidence/source/status/date/conditions, unmet и причины; старые product links закреплены UUID; eligibility/студенческие/региональные условия не превращаются в гарантию; внешние ссылки ограничены http(s) |
+| 8 | Контракт и безопасность API сохранены | PASS: generated SDK, same-origin session, CSRF перед preview; 400/403/413/429/500/network состояния; failed-CSRF UI test не отправляет профиль; backend IT/E2E проверяют CSRF и недоступность внутренних операций |
+| 9 | Черновик только в памяти; reset, навигация, повторы и запоздалые ответы корректны | PASS: BuilderSession React state, AbortController + sequence/ref, invalidation при редактировании; UI tests cancel/race/reset/no storage/Retry-After, E2E recovery; профили не сохраняются на сервере |
+| 10 | Доступность, адаптивность и существующая навигация сохранены | PASS: labels/semantic headings/focus/error summary/disabled, регрессия ввода после ошибки; E2E 360/768/1440 без overflow/console errors, старые catalog routes; повторно просмотрены свежие mobile form и desktop home screenshots |
+
+Новых ошибок в коде при окончательной проверке не обнаружено; дополнительные исправления и регрессионные тесты не потребовались. Ранее найденные и исправленные ошибки P05 и их регрессии сохранены выше. Backend, миграции, реальные manifest, manifests/lockfile зависимостей и generated API не изменены. Тестовые fixtures не импортируются производственным frontend. Режимы внешних интеграций по умолчанию OFF / local sink, проверки IntegrationSettingsTest пройдены.
+
+### Повторные обязательные проверки
+
+| Команда | Фактический результат |
+|---|---|
+| `bash scripts/check.sh` | PASS, exit 0: 116 unit +69 PostgreSQL integration =185 backend tests, 0 failures/errors/skipped; npm ci, OpenAPI/client consistency, format/lint/typecheck/build PASS; 42 UI tests, 0 failed/skipped (24 Builder +11 Catalog +7 Home) |
+| `bash scripts/check-catalog.sh` | Финальный последовательный запуск PASS, exit 0: 1 synthetic manifest +12 negative cases, 2 reviewed manifests и recommendation DEMO schema |
+| `bash scripts/smoke.sh` | PASS, exit 0: backend readiness 18080, frontend readiness 5173, frontend HTML — 3 проверки |
+| `bash scripts/test-e2e.sh` | PASS, exit 0: 27 passed, 0 failed/skipped, 3.0m; отдельные PostgreSQL tmpfs/backend/frontend, штатное завершение стенда |
+| `bash scripts/check-secrets.sh` | PASS, exit 0: известные secret patterns и локальный пароль не найдены; это не всеобъемлющий аудит секретов |
+| `git diff --check` | PASS, exit 0 |
+
+Один промежуточный отдельный `check-catalog.sh` завершился exit 1 (`Cannot find module 'ajv'`): он был ошибочно запущен одновременно с `npm ci` внутри check.sh, которое временно заменяло node_modules. После завершения check.sh команда повторена последовательно и прошла. Это ошибка порядка запуска проверки, не скрытая ошибка каталога; код/зависимости ради неё не менялись. Все остальные перечисленные финальные запуски прошли с первого раза.
+
+Итого финальная серия: **254 теста PASS (185 backend +42 UI +27 E2E), 0 FAIL, 0 skipped**, дополнительно 3 smoke и schema/contract/static checks. Логи ignored: `.runtime/p05-close-check.log`, `.runtime/p05-close-e2e.log`. Новые 13 screenshots: `.runtime/e2e-80ca7c2e28db/p05-*.png`; визуально просмотрены `p05-form-360.png` и `p05-home-1440.png`. Предыдущий ручной браузерный прогон всех основных маршрутов описан выше; E2E повторяет реальные переходы.
+
+### Ограничения и Git
+
+- Сохранены ограничения Playwright: Arch использует ранее установленный Ubuntu 24.04 Chromium fallback. Удалённый CI, полный accessibility/security audit, процент coverage и production load testing — NOT_RUN; локальные проверки не объявляются их заменой.
+- Реальный каталог ограничен тремя продуктами и двумя потребностями; недостаток данных явно показан. Synthetic E2E публикации происходят только в отдельной БД. Платные API/реальные платежи/deployment — NOT_APPLICABLE, не запускались.
+- Просмотрены все 20 кандидатов P05: 3 документа, frontend UI/adapter/styles и UI/E2E tests. Чужих изменений нет. `.env`, `.runtime`, `.cache`, `.tools`, node_modules, target/dist, логи и screenshots исключены; tracked/staged артефактов нет. Начальный index пуст. Перед commit повторяются secret scan и staged diff check.
+- Разрешён ровно один локальный commit с указанным сообщением; push/PR не выполняются. Исторические записи AWAITING_REVIEW выше описывают предыдущую передачу, итоговый статус этого закрытия — **P05 = DONE; P06 = NOT_STARTED**. Следующий этап только по отдельному разрешению владельца.

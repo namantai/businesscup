@@ -274,3 +274,8 @@
     padding: 10px;
   }
 }
+
+.header {
+  flex-wrap: wrap;
+  gap: 18px;
+}

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
+import { Navigation } from '../app/Navigation';
 import styles from './Catalog.module.css';
 
 export function CatalogLayout({ children }: { children: ReactNode }) {
@@ -12,7 +13,7 @@ export function CatalogLayout({ children }: { children: ReactNode }) {
         <Link className={styles.brand} to="/">
           ↗ AI Compass
         </Link>
-        <Link to="/catalog">Каталог</Link>
+        <Navigation />
       </header>
       <main id="catalog-main" className={styles.main}>
         {children}
@@ -56,6 +57,8 @@ export function ErrorState({
 export function Status({ value }: { value: string }) {
   const labels: Record<string, string> = {
     UNKNOWN: 'Неизвестно',
+    ELIGIBLE: 'Соответствует условиям',
+    INELIGIBLE: 'Не соответствует условиям',
     VERIFIED_SOURCE: 'Подтверждено источником',
     CONDITIONAL: 'При условиях',
     STALE: 'Устарело',

@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
+import { Navigation } from './Navigation';
+import builder from '../builder/Builder.module.css';
 import { readHealth } from '../api/health';
 import styles from './App.module.css';
 
@@ -28,13 +31,13 @@ export function Home() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <a href="/" className={styles.brand} aria-label="AI Compass — главная">
+        <Link to="/" className={styles.brand} aria-label="AI Compass — главная">
           <span aria-hidden="true" className={styles.mark}>
             ↗
           </span>{' '}
           AI Compass
-        </a>
-        <span className={styles.preview}>Локальная версия</span>
+        </Link>
+        <Navigation />
       </header>
       <main className={styles.main}>
         <p className={styles.eyebrow}>YOUR PERSONAL AI STACK</p>
@@ -51,13 +54,18 @@ export function Home() {
           задания.
         </p>
         <section className={styles.card} aria-labelledby="stage-title">
-          <span className={styles.stage}>01 / ОСНОВА</span>
-          <h2 id="stage-title">Готовим основу сервиса</h2>
+          <span className={styles.stage}>ПОТРЕБНОСТИ → УСЛОВИЯ → НАБОР</span>
+          <h2 id="stage-title">Меньше подписок наугад</h2>
           <p>
-            Изучите продукты, тарифы и источники в каталоге. Подбор наборов
-            появится на следующем этапе.
+            Укажите, для чего вам нужен AI и сколько вы готовы тратить. Получите
+            состав набора, расходы и проверяемые основания выбора.
           </p>
-          <a href="/catalog">Открыть каталог →</a>
+          <div className={builder.actions}>
+            <Link className={builder.primary} to="/onboarding">
+              Собрать мой AI-набор →
+            </Link>
+            <Link to="/catalog">Открыть каталог</Link>
+          </div>
           <div className={styles.connection} role="status" aria-live="polite">
             <span
               aria-hidden="true"

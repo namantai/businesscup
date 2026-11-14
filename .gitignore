@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+.tools/
+.cache/
+.runtime/
+**/target/
+**/node_modules/
+**/dist/
+**/coverage/
+**/test-results/
+**/playwright-report/
+*.log
+*.tsbuildinfo
+.idea/
+.vscode/

@@ -1,0 +1,70 @@
+import { afterEach, expect, test, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { App } from './App';
+
+afterEach(() => vi.unstubAllGlobals());
+
+test('shows pending state without claiming availability', () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(() => new Promise(() => {})),
+  );
+  render(<App />);
+  expect(screen.getByRole('status')).toHaveTextContent('Проверяем подключение');
+  expect(screen.getByRole('button')).toBeDisabled();
+});
+
+test('shows availability only after an UP response', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue(new Response(JSON.stringify({ status: 'UP' }))),
+  );
+  render(<App />);
+  expect(await screen.findByText('Сервис доступен')).toBeVisible();
+  expect(screen.getByText(/Без ввода конкретного задания/)).toBeVisible();
+});
+
+test('shows a failed request and can retry successfully', async () => {
+  const fetchMock = vi
+    .fn()
+    .mockRejectedValueOnce(new Error('network'))
+    .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'UP' })));
+  vi.stubGlobal('fetch', fetchMock);
+  render(<App />);
+  expect(
+    await screen.findByText('Не удалось подключиться к сервису'),
+  ).toBeVisible();
+  await userEvent.click(screen.getByRole('button'));
+  expect(await screen.findByText('Сервис доступен')).toBeVisible();
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
+
+test.each([{ status: 'DOWN' }, {}, { status: 200 }])(
+  'rejects an unhealthy or invalid response: %j',
+  async (body) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(new Response(JSON.stringify(body))),
+    );
+    render(<App />);
+    expect(
+      await screen.findByText('Не удалось подключиться к сервису'),
+    ).toBeVisible();
+  },
+);
+
+test('rejects a failed HTTP response even if its body says UP', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ status: 'UP' }), { status: 503 }),
+      ),
+  );
+  render(<App />);
+  expect(
+    await screen.findByText('Не удалось подключиться к сервису'),
+  ).toBeVisible();
+});

@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: ai-compass
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:${DB_PORT:15432}/${DB_NAME:ai_compass}
+    username: ${DB_USER:ai_compass}
+    password: ${DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    clean-disabled: true
+  mvc:
+    problemdetails:
+      enabled: true
+server:
+  address: 127.0.0.1
+  port: ${BACKEND_PORT:18080}
+  error:
+    include-message: never
+    include-stacktrace: never
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: ${COOKIE_SECURE:true}
+      timeout: 30m
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+compass:
+  integrations:
+    llm-mode: ${LLM_MODE:OFF}
+    payments-mode: ${PAYMENTS_MODE:OFF}
+    email-mode: ${EMAIL_MODE:LOCAL}
+    source-fetch-enabled: ${SOURCE_FETCH_ENABLED:false}

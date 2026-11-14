@@ -1,0 +1,24 @@
+name: P01 local scaffold checks
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Install pinned project-local tools
+        run: bash scripts/setup.sh
+      - name: Backend integration and frontend checks
+        run: bash scripts/check.sh
+      - name: Start local application
+        run: bash scripts/dev-up.sh --no-build
+      - name: Browser smoke
+        run: bash scripts/test-e2e.sh
+      - name: Database persistence
+        run: bash scripts/test-persistence.sh
+      - name: Stop only this project
+        if: always()
+        run: bash scripts/dev-down.sh

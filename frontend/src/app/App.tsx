@@ -10,6 +10,7 @@ import { BuilderPage } from '../builder/BuilderPage';
 import { ResultsPage } from '../builder/ResultsPage';
 import { Methodology } from './Methodology';
 import { Home } from './Home';
+import { useQuickMatchDraft } from '../discovery/useQuickMatchDraft';
 import { QuickMatchPage } from '../discovery/QuickMatchPage';
 import { AuthSession } from '../account/AuthSession';
 import { AuthPage } from '../account/AuthPage';
@@ -19,6 +20,7 @@ import { CatalogList } from '../catalog/CatalogList';
 import { ProductDetail } from '../catalog/ProductDetail';
 
 export function App() {
+  const quickMatchDraft = useQuickMatchDraft();
   const [client] = useState(
     () =>
       new QueryClient({
@@ -60,7 +62,10 @@ export function App() {
               <Route path="/account" element={<AccountPage />} />
               <Route path="/subscriptions" element={<SubscriptionPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/" element={<QuickMatchPage />} />
+              <Route
+                path="/"
+                element={<QuickMatchPage draft={quickMatchDraft} />}
+              />
               <Route path="/about" element={<Home />} />
               <Route path="/onboarding" element={<BuilderPage />} />
               <Route path="/results" element={<ResultsPage />} />

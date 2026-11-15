@@ -155,7 +155,9 @@ test.describe.serial('P05 full UI with real preview API', () => {
         level: 1,
       }),
     ).toBeVisible();
-    await page.getByRole('link', { name: 'Подбор', exact: true }).click();
+    await page
+      .getByRole('link', { name: 'Точный подбор', exact: true })
+      .click();
     await page.getByText('Дополнительные настройки', { exact: true }).click();
     await expect(page.getByLabel('Студенческий статус')).toHaveValue(
       'SELF_DECLARED',

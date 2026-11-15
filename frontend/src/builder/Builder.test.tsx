@@ -155,7 +155,7 @@ test('existing subscription, unknown amount and mustKeep remain explicit, draft 
   await u.click(screen.getByLabelText('Обязательно сохранить (mustKeep)'));
   await u.click(screen.getByText('Ещё'));
   await u.click(screen.getByRole('link', { name: 'Как это работает' }));
-  await u.click(screen.getByRole('link', { name: 'Подбор' }));
+  await u.click(screen.getByRole('link', { name: 'Точный подбор' }));
   await u.click(await screen.findByText('Дополнительные настройки'));
   expect(
     await screen.findByLabelText('Обязательно сохранить (mustKeep)'),
@@ -562,7 +562,7 @@ test('preset remains selected after goal edits, navigation and manual budget cha
   expect(sent).toHaveLength(0);
   await u.click(screen.getByText('Ещё'));
   await u.click(screen.getByRole('link', { name: 'Как это работает' }));
-  await u.click(screen.getByRole('link', { name: 'Подбор' }));
+  await u.click(screen.getByRole('link', { name: 'Точный подбор' }));
   expect(
     await screen.findByRole('button', { name: /Студент \+ код/ }),
   ).toHaveAttribute('aria-pressed', 'true');

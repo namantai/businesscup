@@ -2,8 +2,8 @@
 
 **План:** `../CODEX_PROMPT.md`, версия 1.0, 14.11.2026.
 **Текущее состояние:** P01–P07 = DONE; P08 и P10.a приняты владельцем для локальной beta, локальные QA P11 также приняты (15.11.2026). Публичный запуск не разрешён.
-**Текущая задача:** QUICK_MATCH_INTEGRATION = AWAITING_REVIEW. Интеграция предоставленного владельцем frontend, без новых этапов или изменений Java Engine. CE23 сохранён, P12–P14 NOT_STARTED.
-**Следующее действие:** приёмка Quick Match владельцем после разрешённых commit/push. Дальнейшая разработка остановлена.
+**Текущая задача:** QUICK_ADVANCED_NAVIGATION = AWAITING_REVIEW. Минимальное исправление переходов и сохранение Quick Match draft в памяти App. CE23/Java Engine сохранены, P12–P14 NOT_STARTED.
+**Следующее действие:** приёмка исправления владельцем после разрешённых commit/push. Дальнейшая разработка остановлена.
 **Источник состояния:** этот файл + фактический Git/code/test evidence, не обещания агента.
 
 ## 1. Маршрут
@@ -1713,3 +1713,15 @@ NOT_RUN: полная50-case E2E, повтор backend/full check.sh/benchmark �
 - `bash scripts/smoke.sh` —3/3 PASS; `bash scripts/check-secrets.sh` —PASS (pattern scan, не полный аудит); `git diff --check` —PASS.
 
 NOT_RUN: полная тяжёлая E2E-suite/backend/check.sh/benchmark, повторная проверка внешних рыночных источников, cross-browser/production gates — scope ограничен интеграцией frontend, backend/data/manifest/migrations/dependencies не менялись. Даты и наблюдения показаны из текущего CE, без новых цен/FX/quality ratings. Итог **QUICK_MATCH_INTEGRATION = AWAITING_REVIEW**, без перехода к новым этапам.
+
+## Quick / advanced navigation — 15.11.2026
+
+Владелец разрешил только исправление навигации, сохранение Quick Match draft в памяти вкладки, проверки и один commit `fix: clarify quick and advanced matching navigation` с обычным push текущей ветки. Исходное дерево чистое, HEADa725035, codex/p01-scaffold, origin https://github.com/namantai/businesscup.git.
+
+Меню: «Быстрый подбор» → `/` (точное активное состояние), «Точный подбор» → `/onboarding`, «Каталог» и остальные маршруты сохранены. Сверху подробной анкеты заметная ссылка «← Вернуться к быстрому подбору», доступная также при загрузке/ошибке каталога. На Quick Match прямая видимая ссылка «Нужен точный подбор?» вместо перехода внутри details.
+
+State role/customized/goals/budget/currency/country перенесён из размонтируемой страницы в App через useQuickMatchDraft. Сохраняется при клиентской навигации в текущем экземпляре приложения; не переносится в точную анкету и не вызывает Java preview. Нет localStorage/sessionStorage, server persistence или автоматической отправки. Полная перезагрузка страницы создаёт новый черновик. Финансы, matching.ts, Java Engine, API/backend, manifest и тарифы не менялись.
+
+Проверки: `source scripts/common.sh`; из frontend `npm run format:check`, `npm run lint`, `npm run typecheck`, `npm run build`, `npm test` — PASS/exit0; **100 tests/12 files,0 FAIL/0 SKIP**,8.20s;188 build modules. `.runtime/navigation-ui.log`. Все99 прежних сохранены, добавлен один регрессионный сценарий: оба направления через меню и прямые ссылки, active navigation, выбранные цели/сумма/валюта/пресет после возврата, отсутствие storage.setItem и requests к recommendations/preview. Старые UI/E2E selectors «Подбор» обновлены на «Точный подбор» без удаления assertions.
+
+Живой in-app browser, реальный CE23:360px — снять презентации, ввести37.50/CNY, перейти прямой ссылкой в onboarding и вернуться верхней ссылкой; выбранные цели/пресет/сумма/валюта сохранены.1440px — переходы туда/обратно через меню, active state корректен,37.50 и снятые презентации сохранены. Scroll width345/360 и1425/1440: horizontal overflow отсутствует. Browser viewport восстановлен. `git diff --check` и `bash scripts/check-secrets.sh` — PASS. Полная E2E-suite и backend suite NOT_RUN согласно узкому frontend scope; новые зависимости и новые этапы не начаты.

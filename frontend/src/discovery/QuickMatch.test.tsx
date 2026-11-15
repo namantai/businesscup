@@ -170,3 +170,68 @@ test('rejects a mixed snapshot instead of blending published versions', async ()
     screen.queryByRole('region', { name: 'Весь каталог' }),
   ).not.toBeInTheDocument();
 });
+
+test('quick and advanced navigation preserves only the mounted app draft without auto preview', async () => {
+  const storage = vi.spyOn(Storage.prototype, 'setItem');
+  const fetcher = backend();
+  await screen.findByRole('region', { name: 'Весь каталог' });
+  const nav = within(
+    screen.getByRole('navigation', { name: 'Основная навигация' }),
+  );
+  expect(nav.getByRole('link', { name: 'Быстрый подбор' })).toHaveAttribute(
+    'href',
+    '/',
+  );
+  expect(nav.getByRole('link', { name: 'Быстрый подбор' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(nav.getByRole('link', { name: 'Точный подбор' })).toHaveAttribute(
+    'href',
+    '/onboarding',
+  );
+  expect(nav.getByRole('link', { name: 'Каталог' })).toHaveAttribute(
+    'href',
+    '/catalog',
+  );
+  await userEvent.click(screen.getByRole('button', { name: 'Презентации' }));
+  await userEvent.clear(screen.getByLabelText('Месячный бюджет'));
+  await userEvent.type(screen.getByLabelText('Месячный бюджет'), '42.50');
+  await userEvent.selectOptions(screen.getByLabelText('Валюта бюджета'), 'CNY');
+  await userEvent.click(
+    screen.getByRole('link', { name: 'Нужен точный подбор?' }),
+  );
+  expect(screen.getByRole('link', { name: 'Точный подбор' })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  expect(
+    screen.getByRole('link', { name: 'Быстрый подбор' }),
+  ).not.toHaveAttribute('aria-current');
+  await userEvent.click(
+    screen.getByRole('link', { name: '← Вернуться к быстрому подбору' }),
+  );
+  await screen.findByRole('region', { name: 'Весь каталог' });
+  expect(screen.getByLabelText('Месячный бюджет')).toHaveValue('42.50');
+  expect(screen.getByLabelText('Валюта бюджета')).toHaveValue('CNY');
+  expect(screen.getByRole('button', { name: 'Презентации' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+  expect(screen.getByRole('button', { name: 'Студент + код' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await userEvent.click(screen.getByRole('link', { name: 'Точный подбор' }));
+  await userEvent.click(screen.getByRole('link', { name: 'Быстрый подбор' }));
+  await screen.findByRole('region', { name: 'Весь каталог' });
+  expect(screen.getByLabelText('Месячный бюджет')).toHaveValue('42.50');
+  expect(storage).not.toHaveBeenCalled();
+  expect(
+    fetcher.mock.calls.some(([r]) =>
+      String(typeof r === 'string' ? r : r.url).includes(
+        '/recommendations/preview',
+      ),
+    ),
+  ).toBe(false);
+});

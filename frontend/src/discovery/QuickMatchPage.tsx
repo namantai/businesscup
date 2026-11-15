@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { useQuickMatchDraft } from './useQuickMatchDraft';
 import { Link } from 'react-router';
 import { CatalogLayout } from '../catalog/CatalogLayout';
 import {
@@ -122,22 +123,29 @@ function PriceLine({
     </div>
   );
 }
-export function QuickMatchPage() {
+export function QuickMatchPage({
+  draft,
+}: {
+  draft: ReturnType<typeof useQuickMatchDraft>;
+}) {
   const [data, setData] = useState<Catalog | null>(null);
   const [asOf, setAsOf] = useState(() => new Date());
   const [loadError, setLoadError] = useState('');
   const [retry, setRetry] = useState(0);
-  const [role, setRole] = useState('student-dev');
-  const [customized, setCustomized] = useState(false);
-  const [goals, setGoals] = useState<string[]>([
-    'study',
-    'development',
-    'presentations',
-    'research',
-  ]);
-  const [country, setCountry] = useState('KZ');
-  const [budget, setBudget] = useState('20');
-  const [currency, setCurrency] = useState('USD');
+  const {
+    role,
+    setRole,
+    customized,
+    setCustomized,
+    goals,
+    setGoals,
+    country,
+    setCountry,
+    budget,
+    setBudget,
+    currency,
+    setCurrency,
+  } = draft;
   const [query, setQuery] = useState('');
   const [showAll, setShowAll] = useState(false);
   useEffect(() => {
@@ -337,14 +345,13 @@ export function QuickMatchPage() {
                   Результаты ниже обновляются сразу. Точная доступность подписки
                   и качество моделей отдельно не проверены.
                 </p>
-                <details className={styles.advanced}>
-                  <summary>Нужен более точный подбор?</summary>
+                <div className={styles.advanced}>
+                  <Link to="/onboarding">Нужен точный подбор?</Link>
                   <p>
                     В расширенной анкете можно учесть платформу, подписки,
                     ограничения и язык.
                   </p>
-                  <Link to="/onboarding">Перейти к расширенному подбору</Link>
-                </details>
+                </div>
               </section>
               <aside
                 className={styles.preview}

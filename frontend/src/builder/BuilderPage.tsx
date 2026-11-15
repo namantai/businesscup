@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { readMeta } from '../api/catalog';
 import {
   errorMessage,
@@ -27,6 +27,9 @@ export function BuilderPage() {
   });
   return (
     <CatalogLayout>
+      <Link to="/" className={styles.backLink}>
+        ← Вернуться к быстрому подбору
+      </Link>
       <div className={styles.heading}>
         <p className={styles.eyebrow}>ТВОЙ ЛИЧНЫЙ AI-НАБОР</p>
         <h1>Подбери AI под свои цели и бюджет.</h1>

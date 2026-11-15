@@ -3,7 +3,10 @@ import styles from '../builder/Builder.module.css';
 export function Navigation() {
   return (
     <nav aria-label="Основная навигация" className={styles.nav}>
-      <NavLink to="/onboarding">Подбор</NavLink>
+      <NavLink to="/" end>
+        Быстрый подбор
+      </NavLink>
+      <NavLink to="/onboarding">Точный подбор</NavLink>
       <NavLink to="/catalog">Каталог</NavLink>
       <NavLink to="/subscriptions">Мои подписки</NavLink>
       <NavLink to="/account">Аккаунт</NavLink>

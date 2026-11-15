@@ -632,3 +632,11 @@
   background: var(--lavender);
   border-radius: 12px;
 }
+
+.backLink {
+  display: inline-block;
+  margin-bottom: 20px;
+  color: var(--purple);
+  font-weight: 650;
+  text-underline-offset: 4px;
+}

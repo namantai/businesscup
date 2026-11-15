@@ -1,9 +1,14 @@
-import { afterEach, expect, test, vi } from 'vitest';
+import { beforeEach, afterEach, expect, test, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from './App';
 
-afterEach(() => vi.unstubAllGlobals());
+// The original health/status page is preserved at /about.
+beforeEach(() => window.history.replaceState({}, '', '/about'));
+afterEach(() => {
+  vi.unstubAllGlobals();
+  window.history.replaceState({}, '', '/');
+});
 
 test('shows pending state without claiming availability', () => {
   vi.stubGlobal(
@@ -26,10 +31,15 @@ test('shows availability only after an UP response', async () => {
 });
 
 test('shows a failed request and can retry successfully', async () => {
-  const fetchMock = vi
-    .fn()
-    .mockRejectedValueOnce(new Error('network'))
-    .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'UP' })));
+  let healthCalls = 0;
+  const fetchMock = vi.fn((request: Request | string) => {
+    if (request === '/actuator/health/readiness') {
+      if (++healthCalls === 1) return Promise.reject(new Error('network'));
+      return Promise.resolve(new Response(JSON.stringify({ status: 'UP' })));
+    }
+    // AuthSession also refreshes when visiting the relocated /about route.
+    return Promise.resolve(new Response(JSON.stringify({ account: null })));
+  });
   vi.stubGlobal('fetch', fetchMock);
   render(<App />);
   expect(
@@ -37,7 +47,7 @@ test('shows a failed request and can retry successfully', async () => {
   ).toBeVisible();
   await userEvent.click(screen.getByRole('button'));
   expect(await screen.findByText('Сервис доступен')).toBeVisible();
-  expect(fetchMock).toHaveBeenCalledTimes(2);
+  expect(healthCalls).toBe(2);
 });
 
 test.each([{ status: 'DOWN' }, {}, { status: 200 }])(

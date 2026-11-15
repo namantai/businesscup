@@ -10,6 +10,7 @@ import { BuilderPage } from '../builder/BuilderPage';
 import { ResultsPage } from '../builder/ResultsPage';
 import { Methodology } from './Methodology';
 import { Home } from './Home';
+import { QuickMatchPage } from '../discovery/QuickMatchPage';
 import { AuthSession } from '../account/AuthSession';
 import { AuthPage } from '../account/AuthPage';
 import { Dashboard } from '../account/Dashboard';
@@ -59,7 +60,8 @@ export function App() {
               <Route path="/account" element={<AccountPage />} />
               <Route path="/subscriptions" element={<SubscriptionPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<QuickMatchPage />} />
+              <Route path="/about" element={<Home />} />
               <Route path="/onboarding" element={<BuilderPage />} />
               <Route path="/results" element={<ResultsPage />} />
               <Route path="/methodology" element={<Methodology />} />

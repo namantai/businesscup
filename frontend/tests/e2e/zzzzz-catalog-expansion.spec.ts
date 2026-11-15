@@ -364,6 +364,70 @@ test.describe.serial('CE reviewed expansion with real backend', () => {
       await expect(page.getByLabel('Бюджет в месяц')).toHaveValue(budget);
     });
   }
+  for (const width of [360, 1440]) {
+    test(`Quick Match shows all real products and instant goals at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 1000 });
+      const errors: string[] = [];
+      page.on('pageerror', (e) => errors.push(e.message));
+      await page.goto('/');
+      const directory = page.getByRole('region', { name: 'Весь каталог' });
+      await expect(directory.getByRole('link')).toHaveCount(23);
+      await page
+        .getByRole('button', { name: 'Студент + код', exact: true })
+        .click();
+      await page.getByLabel('Месячный бюджет').fill('20');
+      await page.getByLabel('Валюта бюджета').selectOption('USD');
+      for (const name of [
+        'Учёба',
+        'Программирование',
+        'Презентации',
+        'Поиск и анализ',
+      ]) {
+        await expect(
+          page.getByRole('button', { name: name, exact: true }),
+        ).toHaveAttribute('aria-pressed', 'true');
+      }
+      const matched = page.getByRole('region', {
+        name: 'Подходящие по задачам',
+      });
+      expect(await matched.getByRole('article').count()).toBeGreaterThan(0);
+      await expect(
+        matched.getByRole('link', { name: /Источник/ }).first(),
+      ).toBeVisible();
+      await expect(
+        page.getByText(/Общая стоимость и совместимость не рассчитаны/),
+      ).toBeVisible();
+      await page
+        .getByRole('button', { name: 'Презентации', exact: true })
+        .click();
+      await expect(
+        page.getByRole('button', { name: 'Студент + код', exact: true }),
+      ).toHaveAttribute('aria-pressed', 'true');
+      await page
+        .getByRole('button', { name: 'Презентации', exact: true })
+        .click();
+      await page.getByLabel('Месячный бюджет').clear();
+      await expect(page.getByRole('alert')).toBeVisible();
+      await expect(directory.getByRole('link')).toHaveCount(23);
+      await page.getByLabel('Месячный бюджет').fill('20');
+      await expect(page.getByRole('alert')).toHaveCount(0);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      expect(errors).toEqual([]);
+      await page.screenshot({
+        path: path.join(
+          process.env.COMPASS_E2E_DIR!,
+          `quick-match-${width}.png`,
+        ),
+        fullPage: true,
+      });
+    });
+  }
   test('rollback restores r2 while expanded links remain readable', async ({
     page,
     request,

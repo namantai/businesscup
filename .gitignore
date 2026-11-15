@@ -18,3 +18,6 @@
 frontend/openapi-ts-error-*.log
 
 **/__pycache__/
+
+# Original local Quick Match installation bundle; integrated sources live in frontend/src.
+/ai_compass_quick_pick/

@@ -10,7 +10,7 @@ for (const width of [360, 768, 1440]) {
     page.on('console', (message) => {
       if (message.type() === 'error') errors.push(message.text());
     });
-    await page.goto('/');
+    await page.goto('/about');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
       'Найди AI',
     );

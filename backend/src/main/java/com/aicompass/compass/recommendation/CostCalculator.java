@@ -11,7 +11,13 @@ import static com.aicompass.compass.catalog.CatalogTypes.*;
 
 final class CostCalculator {
     record Amounts(BigDecimal recurring, BigDecimal now, BigDecimal upfront, BigDecimal horizon,
-                   boolean confirmed, List<Reason> reasons, List<FxUsed> fx) {}
+                   boolean confirmed, List<Reason> reasons, List<FxUsed> fx,
+                   BigDecimal recurringLowerBound, BigDecimal nowLowerBound) {
+        Amounts(BigDecimal recurring, BigDecimal now, BigDecimal upfront, BigDecimal horizon,
+                boolean confirmed, List<Reason> reasons, List<FxUsed> fx) {
+            this(recurring, now, upfront, horizon, confirmed, reasons, fx, recurring, now);
+        }
+    }
     final List<FxUsed> ledgerFx = new ArrayList<>();
     private final PublishedCatalogSnapshot catalog;
     private final EvidenceAssessment evidence;
@@ -47,7 +53,25 @@ final class CostCalculator {
             total = null; verified = false;
             reasons.add(reason(Code.PRICE_INCOMPLETE, "Known offer/plan expiry precedes the requested horizon; renewal price is unknown", offer.priceEvidenceId()));
         }
-        return new Amounts(monthly, first, first, total, known && verified && monthly != null, List.copyOf(reasons), List.copyOf(used));
+        // A missing checkout component must not erase known non-negative charges.
+        // Bounds only prune impossible budgets; they never become displayed totals.
+        BigDecimal baseFloor = componentFloor(offer.amount(), offer.priceEvidenceId(), offer.additionalTax(), offer.taxEvidenceId(), offer.additionalFee(), offer.feeEvidenceId());
+        BigDecimal firstFloor = componentFloor(offer.upfrontAmount(), offer.priceEvidenceId(), offer.additionalTax(), offer.taxEvidenceId(), offer.additionalFee(), offer.feeEvidenceId());
+        baseFloor = convert(baseFloor, offer.currency(), used, reasons);
+        firstFloor = convert(firstFloor, offer.currency(), used, reasons);
+        BigDecimal monthlyFloor = recurring && baseFloor != null ? baseFloor.divide(BigDecimal.valueOf(period), 6, RoundingMode.CEILING) : null;
+        return new Amounts(monthly, first, first, total, known && verified && monthly != null, List.copyOf(reasons), List.copyOf(used),
+                monthly != null ? monthly : monthlyFloor, first != null ? first : firstFloor);
+    }
+    private BigDecimal componentFloor(String base, String baseEvidence, String tax, String taxEvidence, String fee, String feeEvidence) {
+        BigDecimal floor = null;
+        String[] amounts = {base, tax, fee}; String[] ids = {baseEvidence, taxEvidence, feeEvidence};
+        for (int i = 0; i < amounts.length; i++) {
+            // Conditional prices describe the candidate's stated terms, not verified eligibility.
+            if (amounts[i] != null && (evidence.confirmed(ids[i]) || evidence.status(ids[i]).equals("CONDITIONAL")))
+                floor = (floor == null ? BigDecimal.ZERO : floor).add(new BigDecimal(amounts[i]));
+        }
+        return floor;
     }
     Amounts existing(RecommendationProfile.ExistingSubscription s) {
         var reasons = new ArrayList<Reason>(); var used = new ArrayList<FxUsed>();

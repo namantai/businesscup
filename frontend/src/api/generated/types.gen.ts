@@ -2628,6 +2628,7 @@ export type ProductsData = {
     kind?: string;
     productId?: string;
     regionId?: string;
+    priceKind?: string;
     currency?: string;
     capabilityId?: string;
     page?: number;

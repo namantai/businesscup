@@ -8191,6 +8191,14 @@
           },
           {
             "in": "query",
+            "name": "priceKind",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
             "name": "currency",
             "required": false,
             "schema": {

@@ -163,6 +163,10 @@ test('admin publishes semantic change; only impacted owner receives one real not
     );
     await a.goto('/notifications');
     await expect(a.getByText('Существенных изменений пока нет.')).toBeVisible();
+    // Setup uses 25 CSRF/preview slots across three users on the same IP.
+    // A fast scheduler can otherwise leave UI acknowledgements in that same
+    // 30-per-minute window. Wait naturally; never alter server counters.
+    await new Promise((resolve) => setTimeout(resolve, 61000));
     await page.goto('/admin/catalog');
     await expect(
       page.getByRole('heading', { name: 'Управление каталогом' }),
@@ -247,11 +251,18 @@ test('admin publishes semantic change; only impacted owner receives one real not
     await expect(
       a.getByRole('button', { name: 'Прочитано', exact: true }),
     ).toBeDisabled();
+    const applied = a.waitForResponse(
+      (r) =>
+        r.request().method() === 'PATCH' &&
+        r.url().includes('/api/v1/monitoring/notices/'),
+      { timeout: 15000 },
+    );
     await a
       .getByRole('button', {
         name: 'Отметить применение (со слов пользователя)',
       })
       .click();
+    expect((await applied).status()).toBe(200);
     await expect(
       a.getByText(/покупка и экономия не подтверждены/),
     ).toBeVisible();

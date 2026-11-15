@@ -1,6 +1,6 @@
 # AI Compass — local beta release candidate
 
-Status: **ACCEPTED for local beta demonstration**, owner decision 15.11.2026. P08/P10.a and P11 local QA are accepted. Independent review, coverage and all unexecuted production gates remain OPEN / NOT_RUN / NOT_VERIFIED. One local closeout commit is authorized; push/PR/merge/deployment and P12–P14 are not. See [DEMO_GUIDE](DEMO_GUIDE.md) for the demonstration.
+Status: **ACCEPTED for local beta demonstration**, owner decision 15.11.2026. P08/P10.a and P11 local QA are accepted. Independent review, coverage and all unexecuted production gates remain OPEN / NOT_RUN / NOT_VERIFIED. The latest owner instruction authorizes one CE commit and an ordinary push to origin/codex/p01-scaffold. PR/merge/deployment and P12–P14 remain unauthorized. See [DEMO_GUIDE](DEMO_GUIDE.md) for the demonstration.
 
 ## Stage and external-action scope
 
@@ -14,7 +14,7 @@ Status: **ACCEPTED for local beta demonstration**, owner decision 15.11.2026. P0
 | P11 | Local QA ACCEPTED; remaining gates OPEN | Final local checks accepted by owner; independent review/coverage/production gates remain unexecuted |
 | P12–P14 | NOT_STARTED | No staging, deployment or paid pilot |
 
-All external integrations remain OFF. Beta fee is 0.00 USD. No real email, payment, paid AI API, web collector, deployment, remote CI, push or PR ran. No additional direct dependency was installed. The owner-supplied batch plan is preserved.
+All external integrations remain OFF. Beta fee is 0.00 USD. No real email, payment, paid AI API, web collector, deployment, remote CI or PR ran. The preceding UI commit was pushed; the CE push is authorized separately. No additional direct dependency was installed. The owner-supplied batch plan is preserved.
 
 ## T01–T38 traceability
 
@@ -244,3 +244,11 @@ Local acceptance does not close the open gates in the readiness matrix. Public r
 
 
 Final closeout demo replay: **8/8 PASS, 8.1 min, exit0** with the exact filtered command in DEMO_GUIDE. Log `.runtime/closeout-demo-e2e.log`, screenshots `.runtime/e2e-a14693ac3b28/`. All eight requested demo groups were verified through the live working application and isolated real backend/PostgreSQL/browser scenarios; no static response substitutes or market claims from fixtures. This is a repeat of existing tests, not eight extra unique cases. No application defect/source change was found during closeout. Final secret scan and whitespace check PASS/exit0 before staging; exact85-path local commit uses `feat: complete ai compass local beta candidate`. Commit hash belongs to Git history/final handoff, not an extra self-referential documentation commit.
+
+## Published CE local catalog — 15 November 2026
+
+CATALOG_EXPANSION = DONE for local MVP. Active version `ce000000-0000-4000-8000-000000000001`, revision3:23 products/26 plans/51 price observations/13 needs. Real dev API and Chromium display all23; filters, refresh, old r2 link and two real role previews PASS. Five identities without tariffs remain listing-only. Personal-record counts and old r2 hash are unchanged. PostgreSQL was not restarted; migrations were not edited.
+
+Final evidence: schema+Java semantics PASS; fresh targeted CE E2E10/10 (0 failures/skips); fresh UI80/80 plus format/lint/typecheck/build PASS. Preserved unchanged-backend full check168 unit+115 PostgreSQL IT PASS; smoke3/3, secrets/diff PASS. Full50-case E2E not rerun per owner instruction; no claim that earlier incomplete runs passed. [PROGRESS](PROGRESS.md) records exact hashes/commands and [DEMO_GUIDE](DEMO_GUIDE.md) records the live scenarios. Conditional results retain UNKNOWN total cost and are not guaranteed purchases.
+
+All production/independent-review/coverage gates above remain OPEN. P09/P10.b remain DEFERRED. No new dependency, paid API, external email, payment, deployment or P12–P14 work.

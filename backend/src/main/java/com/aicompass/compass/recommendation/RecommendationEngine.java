@@ -10,7 +10,7 @@ import static com.aicompass.compass.catalog.CatalogTypes.CapabilityState;
 
 /** Pure deterministic use case: fixed profile, immutable catalog, policy and time. No IO/LLM. */
 public final class RecommendationEngine {
-    public static final String ENGINE_VERSION = "1.0.1";
+    public static final String ENGINE_VERSION = "1.0.2";
     public static final String POLICY_VERSION = "p04-1";
     private final com.aicompass.compass.shared.money.Money fee;
     public RecommendationEngine() { this(com.aicompass.compass.shared.money.Money.of("0", "USD")); }

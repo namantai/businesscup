@@ -55,6 +55,29 @@ class RecommendationEngineTest {
         assertTrue(r.bundles().isEmpty());
         assertTrue(r.conditionalAlternatives().stream().anyMatch(b -> b.costs().recurringMonthly()==null && !b.costs().confirmedBudgetFit()));
     }
+    @Test void knownBaseRemainsABudgetFloorWhenTaxesAreUnknown() {
+        var c = snapshot(data(t -> {
+            row(t,"priceOffers","creator-offer").put("taxStatus","UNKNOWN").putNull("additionalTax");
+        }));
+        var below = change(editor(), t -> ((ObjectNode)t.get("budget")).put("monthlyMax","14").put("upfrontMax","14"));
+        var result = new RecommendationEngine().calculate(below,c,NOW);
+        assertTrue(result.bundles().isEmpty());
+        assertTrue(result.conditionalAlternatives().stream().flatMap(b -> b.items().stream()).noneMatch(i -> "creator-offer".equals(i.offerId())));
+        var enough = new RecommendationEngine().calculate(editor(),c,NOW);
+        assertTrue(enough.conditionalAlternatives().stream().filter(b -> b.items().stream().anyMatch(i -> "creator-offer".equals(i.offerId()))).allMatch(b -> b.costs().recurringMonthly() == null && !b.costs().confirmedBudgetFit()));
+    }
+    @Test void unknownAnnualTaxKeepsFullUpfrontFloorWithoutInventingTotal() {
+        var c = snapshot(data(t -> row(t,"priceOffers","creator-annual").put("taxStatus","UNKNOWN").putNull("additionalTax")));
+        var p = change(editor(), t -> { t.put("allowAnnualBilling",true); ((ObjectNode)t.get("budget")).put("monthlyMax","10").put("upfrontMax","119"); });
+        var offer = c.offers().stream().filter(o -> o.id().equals("creator-annual")).findFirst().orElseThrow();
+        var cost = new CostCalculator(c,new EvidenceAssessment(c,NOW),p,NOW).offer(offer);
+        assertNull(cost.recurring()); assertNull(cost.now()); assertFalse(cost.confirmed());
+        assertEquals(0, new BigDecimal("10").compareTo(cost.recurringLowerBound()));
+        assertEquals(0, new BigDecimal("120").compareTo(cost.nowLowerBound()));
+        var result = new RecommendationEngine().calculate(p,c,NOW);
+        assertTrue(result.bundles().isEmpty());
+        assertTrue(result.conditionalAlternatives().stream().flatMap(b -> b.items().stream()).noneMatch(i -> "creator-annual".equals(i.offerId())));
+    }
     @Test void countryAndPlatformAndPrivacyAreHard() {
         assertTrue(run(change(student(),t -> t.put("country","US"))).bundles().isEmpty());
         assertTrue(run(change(editor(),t -> ((ObjectNode)t.get("requirements")).putArray("platforms").add("LINUX"))).bundles().isEmpty());

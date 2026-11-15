@@ -22,6 +22,9 @@ export function CatalogList() {
   const kind = params.get('kind') ?? '';
   const capabilityId = params.get('capabilityId') ?? '';
   const sort = params.get('sort') ?? 'name';
+  const priceKind = params.get('priceKind') ?? '';
+  const regionId = params.get('regionId') ?? '';
+  const currency = params.get('currency') ?? '';
   const metadata = useQuery({
     queryKey: ['catalog', 'meta'],
     queryFn: ({ signal }) => readMeta(signal),
@@ -34,7 +37,13 @@ export function CatalogList() {
     size,
     sort,
     ...(tab === 'products'
-      ? { kind: kind || undefined, capabilityId: capabilityId || undefined }
+      ? {
+          kind: kind || undefined,
+          capabilityId: capabilityId || undefined,
+          priceKind: priceKind || undefined,
+          regionId: regionId || undefined,
+          currency: currency || undefined,
+        }
       : {}),
   };
   const entries = useQuery<PageProduct | PageAgent | PageAiModel>({
@@ -144,6 +153,43 @@ export function CatalogList() {
                   </select>
                 </label>
                 <label>
+                  Базовая цена
+                  <select
+                    value={priceKind}
+                    onChange={(e) => change('priceKind', e.target.value)}
+                  >
+                    <option value="">Все цены</option>
+                    <option value="FREE">Бесплатный базовый тариф</option>
+                    <option value="FIXED">Фиксированная платная цена</option>
+                    <option value="UNKNOWN">Цена UNKNOWN</option>
+                  </select>
+                </label>
+                <label>
+                  Регион наблюдения цены
+                  <select
+                    value={regionId}
+                    onChange={(e) => change('regionId', e.target.value)}
+                  >
+                    <option value="">Все регионы</option>
+                    {metadata.data.regions.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Валюта наблюдения
+                  <input
+                    maxLength={3}
+                    value={currency}
+                    placeholder="USD / KZT / CNY"
+                    onChange={(e) =>
+                      change('currency', e.target.value.toUpperCase())
+                    }
+                  />
+                </label>
+                <label>
                   Описанная возможность
                   <select
                     value={capabilityId}
@@ -181,6 +227,14 @@ export function CatalogList() {
               </select>
             </label>
           </div>
+          {tab === 'products' && (
+            <p className={styles.small}>
+              Цена — наблюдение из источника, не подтверждение оплаты в вашей
+              стране. Бесплатная регистрация не гарантирует возобновляемые
+              кредиты. Отсутствие предложения не означает FREE; такие продукты
+              видны без фильтра цены.
+            </p>
+          )}
           {capabilityId && tab === 'products' && (
             <p className={styles.small}>
               Фильтр ищет описанные свойства, включая UNKNOWN. Поддержку и

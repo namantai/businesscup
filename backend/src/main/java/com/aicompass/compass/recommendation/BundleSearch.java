@@ -48,8 +48,8 @@ final class BundleSearch {
         for (var c : items) {
             monthly = CostCalculator.add(monthly, c.costs.recurring()); now = CostCalculator.add(now, c.costs.now());
             upfront = CostCalculator.add(upfront, c.costs.upfront()); horizon = CostCalculator.add(horizon, c.costs.horizon());
-            if (c.costs.recurring() != null) knownMonthly = knownMonthly.add(c.costs.recurring());
-            if (c.costs.now() != null) knownNow = knownNow.add(c.costs.now());
+            if (c.costs.recurringLowerBound() != null) knownMonthly = knownMonthly.add(c.costs.recurringLowerBound());
+            if (c.costs.nowLowerBound() != null) knownNow = knownNow.add(c.costs.nowLowerBound());
             confirmed &= c.eligibility == Eligibility.ELIGIBLE && c.costs.confirmed();
             mask.or(c.confirmed); accepted.or(c.accepted);
         }

@@ -36,10 +36,10 @@ public class CatalogController {
     public CatalogViews.Page<CatalogManifest.Product> products(@RequestParam(required = false) UUID version,
             @RequestParam(defaultValue = "") String q, @RequestParam(required = false) String kind,
             @RequestParam(required = false) String productId, @RequestParam(required = false) String regionId,
-            @RequestParam(required = false) String currency, @RequestParam(required = false) String capabilityId,
+            @RequestParam(required = false) String priceKind, @RequestParam(required = false) String currency, @RequestParam(required = false) String capabilityId,
             @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sort) {
-        return catalog.typedPage("products", version, q, kind, productId, regionId, currency, capabilityId, page, size, sort, CatalogManifest.Product.class);
+        return catalog.products(version, q, kind, productId, regionId, currency, capabilityId, priceKind, page, size, sort);
     }
     @GetMapping("/providers")
     public CatalogViews.Page<CatalogManifest.Provider> providers(@RequestParam(required = false) UUID version,

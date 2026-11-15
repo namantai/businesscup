@@ -211,3 +211,45 @@ test('untrusted source markup and instructions render only as text', async () =>
   expect(document.querySelector('img[src="x"]')).toBeNull();
   expect(document.querySelector('script')).toBeNull();
 });
+
+test('price, region and currency filters are sent together and reset pagination', async () => {
+  const fetcher = mockApi();
+  mount('/catalog?page=2');
+  await screen.findByText('Synthetic studio');
+  await userEvent.selectOptions(screen.getByLabelText('Базовая цена'), 'FREE');
+  await userEvent.selectOptions(
+    screen.getByLabelText('Регион наблюдения цены'),
+    exampleMeta.regions[0].id,
+  );
+  await userEvent.type(screen.getByLabelText('Валюта наблюдения'), 'usd');
+  await waitFor(() =>
+    expect(
+      fetcher.mock.calls.some(([r]) => {
+        const p = new URL(r.url).searchParams;
+        return (
+          p.get('priceKind') === 'FREE' &&
+          p.get('regionId') === exampleMeta.regions[0].id &&
+          p.get('currency') === 'USD' &&
+          p.get('page') === '0' &&
+          p.get('version') === exampleMeta.versionId
+        );
+      }),
+    ).toBe(true),
+  );
+  expect(
+    screen.getByText(/Бесплатная регистрация не гарантирует/),
+  ).toBeVisible();
+  await userEvent.click(screen.getByRole('button', { name: 'Модели' }));
+  await waitFor(() =>
+    expect(
+      fetcher.mock.calls.some(([r]) => {
+        const u = new URL(r.url);
+        return (
+          u.pathname.endsWith('/models') &&
+          !u.searchParams.has('priceKind') &&
+          !u.searchParams.has('regionId')
+        );
+      }),
+    ).toBe(true),
+  );
+});

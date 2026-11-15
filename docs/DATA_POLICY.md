@@ -48,3 +48,11 @@ Events are query-visible for 30 UTC days; daily purge bounds physical retention 
 Local email remains a private development sink (directory 0700/files 0600) containing one-time secrets. It must not be copied to issue reports, screenshots or repositories. Working-mail cleanup/retention beyond existing account deletion and operator control is not production-ready. No real SMTP or notifications are sent. Monitoring outbox LOCAL_ONLY is not delivery confirmation.
 
 Privacy, terms, tax and content-license compliance are **NOT_VERIFIED**; this document records implementation behavior, not legal approval. Closed-beta recruitment/data collection and public hosting require the owner's review and separate authorization.
+
+## CE candidate (manual verification 14 November 2026 UTC)
+
+The new immutable import artifact is `data/catalog/catalog-2026-11-14-ce1.json`; the original r2 and its evidence timestamps remain unchanged. See [claim-level review](CATALOG_EXPANSION_REVIEW.md) and [actual activation/test log](PROGRESS.md). It contains 23 genuine product listings, 26 plans across 18 products, 51 regional observations, 13 needs, 7 model releases and 4 included agents. Five listings have no verified current plan and cannot become confirmed purchase candidates.
+
+Eight added products have documented recurring free use (some only basic editing): Gemini, Perplexity, Canva, Leonardo AI, ElevenLabs, Suno, CapCut, Descript. Cursor's limited request reset is unknown. Higgsfield has no daily/monthly allowance; Runway signup credits and Descript AI credits are one-time. FREE is a zero base price, never a promise of renewable generation or complete workload coverage.
+
+Current KZ prices/checkout, tax/fees, most language/platform/privacy conditions and independent model quality remain UNKNOWN. Kimi China Plus 99 CNY is not a Kazakhstan price; no FX was added. Public USD prices without regional checkout are conditional observations. Historical Qwen/Kling/Hailuo official announcements establish identity only; historical promotional credits and benchmark claims were not adopted. No external collector, model API, payment or real email is enabled.

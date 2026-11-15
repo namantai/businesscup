@@ -88,8 +88,19 @@ public class CatalogReadService {
         return new Page<>(result.versionId(), result.items().stream().map(type::cast).toList(), result.total(), result.page(), result.size());
     }
 
+    public Page<Product> products(UUID requested, String q, String kind, String productId,
+            String regionId, String currency, String capabilityId, String priceKind, int page, int size, String sort) {
+        var result = filteredPage("products", requested, q, kind, productId, regionId, currency, capabilityId, priceKind, page, size, sort);
+        return new Page<>(result.versionId(), result.items().stream().map(Product.class::cast).toList(), result.total(), page, size);
+    }
+
     public Page<?> page(String path, UUID requested, String q, String kind, String productId,
             String regionId, String currency, String capabilityId, int page, int size, String sort) {
+        return filteredPage(path, requested, q, kind, productId, regionId, currency, capabilityId, null, page, size, sort);
+    }
+
+    private Page<?> filteredPage(String path, UUID requested, String q, String kind, String productId,
+            String regionId, String currency, String capabilityId, String priceKind, int page, int size, String sort) {
         CatalogResource resource = CatalogResource.from(path);
         if (page < 0 || page > 100000 || size < 1 || size > 100 || q.length() > 200) throw bad("Invalid pagination or query");
         if (!Set.of("id", "-id", "name", "-name").contains(sort)) throw bad("Unsupported sort");
@@ -99,8 +110,9 @@ public class CatalogReadService {
         if (kind != null && resource != PRODUCT) throw bad("kind filter requires products");
         if (kind != null && !Set.of("APPLICATION", "AUTOMATION_TOOL").contains(kind)) throw bad("Unknown product kind");
         if (productId != null && !Set.of(PRODUCT, SUBSCRIPTION_PLAN, AGENT).contains(resource)) throw bad("productId filter is unsupported for this resource");
-        if ((regionId != null || currency != null) && resource != PRICE_OFFER) throw bad("Regional filters require offers");
+        if ((regionId != null || currency != null) && !Set.of(PRICE_OFFER, PRODUCT).contains(resource)) throw bad("Regional filters require offers or products");
         if (capabilityId != null && resource != PRODUCT) throw bad("Capability filter requires products");
+        if (priceKind != null && !Set.of("FREE", "FIXED", "UNKNOWN").contains(priceKind)) throw bad("Unsupported price filter");
         UUID version = visible(requested);
         if (version == null) return new Page<>(null, List.of(), 0, page, size);
         StringBuilder where = new StringBuilder(" WHERE t.version_id = ?");
@@ -110,8 +122,25 @@ public class CatalogReadService {
         }
         filter(where, args, "kind", kind);
         filter(where, args, resource == PRODUCT ? "id" : "product_id", productId);
-        filter(where, args, "region_id", regionId);
-        filter(where, args, "currency", currency);
+        if (resource == PRODUCT && (regionId != null || currency != null || priceKind != null)) {
+            // Filter the same offer for all requested facets before counting/pagination.
+            // A public list price is not a regional checkout or recurring free quota guarantee.
+            where.append(" AND EXISTS (SELECT 1 FROM compass.subscription_plan sp JOIN compass.price_offer o ON o.version_id = sp.version_id AND o.plan_id = sp.id JOIN compass.evidence e ON e.version_id = o.version_id AND e.id = o.price_evidence_id WHERE sp.version_id = t.version_id AND sp.product_id = t.id");
+            if (regionId != null) { where.append(" AND o.region_id = ?"); args.add(regionId); }
+            if (currency != null) { where.append(" AND o.currency = ?"); args.add(currency); }
+            if (priceKind != null) {
+                where.append(" AND o.price_kind = ?"); args.add(priceKind);
+                if (!priceKind.equals("UNKNOWN")) {
+                    where.append(" AND e.status IN ('VERIFIED_SOURCE','CONDITIONAL') AND e.verified_at > ? AND o.valid_from <= ? AND (o.valid_until IS NULL OR o.valid_until > ?)");
+                    args.add(Timestamp.from(clock.instant().minus(Duration.ofDays(7))));
+                    args.add(Timestamp.from(clock.instant())); args.add(Timestamp.from(clock.instant()));
+                }
+            }
+            where.append(")");
+        } else if (resource == PRICE_OFFER) {
+            filter(where, args, "region_id", regionId);
+            filter(where, args, "currency", currency);
+        }
         if (capabilityId != null) {
             // Taxonomy filter includes unknown assertions; it is not a recommendation or eligibility claim.
             where.append(" AND EXISTS (SELECT 1 FROM compass.capability_assertion a WHERE a.version_id = t.version_id AND (a.product_id = t.id OR EXISTS (SELECT 1 FROM compass.subscription_plan sp WHERE sp.version_id = t.version_id AND sp.id = a.plan_id AND sp.product_id = t.id)) AND a.capability_id = ?)");

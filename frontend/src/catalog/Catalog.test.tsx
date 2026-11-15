@@ -17,7 +17,19 @@ function mockApi(handler?: (url: URL) => Response | Promise<Response>) {
     const url = new URL(request.url);
     if (url.pathname.endsWith('/meta'))
       return Promise.resolve(json(exampleMeta));
-    return Promise.resolve(handler?.(url) ?? json(examplePage));
+    return Promise.resolve(
+      handler?.(url) ??
+        json(url.pathname.includes('/products/') ? exampleDetail : examplePage),
+    ).then(async (response) => {
+      // List-only handlers still provide the existing detail endpoint for card summaries.
+      if (
+        url.pathname.includes('/products/') &&
+        response.ok &&
+        (await response.clone().json()).items
+      )
+        return json(exampleDetail);
+      return response;
+    });
   });
   vi.stubGlobal('fetch', fetcher);
   return fetcher;
@@ -252,4 +264,73 @@ test('price, region and currency filters are sent together and reset pagination'
       }),
     ).toBe(true),
   );
+});
+
+test('list cards show sourced base prices despite unknown checkout and respect regional filters', async () => {
+  const d = structuredClone(exampleDetail);
+  d.evidence = d.evidence.map((e) => ({
+    ...e,
+    effectiveStatus: 'CONDITIONAL',
+  }));
+  const t = d.offers[0].terms;
+  Object.assign(t, {
+    amount: '20',
+    priceKind: 'FIXED',
+    billingPeriod: 'MONTH',
+    currency: 'USD',
+    regionId: exampleMeta.regions[0].id,
+    validFrom: '2026-01-01T00:00:00Z',
+    validUntil: null,
+  });
+  d.offers = [{ ...d.offers[0], allInMonthly: null, allInUpfront: null }];
+  mockApi((url) => json(url.pathname.includes('/products/') ? d : examplePage));
+  mount();
+  await screen.findAllByText('От 20 USD / мес.');
+  const card = screen
+    .getByRole('link', { name: 'Synthetic studio' })
+    .closest('article')!;
+  expect(within(card).getByText('От 20 USD / мес.')).toBeVisible();
+  expect(
+    within(card).getByRole('link', { name: 'Источник цены' }),
+  ).toBeVisible();
+  expect(
+    within(card).getByText(/Налоги, лимиты и доступность оплаты/),
+  ).toBeVisible();
+  expect(within(card).getByRole('link', { name: /Подробнее/ })).toHaveAttribute(
+    'href',
+    expect.stringContaining(`version=${exampleMeta.versionId}`),
+  );
+  await userEvent.type(screen.getByLabelText('Валюта наблюдения'), 'KZT');
+  await screen.findAllByText('Цена не подтверждена');
+  const refreshed = screen
+    .getByRole('link', { name: 'Synthetic studio' })
+    .closest('article')!;
+  expect(
+    within(refreshed).queryByText('От 20 USD / мес.'),
+  ).not.toBeInTheDocument();
+  expect(within(refreshed).getByText('Цена не подтверждена')).toBeVisible();
+});
+
+test('card price fetch failure is retryable and is never a free price', async () => {
+  let offline = true;
+  mockApi((url) =>
+    url.pathname.includes('/products/')
+      ? offline
+        ? json({ status: 503 }, 503)
+        : json(exampleDetail)
+      : json(examplePage),
+  );
+  mount();
+  const buttons = await screen.findAllByRole('button', {
+    name: 'Повторить загрузку цены',
+  });
+  expect(
+    within(buttons[0].closest('article')!).queryByText(
+      'Бесплатный базовый тариф',
+      { exact: true },
+    ),
+  ).not.toBeInTheDocument();
+  offline = false;
+  await userEvent.click(buttons[0]);
+  await screen.findAllByText('Цена не подтверждена');
 });

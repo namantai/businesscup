@@ -19,7 +19,7 @@ export const roles = [
   },
   {
     id: 'student-developer',
-    label: 'Студент-разработчик',
+    label: 'Студент + код',
     symbol: '03',
     description: 'Учиться и создавать',
     needs: ['study', 'development', 'presentations', 'research'],
@@ -46,15 +46,8 @@ export const roles = [
     needs: ['writing', 'research', 'images'],
   },
   {
-    id: 'personal',
-    label: 'Для личных задач',
-    symbol: '07',
-    description: 'Повседневные дела',
-    needs: ['research', 'writing', 'documents'],
-  },
-  {
     id: 'custom',
-    label: 'Настроить самому',
+    label: 'Своё',
     symbol: '↗',
     description: 'Свои цели и настройки',
     needs: [],

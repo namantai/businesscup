@@ -50,8 +50,8 @@ export function Home() {
               <em>задачи.</em>
             </h1>
             <p className={styles.intro}>
-              Подберём нейросети, агенты и подписки с учётом твоих целей и
-              бюджета.
+              Выбери цели, укажи бюджет и сравни инструменты. Показываем
+              опубликованные цены и ограничения.
             </p>
             <div className={styles.ctas}>
               <Link className={styles.cta} to="/onboarding">

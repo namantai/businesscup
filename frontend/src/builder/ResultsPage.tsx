@@ -4,6 +4,7 @@ import type { Bundle, Reason } from '../api/generated/types.gen';
 import { CatalogLayout, DateLabel, Status } from '../catalog/CatalogLayout';
 import { useBuilder, type CompletedPreview } from './BuilderSession';
 import styles from './Builder.module.css';
+import { basePrice } from '../catalog/pricing';
 import { SavePanel } from '../account/SavePanel';
 const strategy = {
   ECONOMY: 'Экономный набор',
@@ -182,18 +183,19 @@ function BundleCard({
         )}
       </div>
       <h2>{title}</h2>
-      {!c.confirmedBudgetFit && (
-        <p className={styles.notice}>
-          Полная стоимость или соответствие бюджету не подтверждены. Этот набор
-          нельзя считать гарантированно доступным.
-        </p>
-      )}
       <h3>Состав набора</h3>
       {!b.items.length && <p>Новые инструменты не требуются.</p>}
       <ul className={styles.list}>
         {b.items.map((item) => {
           const p = catalog.products.find((p) => p.id === item.productId);
           const plan = catalog.plans.find((p) => p.id === item.planId);
+          const offer = catalog.offers.find((o) => o.id === item.offerId);
+          const priceEvidence = completed.response.evidence.find(
+            (e) => e.id === offer?.priceEvidenceId,
+          );
+          const priceSource = completed.response.sources.find(
+            (s) => s.id === priceEvidence?.sourceId,
+          );
           return (
             <li key={item.id}>
               <strong>
@@ -207,23 +209,31 @@ function BundleCard({
                 )}
                 {plan && ` / ${plan.tier}`}
               </strong>
-              <br />
-              Тип:{' '}
-              {p?.kind === 'AUTOMATION_TOOL'
-                ? 'инструмент автоматизации'
-                : plan?.accessType === 'API'
-                  ? 'API-доступ'
-                  : 'приложение / подписка'}{' '}
-              ·{' '}
-              {c.confirmedBudgetFit
-                ? 'Платёж'
-                : 'Базовая цена, полная стоимость не подтверждена'}
-              : {money(item.originalCharge, item.originalCurrency)} ·{' '}
-              {item.billingPeriod === 'YEAR'
-                ? 'за год'
-                : item.billingPeriod === 'MONTH'
-                  ? 'за месяц'
-                  : item.billingPeriod}
+              <div className={styles.itemPrice}>
+                {item.originalCharge !== null
+                  ? `${item.action === 'ADD' ? 'От ' : ''}${basePrice(item.originalCharge, item.originalCurrency, item.billingPeriod)}`
+                  : 'Цена не подтверждена'}
+              </div>
+              <p className={styles.muted}>
+                {item.action === 'KEEP'
+                  ? 'Стоимость текущей подписки указана вами.'
+                  : 'Опубликованная базовая цена. Налоги, комиссии и доступность оплаты проверяйте отдельно.'}
+                {item.billingPeriod === 'YEAR' &&
+                  ' Оплата за год сразу, не помесячно.'}
+              </p>
+              {item.action !== 'KEEP' && priceEvidence && (
+                <p className={styles.priceSource}>
+                  {priceSource && /^https?:\/\//.test(priceSource.url) ? (
+                    <a href={priceSource.url} target="_blank" rel="noreferrer">
+                      Источник цены
+                    </a>
+                  ) : (
+                    'Источник не указан'
+                  )}{' '}
+                  · <DateLabel value={priceEvidence.verifiedAt} /> ·{' '}
+                  <Status value={priceEvidence.effectiveStatus} />
+                </p>
+              )}
               {item.nextRenewal && <p>Продление: {item.nextRenewal}</p>}
               <details>
                 <summary>Модели, агенты и общие лимиты</summary>
@@ -262,66 +272,101 @@ function BundleCard({
           );
         })}
       </ul>
-      <h3>Для твоих целей</h3>
+      {!c.confirmedBudgetFit && (
+        <p className={styles.notice}>
+          Полная стоимость или соответствие бюджету не подтверждены. Этот набор
+          нельзя считать гарантированно доступным.
+        </p>
+      )}
+      <h3>Почему подходит</h3>
       <p>
-        Выбраны:{' '}
-        {profile.needs
-          .map((n) => catalog.needs.find((c) => c.id === n.id)?.name ?? n.id)
-          .join(', ')}
-        . Соответствие ниже показано по возможностям каталога; это не оценка
-        качества в процентах.
+        {b.coverage
+          .filter((v) => v.confirmed)
+          .map((v) => capName(v.capabilityId))
+          .join(' · ') || 'Подтверждённых возможностей пока недостаточно.'}
       </p>
+      <p className={styles.muted}>
+        Состав выбран под ваши цели и ограничения. Это сопоставление
+        возможностей, не рейтинг качества.
+      </p>
+      <details className={styles.sources}>
+        <summary>Покрытие целей и лимиты</summary>
+        <p>
+          Выбраны:{' '}
+          {profile.needs
+            .map((n) => catalog.needs.find((c) => c.id === n.id)?.name ?? n.id)
+            .join(', ')}
+          . Соответствие ниже показано по возможностям каталога; это не оценка
+          качества в процентах.
+        </p>
+        <ul className={styles.list}>
+          {b.coverage.map((v) => (
+            <li key={v.capabilityId}>
+              {capName(v.capabilityId)} — <Status value={v.state} /> ·{' '}
+              {v.required ? 'обязательное' : 'желательное'} ·{' '}
+              {v.confirmed ? 'подтверждено' : 'не подтверждено'}
+              {!v.acceptedForRequirement && ' · требование не закрыто'}
+            </li>
+          ))}
+        </ul>
+        <p>
+          Достаточность лимитов:{' '}
+          {b.usageFit === 'UNKNOWN'
+            ? 'неизвестна'
+            : b.usageFit === 'CONFIRMED'
+              ? 'подтверждена'
+              : b.usageFit}
+          .
+        </p>
+      </details>
+      <h3>Что важно учесть</h3>
       <ul className={styles.list}>
-        {b.coverage.map((v) => (
-          <li key={v.capabilityId}>
-            {capName(v.capabilityId)} — <Status value={v.state} /> ·{' '}
-            {v.required ? 'обязательное' : 'желательное'} ·{' '}
-            {v.confirmed ? 'подтверждено' : 'не подтверждено'}
-            {!v.acceptedForRequirement && ' · требование не закрыто'}
-          </li>
-        ))}
+        {[...new Set(b.factualReasons.map((r) => reasons[r.code]))]
+          .slice(0, 3)
+          .map((text) => (
+            <li key={text}>{text}</li>
+          ))}
       </ul>
-      <p>
-        Достаточность лимитов:{' '}
-        {b.usageFit === 'UNKNOWN'
-          ? 'неизвестна'
-          : b.usageFit === 'CONFIRMED'
-            ? 'подтверждена'
-            : b.usageFit}
-        .
-      </p>
-      <h3>Почему этот набор</h3>
-      <ReasonList rows={b.factualReasons} />
+      <details className={styles.sources}>
+        <summary>Все ограничения и основания</summary>
+        <ReasonList rows={b.factualReasons} />
+      </details>
       {!!b.policyReasons.length && (
         <details className={styles.sources}>
           <summary>Правила сравнения</summary>
           <ReasonList rows={b.policyReasons} />
         </details>
       )}
-      <h3>Стоимость набора</h3>
-      <dl className={styles.money}>
-        {[
-          ['К оплате сейчас', c.cashDueNow],
-          ['Полная предоплата', c.upfront],
-          ['Регулярно в месяц (эквивалент)', c.recurringMonthly],
-          [`Всего за ${profile.horizonMonths} мес.`, c.horizonTotal],
-        ].map(([label, value]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>{money(value, c.currency)}</dd>
-          </div>
-        ))}
-      </dl>
-      <p className={styles.muted}>
-        Месячный эквивалент — не помесячный платёж. Неизвестные налоги и
-        комиссии не равны нулю.
+      <p className={styles.totalPrice}>
+        В месяц (эквивалент):{' '}
+        <strong>{money(c.recurringMonthly, c.currency)}</strong>
       </p>
-      {!c.confirmedBudgetFit && (
-        <p className={styles.notice}>
-          Известные суммы — нижняя граница расходов. Полная стоимость может быть
-          выше.
+      <details className={styles.sources}>
+        <summary>Полный расчёт стоимости</summary>
+        <dl className={styles.money}>
+          {[
+            ['К оплате сейчас', c.cashDueNow],
+            ['Полная предоплата', c.upfront],
+            ['Регулярно в месяц (эквивалент)', c.recurringMonthly],
+            [`Всего за ${profile.horizonMonths} мес.`, c.horizonTotal],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{money(value, c.currency)}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className={styles.muted}>
+          Месячный эквивалент — не помесячный платёж. Неизвестные налоги и
+          комиссии не равны нулю.
         </p>
-      )}
+        {!c.confirmedBudgetFit && (
+          <p className={styles.notice}>
+            Известные суммы — нижняя граница расходов. Полная стоимость может
+            быть выше.
+          </p>
+        )}
+      </details>
       <details className={styles.sources}>
         <summary>Подробнее о расходах и экономии</summary>
         <dl className={styles.money}>
@@ -355,12 +400,14 @@ function BundleCard({
       </details>
       {!!b.conditions.length && (
         <>
-          <h3>Что важно проверить</h3>
-          <ul className={styles.list}>
-            {b.conditions.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
-          </ul>
+          <details className={styles.sources}>
+            <summary>Условия тарифов полностью</summary>
+            <ul className={styles.list}>
+              {b.conditions.map((s, i) => (
+                <li key={i}>{s}</li>
+              ))}
+            </ul>
+          </details>
         </>
       )}
       {!!b.portfolioActions.length && (
@@ -445,8 +492,10 @@ export function ResultsPage() {
           )}
           {!!completed.response.warnings.length && (
             <section className={styles.notice}>
-              <h2>Что важно учесть</h2>
-              <ReasonList rows={completed.response.warnings} />
+              <details className={styles.sources}>
+                <summary>О поиске и ограничениях каталога</summary>
+                <ReasonList rows={completed.response.warnings} />
+              </details>
             </section>
           )}
           {completed.response.bundles.map((b) => (

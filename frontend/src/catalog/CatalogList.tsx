@@ -8,6 +8,7 @@ import { Link, useSearchParams } from 'react-router';
 import { readAgents, readMeta, readModels, readProducts } from '../api/catalog';
 import { CatalogLayout, DateLabel, ErrorState, Loading } from './CatalogLayout';
 import styles from './Catalog.module.css';
+import { ProductSummary } from './ProductSummary';
 
 export function CatalogList() {
   const [params, setParams] = useSearchParams();
@@ -295,7 +296,26 @@ export function CatalogList() {
                         </p>
                       )}
                       {'slug' in item && (
-                        <p>Функции, тарифы, ограничения и источники →</p>
+                        <>
+                          <ProductSummary
+                            slug={item.slug}
+                            version={version!}
+                            regionId={regionId}
+                            currency={currency}
+                            priceKind={priceKind}
+                          />
+                          <Link
+                            className={styles.detailLink}
+                            to={`/catalog/${encodeURIComponent(item.slug)}?version=${version}`}
+                          >
+                            Подробнее
+                            <span className={styles.srOnly}>
+                              {' '}
+                              о {item.name}
+                            </span>{' '}
+                            →
+                          </Link>
+                        </>
                       )}
                     </article>
                   ))}

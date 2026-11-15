@@ -81,6 +81,13 @@ test.describe.serial('CE reviewed expansion with real backend', () => {
     await expect(
       page.getByRole('link', { name: 'Higgsfield', exact: true }),
     ).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'Источник цены', exact: true }).first(),
+    ).toBeVisible();
+    await page.screenshot({
+      path: path.join(process.env.COMPASS_E2E_DIR!, 'ux-catalog.png'),
+      fullPage: true,
+    });
     expect(
       (
         await (
@@ -178,21 +185,18 @@ test.describe.serial('CE reviewed expansion with real backend', () => {
       page,
     }) => {
       await page.goto('/onboarding');
-      await page.getByRole('button', { name: /Настроить самому/ }).click();
+      await page.getByRole('button', { name: /Своё/ }).click();
       for (const name of names) {
         await page.getByLabel(name, { exact: true }).check();
       }
-      await page
-        .getByRole('button', { name: 'Продолжить', exact: true })
-        .click();
+      await page.getByText('Дополнительные настройки', { exact: true }).click();
       await page.getByLabel('Страна покупки (код)').fill('US');
       await page.getByLabel('Частота использования').selectOption('WEEKLY');
-      await page.getByText('Дополнительные настройки', { exact: true }).click();
       await page.getByLabel('Язык интерфейса (код)').fill('en');
       await page.getByLabel('Способ покупки').fill('WEB');
       await expect(page.getByRole('alert')).toHaveCount(0);
-      await page.getByLabel('Валюта бюджета').fill('USD');
-      await page.getByLabel('Месячный бюджет на весь AI').fill('100');
+      await page.getByLabel('Валюта бюджета').selectOption('USD');
+      await page.getByLabel('Бюджет в месяц').fill('100');
       await page.getByLabel('Доступная предоплата').fill('300');
       const response = page.waitForResponse((r) =>
         r.url().endsWith('/api/v1/recommendations/preview'),
@@ -264,6 +268,100 @@ test.describe.serial('CE reviewed expansion with real backend', () => {
         path: path.join(process.env.COMPASS_E2E_DIR!, `ce-detail-${width}.png`),
         fullPage: true,
       });
+    });
+  }
+  for (const [role, remove, budget, goals] of [
+    [
+      'Студент + код Учиться и создавать',
+      ['Поиск информации'],
+      '20',
+      ['study', 'development', 'presentations'],
+    ],
+    [
+      'Контент-креатор Изображения, видео и звук',
+      ['Монтаж видео', 'Генерация музыки'],
+      '50',
+      ['images', 'video', 'voice'],
+    ],
+  ] as const) {
+    test(`single-page preset remains editable: ${role}`, async ({ page }) => {
+      await page.setViewportSize({
+        width: budget === '20' ? 1440 : 390,
+        height: 1000,
+      });
+      await page.goto('/onboarding');
+      const preset = page.getByRole('button', { name: role, exact: true });
+      await preset.click();
+      for (const name of remove)
+        await page.getByRole('checkbox', { name, exact: true }).uncheck();
+      await expect(preset).toHaveAttribute('aria-pressed', 'true');
+      await expect(
+        page.getByText(/Основа:.*Цели изменены вручную/),
+      ).toBeVisible();
+      await expect(
+        page.getByText('Точная настройка целей').locator('..'),
+      ).not.toHaveAttribute('open');
+      await page.getByLabel('Бюджет в месяц').fill(budget);
+      await page.getByLabel('Валюта бюджета').selectOption('USD');
+      await page.getByText('Дополнительные настройки', { exact: true }).click();
+      await page.getByLabel('Страна покупки (код)').fill('US');
+      await page.getByLabel('Частота использования').selectOption('WEEKLY');
+      await page.getByLabel('Доступная предоплата').fill(budget);
+      await page.getByLabel('Язык интерфейса (код)').fill('en');
+      await page.getByLabel('Способ покупки').fill('WEB');
+      await page.getByText('Дополнительные настройки', { exact: true }).click();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: path.join(process.env.COMPASS_E2E_DIR!, `ux-form-${budget}.png`),
+        fullPage: true,
+      });
+      const pending = page.waitForResponse((r) =>
+        r.url().endsWith('/api/v1/recommendations/preview'),
+      );
+      await page.getByRole('button', { name: 'Подобрать AI-набор' }).click();
+      const response = await pending;
+      expect(response.status()).toBe(200);
+      expect(
+        response
+          .request()
+          .postDataJSON()
+          .needs.map((n: { id: string }) => n.id)
+          .sort(),
+      ).toEqual([...goals].sort());
+      expect(response.request().postDataJSON().budget.monthlyMax).toBe(budget);
+      const result: RecommendationResult = await response.json();
+      expect(result.catalogVersion).toBe(expanded);
+      expect(result.datasetKind).toBe('REVIEWED');
+      expect(result.status).toBe('CONDITIONAL_ONLY');
+      expect(result.bundles).toHaveLength(0);
+      await expect(page.getByTestId('bundle-card')).toHaveCount(
+        result.conditionalAlternatives.length,
+      );
+      await expect(page.getByText(/От 0 USD \/ мес\./).first()).toBeVisible();
+      await expect(
+        page.getByRole('link', { name: 'Источник цены', exact: true }).first(),
+      ).toBeVisible();
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page
+        .getByTestId('bundle-card')
+        .first()
+        .screenshot({
+          path: path.join(
+            process.env.COMPASS_E2E_DIR!,
+            `ux-result-${budget}.png`,
+          ),
+        });
+      await page.getByRole('link', { name: 'Изменить параметры' }).click();
+      await expect(preset).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.getByLabel('Бюджет в месяц')).toHaveValue(budget);
     });
   }
   test('rollback restores r2 while expanded links remain readable', async ({

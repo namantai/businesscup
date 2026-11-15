@@ -165,13 +165,13 @@
 .badge[data-status='CONDITIONAL'],
 .badge[data-status='CONFLICTED'],
 .warning {
-  background: #fff3d9;
-  border-color: #ceb271;
-  color: #704b0c;
+  background: #f3effb;
+  border-color: #d9ceec;
+  color: #584275;
 }
 .warning {
   padding: 14px 18px;
-  border: 1px solid #ceb271;
+  border: 1px solid #d9ceec;
   border-radius: 10px;
 }
 .evidenceLink {
@@ -376,4 +376,46 @@
   background: var(--purple);
   color: white;
   border-radius: 12px;
+}
+
+.productSummary {
+  flex: 1;
+}
+.productSummary .price {
+  font-size: 20px;
+  line-height: 1.35;
+  margin: 14px 0 5px;
+  letter-spacing: -0.02em;
+}
+.productSummary .small {
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 5px 0;
+}
+.purpose {
+  font-size: 14px;
+  color: var(--ink);
+}
+.priceObservation {
+  margin: 12px 0;
+}
+.card:has(.productSummary) {
+  display: flex;
+  flex-direction: column;
+}
+.detailLink {
+  display: block;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }

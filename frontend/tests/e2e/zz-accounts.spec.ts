@@ -78,17 +78,15 @@ async function request(
 }
 async function guestPreview(page: Page) {
   await page.goto('/onboarding');
-  await page.getByRole('button', { name: /Настроить самому/ }).click();
+  await page.getByRole('button', { name: /Своё/ }).click();
   await page.getByLabel('Разработка программ', { exact: true }).check();
-
-  await page.getByRole('button', { name: 'Продолжить' }).click();
+  await page.getByText('Дополнительные настройки', { exact: true }).click();
   await page.getByLabel('Страна покупки (код)').fill('KZ');
   await page.getByLabel('Частота использования').selectOption('WEEKLY');
-  await page.getByText('Дополнительные настройки', { exact: true }).click();
   await page.getByLabel('Язык интерфейса (код)').fill('ru');
   await page.getByLabel('Способ покупки').fill('WEB');
-  await page.getByLabel('Валюта бюджета').fill('USD');
-  await page.getByLabel('Месячный бюджет на весь AI').fill('20');
+  await page.getByLabel('Валюта бюджета').selectOption('USD');
+  await page.getByLabel('Бюджет в месяц').fill('20');
   await page.getByLabel('Доступная предоплата').fill('30');
   await page.getByRole('button', { name: 'Подобрать AI-набор' }).click();
   await expect(page).toHaveURL(/\/results$/);
@@ -194,12 +192,7 @@ test.describe('P06 isolated accounts and personal data', () => {
     await page
       .getByRole('button', { name: 'Открыть профиль и повторить подбор' })
       .click();
-    await page
-      .getByRole('button', { name: '3. Бюджет и предпочтения' })
-      .click();
-    await expect(page.getByLabel('Месячный бюджет на весь AI')).toHaveValue(
-      '20',
-    );
+    await expect(page.getByLabel('Бюджет в месяц')).toHaveValue('20');
     await page.getByRole('button', { name: 'Подобрать AI-набор' }).click();
     await expect(page).toHaveURL(/\/results$/);
   });

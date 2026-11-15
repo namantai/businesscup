@@ -25,6 +25,7 @@ export type CompletedPreview = {
 function useSessionState() {
   const [draft, setDraft] = useState(emptyDraft);
   const [step, setStep] = useState(0);
+  const [preset, setPreset] = useState('');
   const [completed, setCompleted] = useState<CompletedPreview | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -58,6 +59,7 @@ function useSessionState() {
     setCompleted(null);
     setError(null);
     setStep(0);
+    setPreset('');
   }, [cancel]);
   async function submit(catalog: BuilderCatalog) {
     if (request.current || Date.now() < retryAt) return false;
@@ -95,6 +97,7 @@ function useSessionState() {
     setCompleted(null);
     setError(null);
     setStep(1);
+    setPreset('');
   }
   function restore(value: CompletedPreview) {
     cancel();
@@ -102,10 +105,13 @@ function useSessionState() {
     setCompleted(value);
     setError(null);
     setStep(1);
+    setPreset('');
   }
   return {
     load,
     restore,
+    preset,
+    setPreset,
     draft,
     update,
     reset,

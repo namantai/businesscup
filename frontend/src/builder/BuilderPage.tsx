@@ -29,9 +29,9 @@ export function BuilderPage() {
     <CatalogLayout>
       <div className={styles.heading}>
         <p className={styles.eyebrow}>ТВОЙ ЛИЧНЫЙ AI-НАБОР</p>
-        <h1>Подберём то, что нужно тебе.</h1>
+        <h1>Подбери AI под свои цели и бюджет.</h1>
         <p className={styles.muted}>
-          Несколько целей. Один бюджет. Без промпта и регистрации.
+          Выбери цели, укажи бюджет и сравни варианты.
         </p>
       </div>
       {meta.isError ? (
@@ -72,8 +72,8 @@ function BuilderForm({
   const {
     draft,
     update,
-    step,
-    setStep,
+    preset: role,
+    setPreset: setRole,
     submit,
     pending,
     error,
@@ -82,22 +82,17 @@ function BuilderForm({
     reset,
   } = useBuilder();
   const navigate = useNavigate();
-  const [role, setRole] = useState('');
   const [advanced, setAdvanced] = useState(false);
   const [errors, setErrors] = useState<FieldError[]>([]);
   const summary = useRef<HTMLDivElement>(null);
-  const heading = useRef<HTMLHeadingElement>(null);
   const [clock, setClock] = useState(Date.now);
   const [outputText, setOutputText] = useState(
     draft.outputLanguages.join(', '),
   );
   useEffect(() => () => cancel(), [cancel]);
   useEffect(() => {
-    heading.current?.focus();
-  }, [step]);
-  useEffect(() => {
     if (errors.length) summary.current?.focus();
-  }, [errors, step]);
+  }, [errors]);
   useEffect(() => {
     if (!retryAt) return;
     const timer = window.setInterval(() => setClock(Date.now()), 1000);
@@ -106,17 +101,13 @@ function BuilderForm({
   const seconds = Math.max(0, Math.ceil((retryAt - clock) / 1000));
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) =>
     update((d) => ({ ...d, [key]: value }));
-  function check(targetStep?: number) {
-    const found = validateDraft(draft, catalog)
-      .map((e) => ({
-        ...e,
-        step: e.step === 0 && !e.field.startsWith('frequency-') ? 1 : 2,
-        field: e.field.startsWith('frequency-') ? 'globalFrequency' : e.field,
-      }))
-      .filter((e) => targetStep === undefined || e.step === targetStep);
+  function check() {
+    const found = validateDraft(draft, catalog).map((e) => ({
+      ...e,
+      field: e.field.startsWith('frequency-') ? 'globalFrequency' : e.field,
+    }));
     setErrors(found);
     if (found.length) {
-      setStep(found[0].step);
       setAdvanced(true);
       return false;
     }
@@ -136,26 +127,17 @@ function BuilderForm({
     </div>
   );
   const invalid = (id: string) => errors.some((e) => e.field === id);
-  const titles = ['Кто ты?', 'Для чего тебе AI?', 'Бюджет и предпочтения'];
+  const baseRole = roles.find((r) => r.id === role);
+  const customized =
+    baseRole &&
+    baseRole.needs.length > 0 &&
+    [...draft.needs.map((n) => n.id)].sort().join() !==
+      presetNeeds(baseRole, catalog.needs, [])
+        .map((n) => n.id)
+        .sort()
+        .join();
   return (
     <>
-      <ol className={styles.steps} aria-label="Шаги анкеты">
-        {titles.map((title, index) => (
-          <li key={title}>
-            <button
-              type="button"
-              aria-label={`${index + 1}. ${title}`}
-              aria-current={step === index ? 'step' : undefined}
-              onClick={() => {
-                setErrors([]);
-                setStep(index);
-              }}
-            >
-              {index + 1}. {['Роль', 'Цели', 'Бюджет'][index]}
-            </button>
-          </li>
-        ))}
-      </ol>
       <form
         className={styles.panel}
         noValidate
@@ -170,12 +152,6 @@ function BuilderForm({
           if (succeeded) navigate('/results');
         }}
       >
-        <h2 ref={heading} tabIndex={-1}>
-          {titles[step]}
-        </h2>
-        <p className={styles.muted}>
-          Шаг {step + 1} из 3. Все настройки можно изменить.
-        </p>
         {!!errors.length && (
           <div
             className={styles.error}
@@ -187,9 +163,7 @@ function BuilderForm({
             <ul>
               {errors.map((e, i) => (
                 <li key={i}>
-                  <a href={`#${e.field}`} onClick={() => setStep(e.step)}>
-                    {e.message}
-                  </a>
+                  <a href={`#${e.field}`}>{e.message}</a>
                 </li>
               ))}
             </ul>
@@ -199,94 +173,122 @@ function BuilderForm({
           disabled={pending}
           style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
         >
-          {step === 0 && (
-            <>
+          <section
+            className={styles.formSection}
+            aria-labelledby="role-heading"
+          >
+            <h2 id="role-heading">
+              <span>01</span> Кто ты?
+            </h2>
+            <p className={styles.muted}>
+              Роль помогает быстро начать. Вы можете изменить цели ниже.
+            </p>
+            <div className={styles.roles}>
+              {roles.map((r) => (
+                <button
+                  type="button"
+                  key={r.id}
+                  className={styles.roleCard}
+                  aria-pressed={role === r.id}
+                  onClick={() => {
+                    setRole(r.id);
+                    if (r.needs.length)
+                      set('needs', presetNeeds(r, catalog.needs, draft.needs));
+                    setErrors([]);
+                  }}
+                >
+                  <span className={styles.roleSymbol} aria-hidden="true">
+                    {r.symbol}
+                  </span>
+                  <strong>{r.label}</strong>
+                  <span>{r.description}</span>
+                  <span className={styles.roleArrow} aria-hidden="true">
+                    ↗
+                  </span>
+                </button>
+              ))}
+            </div>
+            <p className={styles.muted}>
+              При смене пресета набор целей заменится. Остальные ответы
+              сохранятся.
+            </p>
+          </section>
+          <section
+            className={styles.formSection}
+            aria-labelledby="goals-heading"
+          >
+            <h2 id="goals-heading">
+              <span>02</span> Для чего тебе AI?
+            </h2>
+            {baseRole && (
+              <p className={styles.presetNote} role="status">
+                Основа: {baseRole.label}.{' '}
+                {customized
+                  ? 'Цели изменены вручную.'
+                  : 'Цели можно менять вручную.'}
+              </p>
+            )}
+            <p id="needs" tabIndex={-1}>
+              Выбери несколько целей. Пресет — только начало: любой пункт можно
+              изменить.
+            </p>
+            {role &&
+              roles
+                .find((r) => r.id === role)
+                ?.needs.some(
+                  (id) => !catalog.needs.some((n) => n.id === id),
+                ) && (
+                <p className={styles.notice}>
+                  Не все цели этого профиля описаны в текущем каталоге. Мы
+                  выбрали только доступные. Проверь список перед продолжением.
+                </p>
+              )}
+            <div className={styles.goalChips}>
+              {catalog.needs.map((need) => {
+                const selected = draft.needs.find((n) => n.id === need.id);
+                return (
+                  <div className={styles.goalChip} key={need.id}>
+                    <label className={styles.check}>
+                      <input
+                        type="checkbox"
+                        checked={!!selected}
+                        onChange={(e) =>
+                          set(
+                            'needs',
+                            e.target.checked
+                              ? [
+                                  ...draft.needs,
+                                  {
+                                    id: need.id,
+                                    weight: 3,
+                                    required: true,
+                                    intensity: '',
+                                  },
+                                ]
+                              : draft.needs.filter((n) => n.id !== need.id),
+                          )
+                        }
+                      />
+                      {need.name}
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+            <details className={styles.goalDetails}>
+              <summary>Точная настройка целей</summary>
               <p className={styles.muted}>
-                Начнём с твоего профиля. Это подсказка, а не ограничение.
+                Приоритет, обязательность и частота для каждой выбранной цели.
               </p>
-              <div className={styles.roles}>
-                {roles.map((r) => (
-                  <button
-                    type="button"
-                    key={r.id}
-                    className={styles.roleCard}
-                    aria-pressed={role === r.id}
-                    onClick={() => {
-                      setRole(r.id);
-                      if (r.needs.length)
-                        set(
-                          'needs',
-                          presetNeeds(r, catalog.needs, draft.needs),
-                        );
-                      setErrors([]);
-                      setStep(1);
-                    }}
-                  >
-                    <span className={styles.roleSymbol} aria-hidden="true">
-                      {r.symbol}
-                    </span>
-                    <strong>{r.label}</strong>
-                    <span>{r.description}</span>
-                    <span className={styles.roleArrow} aria-hidden="true">
-                      ↗
-                    </span>
-                  </button>
-                ))}
-              </div>
-              <p className={styles.muted}>
-                Роль не подтверждает студенческую льготу. Её условия проверяются
-                отдельно.
-              </p>
-            </>
-          )}
-          {step === 1 && (
-            <>
-              <p id="needs" tabIndex={-1}>
-                Выбери несколько целей. Пресет — только начало: любой пункт
-                можно изменить.
-              </p>
-              {role &&
-                roles
-                  .find((r) => r.id === role)
-                  ?.needs.some(
-                    (id) => !catalog.needs.some((n) => n.id === id),
-                  ) && (
-                  <p className={styles.notice}>
-                    Не все цели этого профиля описаны в текущем каталоге. Мы
-                    выбрали только доступные. Проверь список перед продолжением.
-                  </p>
-                )}
               <div className={styles.grid}>
                 {catalog.needs.map((need) => {
                   const selected = draft.needs.find((n) => n.id === need.id);
                   return (
-                    <div className={styles.option} key={need.id}>
-                      <label className={styles.check}>
-                        <input
-                          type="checkbox"
-                          checked={!!selected}
-                          onChange={(e) =>
-                            set(
-                              'needs',
-                              e.target.checked
-                                ? [
-                                    ...draft.needs,
-                                    {
-                                      id: need.id,
-                                      weight: 3,
-                                      required: true,
-                                      intensity: '',
-                                    },
-                                  ]
-                                : draft.needs.filter((n) => n.id !== need.id),
-                            )
-                          }
-                        />
-                        {need.name}
-                      </label>
+                    <div key={need.id}>
+                      {' '}
                       {selected && (
-                        <details>
-                          <summary>Настроить цель</summary>
+                        <div className={styles.option}>
+                          <h3>{need.name}</h3>
                           <label className={styles.field}>
                             Приоритет: {need.name}
                             <select
@@ -356,12 +358,15 @@ function BuilderForm({
                               <option value="DAILY">Каждый день</option>
                             </select>,
                           )}
-                        </details>
+                        </div>
                       )}
                     </div>
                   );
                 })}
               </div>
+            </details>
+            <details className={styles.goalDetails}>
+              <summary>Не нашли нужную цель?</summary>
               <aside className={styles.notice}>
                 Показаны только цели текущего каталога. Если нужной цели нет, мы
                 не сможем проверить её покрытие.
@@ -375,10 +380,99 @@ function BuilderForm({
                   В каталоге нет одной из моих обязательных потребностей
                 </label>
               </aside>
-            </>
-          )}
-          {step === 2 && (
-            <>
+            </details>
+          </section>
+          <section
+            className={styles.formSection}
+            aria-labelledby="budget-heading"
+          >
+            <h2 id="budget-heading">
+              <span>03</span> Бюджет
+            </h2>
+            <div className={styles.grid}>
+              {field(
+                'monthlyMax',
+                'Бюджет в месяц',
+                <input
+                  id="monthlyMax"
+                  placeholder="например, 20"
+                  inputMode="decimal"
+                  value={draft.budget.monthlyMax}
+                  aria-invalid={invalid('monthlyMax')}
+                  onChange={(e) =>
+                    set('budget', {
+                      ...draft.budget,
+                      monthlyMax: e.target.value,
+                    })
+                  }
+                />,
+              )}
+              {field(
+                'currency',
+                'Валюта бюджета',
+                <select
+                  id="currency"
+                  value={draft.budget.currency}
+                  aria-invalid={invalid('currency')}
+                  onChange={(e) =>
+                    set('budget', {
+                      ...draft.budget,
+                      currency: e.target.value.toUpperCase(),
+                    })
+                  }
+                >
+                  <option value="">Выберите валюту</option>
+                  {[
+                    ...new Set(
+                      [
+                        'USD',
+                        'KZT',
+                        'CNY',
+                        'EUR',
+                        draft.budget.currency,
+                      ].filter(Boolean),
+                    ),
+                  ].map((code) => (
+                    <option key={code} value={code}>
+                      {code}
+                    </option>
+                  ))}
+                </select>,
+              )}
+            </div>
+            <div className={styles.budgetShortcuts} aria-label="Быстрый бюджет">
+              {['0', '10', '20', '50', '100'].map((value) => (
+                <button
+                  type="button"
+                  key={value}
+                  aria-label={`Бюджет ${value}`}
+                  aria-pressed={draft.budget.monthlyMax === value}
+                  onClick={() =>
+                    set('budget', { ...draft.budget, monthlyMax: value })
+                  }
+                >
+                  {value}
+                </button>
+              ))}
+            </div>
+            <p className={styles.muted}>
+              0 — ищем бесплатные варианты. Бюджет включает текущие подписки.
+              Базовая цена может отличаться от суммы к оплате.
+            </p>
+          </section>
+          <section className={styles.formSection}>
+            <details
+              className={styles.advanced}
+              open={advanced}
+              onToggle={(e) => setAdvanced(e.currentTarget.open)}
+            >
+              <summary>Дополнительные настройки</summary>
+              <p className={styles.muted}>
+                Перед подбором укажите страну, частоту, предоплату, язык и
+                способ покупки. Мы не определяем их за вас. Остальное — по
+                желанию.
+              </p>
+
               <div className={styles.grid}>
                 {field(
                   'country',
@@ -392,22 +486,6 @@ function BuilderForm({
                     aria-invalid={invalid('country')}
                     onChange={(e) =>
                       set('country', e.target.value.toUpperCase())
-                    }
-                  />,
-                )}
-                {field(
-                  'monthlyMax',
-                  'Месячный бюджет на весь AI',
-                  <input
-                    id="monthlyMax"
-                    inputMode="decimal"
-                    value={draft.budget.monthlyMax}
-                    aria-invalid={invalid('monthlyMax')}
-                    onChange={(e) =>
-                      set('budget', {
-                        ...draft.budget,
-                        monthlyMax: e.target.value,
-                      })
                     }
                   />,
                 )}
@@ -459,421 +537,379 @@ function BuilderForm({
                     <option value="DAILY">Каждый день</option>
                   </select>,
                 )}
+                {field(
+                  'upfrontMax',
+                  'Доступная предоплата',
+                  <input
+                    id="upfrontMax"
+                    inputMode="decimal"
+                    value={draft.budget.upfrontMax}
+                    aria-invalid={invalid('upfrontMax')}
+                    onChange={(e) =>
+                      set('budget', {
+                        ...draft.budget,
+                        upfrontMax: e.target.value,
+                      })
+                    }
+                  />,
+                )}
               </div>
               <p className={styles.muted}>
-                Бюджет: {draft.budget.currency || 'выбери валюту ниже'}. 0 —
-                поиск бесплатных вариантов. Частота не задаёт количество
-                запросов.
+                Укажите 0 для поиска бесплатных вариантов. Бюджет включает
+                сохраняемые подписки и применимую плату Compass. Разные валюты
+                сравниваются только при наличии подтверждённого курса.
               </p>
-              <details
-                className={styles.advanced}
-                open={advanced}
-                onToggle={(e) => setAdvanced(e.currentTarget.open)}
-              >
-                <summary>Дополнительные настройки</summary>
-                <p className={styles.muted}>
-                  Укажи валюту, доступную предоплату, язык и способ покупки —
-                  без них расчёт невозможен. Остальное можно оставить без
-                  изменений.
-                </p>
-
-                <div className={styles.grid}>
-                  {field(
-                    'currency',
-                    'Валюта бюджета',
-                    <input
-                      id="currency"
-                      placeholder="USD или KZT"
-                      maxLength={3}
-                      value={draft.budget.currency}
-                      aria-invalid={invalid('currency')}
-                      onChange={(e) =>
-                        set('budget', {
-                          ...draft.budget,
-                          currency: e.target.value.toUpperCase(),
-                        })
-                      }
-                    />,
-                  )}
-
-                  {field(
-                    'upfrontMax',
-                    'Доступная предоплата',
-                    <input
-                      id="upfrontMax"
-                      inputMode="decimal"
-                      value={draft.budget.upfrontMax}
-                      aria-invalid={invalid('upfrontMax')}
-                      onChange={(e) =>
-                        set('budget', {
-                          ...draft.budget,
-                          upfrontMax: e.target.value,
-                        })
-                      }
-                    />,
-                  )}
-                </div>
-                <p className={styles.muted}>
-                  Укажите 0 для поиска бесплатных вариантов. Бюджет включает
-                  сохраняемые подписки и применимую плату Compass. Разные валюты
-                  сравниваются только при наличии подтверждённого курса.
-                </p>
-                <label className={styles.check}>
-                  <input
-                    type="checkbox"
-                    checked={draft.allowAnnualBilling}
+              <label className={styles.check}>
+                <input
+                  type="checkbox"
+                  checked={draft.allowAnnualBilling}
+                  onChange={(e) => set('allowAnnualBilling', e.target.checked)}
+                />
+                Разрешить годовую оплату в пределах предоплаты
+              </label>
+              <div className={styles.grid}>
+                <label className={styles.field}>
+                  Период планирования
+                  <select
+                    value={draft.horizonMonths}
                     onChange={(e) =>
-                      set('allowAnnualBilling', e.target.checked)
+                      set('horizonMonths', Number(e.target.value))
                     }
-                  />
-                  Разрешить годовую оплату в пределах предоплаты
+                  >
+                    {[1, 3, 6, 12, 24].map((n) => (
+                      <option value={n} key={n}>
+                        {n} мес.
+                      </option>
+                    ))}
+                  </select>
                 </label>
-                <div className={styles.grid}>
-                  <label className={styles.field}>
-                    Период планирования
-                    <select
-                      value={draft.horizonMonths}
-                      onChange={(e) =>
-                        set('horizonMonths', Number(e.target.value))
-                      }
-                    >
-                      {[1, 3, 6, 12, 24].map((n) => (
-                        <option value={n} key={n}>
-                          {n} мес.
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className={styles.field}>
-                    Максимум инструментов
-                    <select
-                      value={draft.maxTools}
-                      onChange={(e) => set('maxTools', Number(e.target.value))}
-                    >
-                      {[1, 2, 3, 4].map((n) => (
-                        <option key={n}>{n}</option>
-                      ))}
-                    </select>
-                  </label>
+                <label className={styles.field}>
+                  Максимум инструментов
+                  <select
+                    value={draft.maxTools}
+                    onChange={(e) => set('maxTools', Number(e.target.value))}
+                  >
+                    {[1, 2, 3, 4].map((n) => (
+                      <option key={n}>{n}</option>
+                    ))}
+                  </select>
+                </label>
 
-                  <label className={styles.field}>
-                    Студенческий статус
-                    <select
-                      value={draft.studentStatus}
-                      onChange={(e) =>
-                        set(
-                          'studentStatus',
-                          e.target.value as Draft['studentStatus'],
-                        )
-                      }
-                    >
-                      <option value="NONE">Не заявляю льготу</option>
-                      <option value="SELF_DECLARED">
-                        Я студент, проверку провайдера не проходил
-                      </option>
-                      <option value="USER_REPORTED_PROVIDER_VERIFIED">
-                        Сообщаю, что прошёл проверку провайдера
-                      </option>
-                    </select>
-                  </label>
-                </div>
-                <p className={styles.notice}>
-                  Даже заявленная проверка не подтверждает льготу автоматически.
-                  Предложения с условиями отображаются отдельно и требуют
-                  проверки у провайдера.
-                </p>
-                <ExistingSubscriptions catalog={catalog} />
+                <label className={styles.field}>
+                  Студенческий статус
+                  <select
+                    value={draft.studentStatus}
+                    onChange={(e) =>
+                      set(
+                        'studentStatus',
+                        e.target.value as Draft['studentStatus'],
+                      )
+                    }
+                  >
+                    <option value="NONE">Не заявляю льготу</option>
+                    <option value="SELF_DECLARED">
+                      Я студент, проверку провайдера не проходил
+                    </option>
+                    <option value="USER_REPORTED_PROVIDER_VERIFIED">
+                      Сообщаю, что прошёл проверку провайдера
+                    </option>
+                  </select>
+                </label>
+              </div>
+              <p className={styles.notice}>
+                Даже заявленная проверка не подтверждает льготу автоматически.
+                Предложения с условиями отображаются отдельно и требуют проверки
+                у провайдера.
+              </p>
+              <ExistingSubscriptions catalog={catalog} />
 
+              <div className={styles.grid}>
+                {field(
+                  'interfaceLanguage',
+                  'Язык интерфейса (код)',
+                  <input
+                    id="interfaceLanguage"
+                    placeholder="ru"
+                    value={draft.interfaceLanguage}
+                    aria-invalid={invalid('interfaceLanguage')}
+                    onChange={(e) =>
+                      set('interfaceLanguage', e.target.value.trim())
+                    }
+                    list="language-codes"
+                  />,
+                )}
+                {field(
+                  'outputLanguages',
+                  'Языки ответов (необязательно)',
+                  <input
+                    id="outputLanguages"
+                    placeholder="ru, en"
+                    value={outputText}
+                    onChange={(e) => {
+                      setOutputText(e.target.value);
+                      set(
+                        'outputLanguages',
+                        e.target.value
+                          .split(',')
+                          .map((x) => x.trim())
+                          .filter(Boolean),
+                      );
+                    }}
+                  />,
+                )}
+                {field(
+                  'purchaseChannel',
+                  'Способ покупки',
+                  <input
+                    id="purchaseChannel"
+                    list="purchase-channels"
+                    placeholder="Выберите или укажите канал"
+                    value={draft.purchaseChannel}
+                    onChange={(e) => set('purchaseChannel', e.target.value)}
+                  />,
+                )}
+              </div>
+              <datalist id="language-codes">
+                <option value="ru">Русский</option>
+                <option value="en">Английский</option>
+                <option value="kk">Казахский</option>
+              </datalist>
+              <datalist id="purchase-channels">
+                {[...new Set(catalog.offers.map((o) => o.channel))].map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+              <p className={styles.muted}>
+                Коды: Казахстан — KZ, США — US; русский — ru, английский — en,
+                казахский — kk. Способ покупки берётся из предложений каталога.
+                Неподтверждённая доступность в вашей стране будет показана
+                отдельно.
+              </p>
+              <fieldset>
+                <legend>Где будете использовать AI (необязательно)</legend>
                 <div className={styles.grid}>
-                  {field(
-                    'interfaceLanguage',
-                    'Язык интерфейса (код)',
-                    <input
-                      id="interfaceLanguage"
-                      placeholder="ru"
-                      value={draft.interfaceLanguage}
-                      aria-invalid={invalid('interfaceLanguage')}
-                      onChange={(e) =>
-                        set('interfaceLanguage', e.target.value.trim())
-                      }
-                      list="language-codes"
-                    />,
-                  )}
-                  {field(
-                    'outputLanguages',
-                    'Языки ответов (необязательно)',
-                    <input
-                      id="outputLanguages"
-                      placeholder="ru, en"
-                      value={outputText}
-                      onChange={(e) => {
-                        setOutputText(e.target.value);
-                        set(
-                          'outputLanguages',
-                          e.target.value
-                            .split(',')
-                            .map((x) => x.trim())
-                            .filter(Boolean),
-                        );
-                      }}
-                    />,
-                  )}
-                  {field(
-                    'purchaseChannel',
-                    'Способ покупки',
-                    <input
-                      id="purchaseChannel"
-                      list="purchase-channels"
-                      placeholder="Выберите или укажите канал"
-                      value={draft.purchaseChannel}
-                      onChange={(e) => set('purchaseChannel', e.target.value)}
-                    />,
-                  )}
+                  {[
+                    ['WEB', 'Браузер'],
+                    ['WINDOWS', 'Windows'],
+                    ['MACOS', 'macOS'],
+                    ['LINUX', 'Linux'],
+                    ['ANDROID', 'Android'],
+                    ['IOS', 'iOS'],
+                    ['IDE', 'Редактор кода'],
+                    ['TERMINAL', 'Терминал'],
+                  ].map(([code, label]) => (
+                    <label className={styles.check} key={code}>
+                      <input
+                        type="checkbox"
+                        checked={draft.requirements.platforms.includes(code)}
+                        onChange={(e) =>
+                          set('requirements', {
+                            ...draft.requirements,
+                            platforms: e.target.checked
+                              ? [...draft.requirements.platforms, code]
+                              : draft.requirements.platforms.filter(
+                                  (x) => x !== code,
+                                ),
+                          })
+                        }
+                      />
+                      {label}
+                    </label>
+                  ))}
                 </div>
-                <datalist id="language-codes">
-                  <option value="ru">Русский</option>
-                  <option value="en">Английский</option>
-                  <option value="kk">Казахский</option>
-                </datalist>
-                <datalist id="purchase-channels">
-                  {[...new Set(catalog.offers.map((o) => o.channel))].map(
-                    (c) => (
-                      <option key={c} value={c} />
-                    ),
-                  )}
-                </datalist>
-                <p className={styles.muted}>
-                  Коды: Казахстан — KZ, США — US; русский — ru, английский — en,
-                  казахский — kk. Способ покупки берётся из предложений
-                  каталога. Неподтверждённая доступность в вашей стране будет
-                  показана отдельно.
-                </p>
-                <fieldset>
-                  <legend>Где будете использовать AI (необязательно)</legend>
-                  <div className={styles.grid}>
-                    {[
-                      ['WEB', 'Браузер'],
-                      ['WINDOWS', 'Windows'],
-                      ['MACOS', 'macOS'],
-                      ['LINUX', 'Linux'],
-                      ['ANDROID', 'Android'],
-                      ['IOS', 'iOS'],
-                      ['IDE', 'Редактор кода'],
-                      ['TERMINAL', 'Терминал'],
-                    ].map(([code, label]) => (
-                      <label className={styles.check} key={code}>
+              </fieldset>
+              <label className={styles.field}>
+                Конфиденциальность
+                <select
+                  value={draft.requirements.privacy}
+                  onChange={(e) =>
+                    set('requirements', {
+                      ...draft.requirements,
+                      privacy: e.target
+                        .value as Draft['requirements']['privacy'],
+                    })
+                  }
+                >
+                  <option value="NO_STRICT_REQUIREMENT">
+                    Без требования локальной обработки
+                  </option>
+                  <option value="LOCAL_ONLY">
+                    Только локальная обработка данных
+                  </option>
+                </select>
+              </label>
+              <h3 id="features" tabIndex={-1}>
+                Дополнительные возможности
+              </h3>
+              <div className={styles.grid}>
+                {catalog.capabilities
+                  .filter(
+                    (c) =>
+                      c.category === 'FUNCTION' || c.category === 'LICENSE',
+                  )
+                  .map((c) => {
+                    const f = draft.requirements.features.find(
+                      (x) => x.capabilityId === c.id,
+                    );
+                    return (
+                      <div className={styles.option} key={c.id}>
+                        <label className={styles.check}>
+                          <input
+                            type="checkbox"
+                            checked={!!f}
+                            onChange={(e) =>
+                              set('requirements', {
+                                ...draft.requirements,
+                                features: e.target.checked
+                                  ? [
+                                      ...draft.requirements.features,
+                                      {
+                                        capabilityId: c.id,
+                                        weight: 3,
+                                        required: true,
+                                      },
+                                    ]
+                                  : draft.requirements.features.filter(
+                                      (x) => x.capabilityId !== c.id,
+                                    ),
+                              })
+                            }
+                          />
+                          Возможность: {c.name}
+                        </label>
+                        {f && (
+                          <>
+                            <label className={styles.check}>
+                              <input
+                                type="checkbox"
+                                checked={f.required}
+                                onChange={(e) =>
+                                  set('requirements', {
+                                    ...draft.requirements,
+                                    features: draft.requirements.features.map(
+                                      (x) =>
+                                        x.capabilityId === c.id
+                                          ? {
+                                              ...x,
+                                              required: e.target.checked,
+                                            }
+                                          : x,
+                                    ),
+                                  })
+                                }
+                              />
+                              Обязательна: {c.name}
+                            </label>
+                            <label className={styles.field}>
+                              Важность: {c.name}
+                              <select
+                                value={f.weight}
+                                onChange={(e) =>
+                                  set('requirements', {
+                                    ...draft.requirements,
+                                    features: draft.requirements.features.map(
+                                      (x) =>
+                                        x.capabilityId === c.id
+                                          ? {
+                                              ...x,
+                                              weight: Number(e.target.value),
+                                            }
+                                          : x,
+                                    ),
+                                  })
+                                }
+                              >
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <option key={n}>{n}</option>
+                                ))}
+                              </select>
+                            </label>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+              <p className={styles.notice}>
+                Частота использования не задаёт количество запросов
+                автоматически. Если лимиты важны, укажите объём ниже; иначе их
+                достаточность может остаться неизвестной.
+              </p>
+              <details>
+                <summary>Уточнить месячный объём действий</summary>
+                {[
+                  ...new Map(
+                    catalog.limits.map((l) => [
+                      `${l.capabilityId}:${l.mode}`,
+                      l,
+                    ]),
+                  ).values(),
+                ].map((l) => {
+                  const selected = draft.requirements.usage.find(
+                    (u) =>
+                      u.capabilityId === l.capabilityId && u.mode === l.mode,
+                  );
+                  const label = `${catalog.capabilities.find((c) => c.id === l.capabilityId)?.name ?? l.capabilityId} · ${l.mode}`;
+                  return (
+                    <div key={label}>
+                      <label className={styles.check}>
                         <input
                           type="checkbox"
-                          checked={draft.requirements.platforms.includes(code)}
+                          checked={!!selected}
                           onChange={(e) =>
                             set('requirements', {
                               ...draft.requirements,
-                              platforms: e.target.checked
-                                ? [...draft.requirements.platforms, code]
-                                : draft.requirements.platforms.filter(
-                                    (x) => x !== code,
+                              usage: e.target.checked
+                                ? [
+                                    ...draft.requirements.usage,
+                                    {
+                                      capabilityId: l.capabilityId,
+                                      mode: l.mode,
+                                      unit: 'actions',
+                                      monthlyQuantity: '',
+                                      required: true,
+                                    },
+                                  ]
+                                : draft.requirements.usage.filter(
+                                    (u) => u !== selected,
                                   ),
                             })
                           }
                         />
                         {label}
                       </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <label className={styles.field}>
-                  Конфиденциальность
-                  <select
-                    value={draft.requirements.privacy}
-                    onChange={(e) =>
-                      set('requirements', {
-                        ...draft.requirements,
-                        privacy: e.target
-                          .value as Draft['requirements']['privacy'],
-                      })
-                    }
-                  >
-                    <option value="NO_STRICT_REQUIREMENT">
-                      Без требования локальной обработки
-                    </option>
-                    <option value="LOCAL_ONLY">
-                      Только локальная обработка данных
-                    </option>
-                  </select>
-                </label>
-                <h3 id="features" tabIndex={-1}>
-                  Дополнительные возможности
-                </h3>
-                <div className={styles.grid}>
-                  {catalog.capabilities
-                    .filter(
-                      (c) =>
-                        c.category === 'FUNCTION' || c.category === 'LICENSE',
-                    )
-                    .map((c) => {
-                      const f = draft.requirements.features.find(
-                        (x) => x.capabilityId === c.id,
-                      );
-                      return (
-                        <div className={styles.option} key={c.id}>
-                          <label className={styles.check}>
-                            <input
-                              type="checkbox"
-                              checked={!!f}
-                              onChange={(e) =>
-                                set('requirements', {
-                                  ...draft.requirements,
-                                  features: e.target.checked
-                                    ? [
-                                        ...draft.requirements.features,
-                                        {
-                                          capabilityId: c.id,
-                                          weight: 3,
-                                          required: true,
-                                        },
-                                      ]
-                                    : draft.requirements.features.filter(
-                                        (x) => x.capabilityId !== c.id,
-                                      ),
-                                })
-                              }
-                            />
-                            {c.name}
-                          </label>
-                          {f && (
-                            <>
-                              <label className={styles.check}>
-                                <input
-                                  type="checkbox"
-                                  checked={f.required}
-                                  onChange={(e) =>
-                                    set('requirements', {
-                                      ...draft.requirements,
-                                      features: draft.requirements.features.map(
-                                        (x) =>
-                                          x.capabilityId === c.id
-                                            ? {
-                                                ...x,
-                                                required: e.target.checked,
-                                              }
-                                            : x,
-                                      ),
-                                    })
-                                  }
-                                />
-                                Обязательна: {c.name}
-                              </label>
-                              <label className={styles.field}>
-                                Важность: {c.name}
-                                <select
-                                  value={f.weight}
-                                  onChange={(e) =>
-                                    set('requirements', {
-                                      ...draft.requirements,
-                                      features: draft.requirements.features.map(
-                                        (x) =>
-                                          x.capabilityId === c.id
-                                            ? {
-                                                ...x,
-                                                weight: Number(e.target.value),
-                                              }
-                                            : x,
-                                      ),
-                                    })
-                                  }
-                                >
-                                  {[1, 2, 3, 4, 5].map((n) => (
-                                    <option key={n}>{n}</option>
-                                  ))}
-                                </select>
-                              </label>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-                <p className={styles.notice}>
-                  Частота использования не задаёт количество запросов
-                  автоматически. Если лимиты важны, укажите объём ниже; иначе их
-                  достаточность может остаться неизвестной.
-                </p>
-                <details>
-                  <summary>Уточнить месячный объём действий</summary>
-                  {[
-                    ...new Map(
-                      catalog.limits.map((l) => [
-                        `${l.capabilityId}:${l.mode}`,
-                        l,
-                      ]),
-                    ).values(),
-                  ].map((l) => {
-                    const selected = draft.requirements.usage.find(
-                      (u) =>
-                        u.capabilityId === l.capabilityId && u.mode === l.mode,
-                    );
-                    const label = `${catalog.capabilities.find((c) => c.id === l.capabilityId)?.name ?? l.capabilityId} · ${l.mode}`;
-                    return (
-                      <div key={label}>
-                        <label className={styles.check}>
+                      {selected && (
+                        <label className={styles.field}>
+                          Действий за месяц: {label}
                           <input
-                            type="checkbox"
-                            checked={!!selected}
+                            id={`usage-${draft.requirements.usage.indexOf(selected)}`}
+                            inputMode="decimal"
+                            value={selected.monthlyQuantity}
                             onChange={(e) =>
                               set('requirements', {
                                 ...draft.requirements,
-                                usage: e.target.checked
-                                  ? [
-                                      ...draft.requirements.usage,
-                                      {
-                                        capabilityId: l.capabilityId,
-                                        mode: l.mode,
-                                        unit: 'actions',
-                                        monthlyQuantity: '',
-                                        required: true,
-                                      },
-                                    ]
-                                  : draft.requirements.usage.filter(
-                                      (u) => u !== selected,
-                                    ),
+                                usage: draft.requirements.usage.map((u) =>
+                                  u === selected
+                                    ? {
+                                        ...u,
+                                        monthlyQuantity: e.target.value,
+                                      }
+                                    : u,
+                                ),
                               })
                             }
                           />
-                          {label}
                         </label>
-                        {selected && (
-                          <label className={styles.field}>
-                            Действий за месяц: {label}
-                            <input
-                              id={`usage-${draft.requirements.usage.indexOf(selected)}`}
-                              inputMode="decimal"
-                              value={selected.monthlyQuantity}
-                              onChange={(e) =>
-                                set('requirements', {
-                                  ...draft.requirements,
-                                  usage: draft.requirements.usage.map((u) =>
-                                    u === selected
-                                      ? {
-                                          ...u,
-                                          monthlyQuantity: e.target.value,
-                                        }
-                                      : u,
-                                  ),
-                                })
-                              }
-                            />
-                          </label>
-                        )}
-                      </div>
-                    );
-                  })}
-                  {!catalog.limits.length && (
-                    <p>В каталоге нет описанных режимов использования.</p>
-                  )}
-                </details>
+                      )}
+                    </div>
+                  );
+                })}
+                {!catalog.limits.length && (
+                  <p>В каталоге нет описанных режимов использования.</p>
+                )}
               </details>
-            </>
-          )}
+            </details>
+          </section>
         </fieldset>
         {error !== null && (
           <div role="alert" className={styles.error}>
@@ -887,42 +923,13 @@ function BuilderForm({
           <p role="status">Повторный запрос доступен через {seconds} сек.</p>
         )}
         <div className={styles.actions}>
-          {step > 0 && (
-            <button
-              type="button"
-              className={styles.secondary}
-              disabled={pending}
-              onClick={() => {
-                setErrors([]);
-                setStep(step - 1);
-              }}
-            >
-              Назад
-            </button>
-          )}
-          {step < 2 ? (
-            <button
-              key="continue"
-              type="button"
-              className={styles.primary}
-              onClick={(event) => {
-                // A step transition must never become the new submit button's default action.
-                event.preventDefault();
-                if (check(step)) setStep(step + 1);
-              }}
-            >
-              Продолжить
-            </button>
-          ) : (
-            <button
-              key="preview"
-              type="submit"
-              className={styles.primary}
-              disabled={pending || seconds > 0}
-            >
-              Подобрать AI-набор
-            </button>
-          )}
+          <button
+            type="submit"
+            className={styles.primary}
+            disabled={pending || seconds > 0}
+          >
+            Подобрать AI-набор
+          </button>
           {pending && (
             <button type="button" className={styles.secondary} onClick={cancel}>
               Отменить запрос

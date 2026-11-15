@@ -12,7 +12,7 @@ for (const width of [360, 768, 1440]) {
     });
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
-      'Ваш набор AI',
+      'Найди AI',
     );
     await expect(page.getByRole('status')).toHaveText('Сервис доступен');
     await page.getByRole('button').click();

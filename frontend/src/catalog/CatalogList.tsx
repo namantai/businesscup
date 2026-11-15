@@ -60,7 +60,7 @@ export function CatalogList() {
         <div>
           <h1>Каталог AI</h1>
           <p className={styles.lead}>
-            Проверьте возможности, условия и источники перед выбором подписки.
+            Найди инструмент. Сравни возможности и условия.
           </p>
         </div>
         <button
@@ -94,10 +94,13 @@ export function CatalogList() {
             </p>
           )}
           {metadata.data.asOf && (
-            <p className={styles.small}>
-              Снимок от <DateLabel value={metadata.data.asOf} /> ·{' '}
-              <span className={styles.version}>Версия: {version}</span>
-            </p>
+            <details className={styles.small}>
+              <summary>Об этом каталоге</summary>
+              <p>
+                Снимок от <DateLabel value={metadata.data.asOf} /> ·{' '}
+                <span className={styles.version}>Версия: {version}</span>
+              </p>
+            </details>
           )}
           <nav className={styles.tabs} aria-label="Вид каталога">
             {[

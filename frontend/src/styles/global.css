@@ -1,15 +1,21 @@
 :root {
   font-family:
     Inter,
-    system-ui,
     -apple-system,
     BlinkMacSystemFont,
     'Segoe UI',
     sans-serif;
-  color: #173c35;
-  background: #f5f5ef;
+  color: #201b2b;
+  background: #f8f7fb;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  --purple: #6936db;
+  --ink: #201b2b;
+  --muted: #696276;
+  --lavender: #eee7fc;
+  --line: #e4dfec;
+  --surface: #fff;
 }
 * {
   box-sizing: border-box;
@@ -18,14 +24,84 @@ body {
   margin: 0;
   min-width: 320px;
 }
-button,
 a {
-  -webkit-tap-highlight-color: transparent;
+  color: var(--purple);
+  text-underline-offset: 3px;
 }
-button {
+button,
+input,
+select,
+textarea {
   font: inherit;
 }
+button,
+a,
+input,
+select,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+button,
+a,
+summary {
+  transition:
+    background-color 0.16s,
+    color 0.16s,
+    box-shadow 0.16s;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
 :focus-visible {
-  outline: 3px solid #a26719;
-  outline-offset: 5px;
+  outline: 3px solid #9b75ed;
+  outline-offset: 3px;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--purple);
+}
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+  min-width: 0;
+}
+legend {
+  font-size: 14px;
+  font-weight: 650;
+  padding: 0 8px;
+}
+details > summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 12px 0;
+}
+summary::marker {
+  color: var(--purple);
+}
+p {
+  line-height: 1.65;
+}
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus lands here for screen readers after route/step changes; interactive controls retain their focus rings. */
+h1[tabindex='-1']:focus,
+h2[tabindex='-1']:focus {
+  outline: none;
 }

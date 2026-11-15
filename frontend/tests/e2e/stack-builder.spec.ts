@@ -74,17 +74,16 @@ function publish(file: string) {
 }
 async function choose(page: Page, names = ['Synthetic study'], budget = '20') {
   await page.goto('/onboarding');
+  await page.getByRole('button', { name: /Настроить самому/ }).click();
   for (const name of names) {
     await page.getByLabel(name, { exact: true }).check();
-    await page
-      .getByRole('combobox', { name: `Частота: ${name}`, exact: true })
-      .selectOption('WEEKLY');
   }
   await page.getByRole('button', { name: 'Продолжить' }).click();
   await page.getByLabel('Страна покупки (код)').fill('KZ');
+  await page.getByLabel('Частота использования').selectOption('WEEKLY');
+  await page.getByText('Дополнительные настройки', { exact: true }).click();
   await page.getByLabel('Язык интерфейса (код)').fill('ru');
   await page.getByLabel('Способ покупки').fill('WEB');
-  await page.getByRole('button', { name: 'Продолжить' }).click();
   await expect(page.getByRole('alert')).toHaveCount(0);
   await page.getByLabel('Валюта бюджета').fill('USD');
   await page.getByLabel('Месячный бюджет на весь AI').fill(budget);
@@ -95,7 +94,7 @@ async function preview(page: Page) {
   const responsePromise = page.waitForResponse((r) =>
     r.url().endsWith('/api/v1/recommendations/preview'),
   );
-  await page.getByRole('button', { name: 'Подобрать мой AI-набор' }).click();
+  await page.getByRole('button', { name: 'Подобрать AI-набор' }).click();
   const response = await responsePromise;
   expect(response.status()).toBe(200);
   const data: RecommendationResult = await response.json();
@@ -157,9 +156,8 @@ test.describe.serial('P05 full UI with real preview API', () => {
         level: 1,
       }),
     ).toBeVisible();
-    await page
-      .getByRole('link', { name: 'Собрать набор', exact: true })
-      .click();
+    await page.getByRole('link', { name: 'Подбор', exact: true }).click();
+    await page.getByText('Дополнительные настройки', { exact: true }).click();
     await expect(page.getByLabel('Студенческий статус')).toHaveValue(
       'SELF_DECLARED',
     );
@@ -209,10 +207,11 @@ test.describe.serial('P05 full UI with real preview API', () => {
     expect(first.bundles).toHaveLength(0);
     await expect(
       page.getByRole('heading', {
-        name: 'Подходящий подтверждённый набор не найден',
+        name: 'Пока не нашли подходящий вариант.',
       }),
     ).toBeVisible();
     await page.getByRole('link', { name: 'Изменить параметры' }).click();
+    await page.getByText('Дополнительные настройки', { exact: true }).click();
     await page.getByLabel('Месячный бюджет на весь AI').fill('20');
     const next = await preview(page);
     expect(next.requestId).not.toBe(first.requestId);
@@ -232,7 +231,7 @@ test.describe.serial('P05 full UI with real preview API', () => {
         }),
       { times: 1 },
     );
-    await page.getByRole('button', { name: 'Подобрать мой AI-набор' }).click();
+    await page.getByRole('button', { name: 'Подобрать AI-набор' }).click();
     await expect(page.getByRole('alert')).toContainText('Сервис временно');
     await expect(page.getByTestId('bundle-card')).toHaveCount(0);
     expect((await preview(page)).bundles.length).toBeGreaterThan(0);
@@ -252,15 +251,15 @@ test.describe.serial('P05 full UI with real preview API', () => {
         }),
       { times: 1 },
     );
-    await page.getByRole('button', { name: 'Подобрать мой AI-набор' }).click();
+    await page.getByRole('button', { name: 'Подобрать AI-набор' }).click();
     await expect(page.getByRole('alert')).toContainText(
       'Слишком много запросов',
     );
     await expect(
-      page.getByRole('button', { name: 'Подобрать мой AI-набор' }),
+      page.getByRole('button', { name: 'Подобрать AI-набор' }),
     ).toBeDisabled();
     await expect(
-      page.getByRole('button', { name: 'Подобрать мой AI-набор' }),
+      page.getByRole('button', { name: 'Подобрать AI-набор' }),
     ).toBeEnabled({ timeout: 5000 });
     expect((await preview(page)).bundles.length).toBeGreaterThan(0);
   });
@@ -269,11 +268,13 @@ test.describe.serial('P05 full UI with real preview API', () => {
   }) => {
     await choose(page, ['Synthetic coding']);
     await page
-      .getByRole('button', { name: '2. Условия и возможности' })
+      .getByRole('button', { name: '3. Бюджет и предпочтения' })
       .click();
     await page.getByLabel('Linux', { exact: true }).check();
     await page.getByLabel('Synthetic terminal agent', { exact: true }).check();
-    await page.getByRole('button', { name: '3. Бюджет и подписки' }).click();
+    await page
+      .getByRole('button', { name: '3. Бюджет и предпочтения' })
+      .click();
     const data = await preview(page);
     expect(data.bundles.length).toBeGreaterThan(0);
     expect(
@@ -285,6 +286,10 @@ test.describe.serial('P05 full UI with real preview API', () => {
         ),
       ),
     ).toBe(true);
+    await page
+      .getByText('Модели, агенты и общие лимиты', { exact: true })
+      .first()
+      .click();
     await expect(
       page.getByText(/Включённые агенты: Synthetic Included Agent/).first(),
     ).toBeVisible();
@@ -294,7 +299,7 @@ test.describe.serial('P05 full UI with real preview API', () => {
   }) => {
     await choose(page, ['Synthetic images', 'Synthetic video']);
     await page
-      .getByRole('button', { name: '2. Условия и возможности' })
+      .getByRole('button', { name: '3. Бюджет и предпочтения' })
       .click();
     await page.getByLabel('Synthetic editing', { exact: true }).check();
     await page
@@ -312,18 +317,21 @@ test.describe.serial('P05 full UI with real preview API', () => {
     await page
       .getByLabel('Действий за месяц: Synthetic video · SYNTHETIC_DEFAULT')
       .fill('4');
-    await page.getByRole('button', { name: '3. Бюджет и подписки' }).click();
+    await page
+      .getByRole('button', { name: '3. Бюджет и предпочтения' })
+      .click();
     const overQuota = await preview(page);
     // 10*10 + 4*25 = 200 credits exceeds the ONE shared pool of 100.
     expect(overQuota.bundles).toHaveLength(0);
     await expect(
       page.getByRole('heading', {
-        name: 'Подходящий подтверждённый набор не найден',
+        name: 'Пока не нашли подходящий вариант.',
       }),
     ).toBeVisible();
     await page.getByRole('link', { name: 'Изменить параметры' }).click();
+    await page.getByText('Дополнительные настройки', { exact: true }).click();
     await page
-      .getByRole('button', { name: '2. Условия и возможности' })
+      .getByRole('button', { name: '3. Бюджет и предпочтения' })
       .click();
     await page
       .getByText('Уточнить месячный объём действий', { exact: true })
@@ -334,7 +342,9 @@ test.describe.serial('P05 full UI with real preview API', () => {
     await page
       .getByLabel('Действий за месяц: Synthetic video · SYNTHETIC_DEFAULT')
       .fill('2');
-    await page.getByRole('button', { name: '3. Бюджет и подписки' }).click();
+    await page
+      .getByRole('button', { name: '3. Бюджет и предпочтения' })
+      .click();
     // 5*10 + 2*25 = 100 credits fits exactly, with no double counting.
     const data = await preview(page);
     expect(data.bundles.length).toBeGreaterThan(0);
@@ -353,11 +363,20 @@ test.describe.serial('P05 full UI with real preview API', () => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto('/');
       await expect(
-        page.getByRole('heading', { name: /Ваш набор AI/ }),
+        page.getByRole('heading', { name: /Найди AI/ }),
       ).toBeVisible();
       await noOverflow(page);
       await page.screenshot({
         path: path.join(run!, `p05-home-${width}.png`),
+        fullPage: true,
+      });
+      await page.goto('/onboarding');
+      await expect(
+        page.getByRole('button', { name: /Студент-разработчик/ }),
+      ).toBeVisible();
+      await noOverflow(page);
+      await page.screenshot({
+        path: path.join(run!, `redesign-roles-${width}.png`),
         fullPage: true,
       });
       await choose(page);
@@ -366,11 +385,9 @@ test.describe.serial('P05 full UI with real preview API', () => {
         path: path.join(run!, `p05-form-${width}.png`),
         fullPage: true,
       });
-      await page
-        .getByRole('button', { name: 'Подобрать мой AI-набор' })
-        .focus();
+      await page.getByRole('button', { name: 'Подобрать AI-набор' }).focus();
       await expect(
-        page.getByRole('button', { name: 'Подобрать мой AI-набор' }),
+        page.getByRole('button', { name: 'Подобрать AI-набор' }),
       ).toBeFocused();
       await preview(page);
       await noOverflow(page);
@@ -394,6 +411,7 @@ test.describe.serial('P05 full UI with real preview API', () => {
   }) => {
     publish('data/catalog/catalog-2026-11-14-r2.json');
     await page.goto('/onboarding');
+    await page.getByRole('button', { name: /Настроить самому/ }).click();
     await expect(
       page.getByText('Разработка программ', { exact: true }),
     ).toBeVisible();
@@ -406,6 +424,7 @@ test.describe.serial('P05 full UI with real preview API', () => {
       'недостаточно подтверждённых данных',
     );
     await expect(page.getByTestId('bundle-card')).toHaveCount(0);
+    await page.getByText('Ещё', { exact: true }).click();
     await page.getByRole('link', { name: 'Результаты', exact: true }).click();
     await expect(
       page.getByText('Сначала расскажите о потребностях'),

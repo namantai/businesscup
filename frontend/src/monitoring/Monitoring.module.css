@@ -6,7 +6,7 @@
   min-width: 0;
   margin: 20px 0;
   padding: 18px;
-  border: 1px solid #c8d2c9;
+  border: 1px solid var(--line);
   border-radius: 14px;
 }
 .workspace legend {
@@ -31,7 +31,7 @@
   flex: 0 0 20px;
   margin: 2px 0 0;
   padding: 0;
-  accent-color: #214d36;
+  accent-color: var(--purple);
 }
 .workspace textarea {
   display: block;
@@ -41,7 +41,7 @@
   box-sizing: border-box;
   margin-top: 10px;
   padding: 10px;
-  border: 1px solid #839781;
+  border: 1px solid #c3bbd1;
   border-radius: 8px;
   font: 13px/1.5 monospace;
 }
@@ -54,9 +54,9 @@
   min-height: 44px;
   font: inherit;
   cursor: pointer;
-  color: #214d36;
+  color: var(--purple);
   background: #fff;
-  border: 1px solid #859d80;
+  border: 1px solid var(--line);
   border-radius: 9px;
 }
 .workspace button:disabled {

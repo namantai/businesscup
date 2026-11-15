@@ -7,7 +7,7 @@ import styles from './Builder.module.css';
 import { SavePanel } from '../account/SavePanel';
 const strategy = {
   ECONOMY: 'Экономный набор',
-  BALANCED: 'Сбалансированный набор',
+  BALANCED: 'Оптимальный набор',
   EXPANDED: 'Расширенный набор',
 };
 const reasons: Record<Reason['code'], string> = {
@@ -188,36 +188,6 @@ function BundleCard({
           нельзя считать гарантированно доступным.
         </p>
       )}
-      <dl className={styles.money}>
-        {[
-          ['К оплате сейчас', c.cashDueNow],
-          ['Полная предоплата', c.upfront],
-          ['Регулярно в месяц (эквивалент)', c.recurringMonthly],
-          [`Всего за ${profile.horizonMonths} мес.`, c.horizonTotal],
-          ['В месяц после изменений', c.futureMonthly],
-          ['Текущие сопоставимые расходы / мес.', c.comparableBaselineMonthly],
-          ['Потенциальная разница / мес.', c.potentialNetMonthlySavings],
-          ['Плата Compass / мес.', c.compassFeeMonthly],
-        ].map(([label, value]) => (
-          <div key={label}>
-            <dt>{label}</dt>
-            <dd>{money(value, c.currency)}</dd>
-          </div>
-        ))}
-        <div>
-          <dt>Годовая стоимость</dt>
-          <dd>
-            {profile.horizonMonths === 12
-              ? money(c.horizonTotal, c.currency)
-              : 'Выберите период 12 месяцев для годового расчёта'}
-          </dd>
-        </div>
-      </dl>
-      <p className={styles.muted}>
-        Месячный эквивалент не означает оплату помесячно. Положительная разница
-        означает снижение сопоставимых расходов, отрицательная — рост.
-        Неизвестные налоги и комиссии не считаются нулевыми.
-      </p>
       <h3>Состав набора</h3>
       {!b.items.length && <p>Новые инструменты не требуются.</p>}
       <ul className={styles.list}>
@@ -255,41 +225,44 @@ function BundleCard({
                   ? 'за месяц'
                   : item.billingPeriod}
               {item.nextRenewal && <p>Продление: {item.nextRenewal}</p>}
-              <p>
-                Модели:{' '}
-                {item.modelIds.length
-                  ? item.modelIds
-                      .map(
-                        (id) =>
-                          catalog.models.find((m) => m.id === id)?.name ??
-                          `Неизвестная модель (${id})`,
-                      )
-                      .join(', ')
-                  : 'Доступ не подтверждён'}
-              </p>
-              <p>
-                Включённые агенты:{' '}
-                {item.includedAgentIds.length
-                  ? item.includedAgentIds
-                      .map(
-                        (id) =>
-                          catalog.agents.find((a) => a.id === id)?.name ??
-                          `Неизвестный агент (${id})`,
-                      )
-                      .join(', ')
-                  : 'Доступ не подтверждён'}
-              </p>
-              {!!item.sharedPoolIds.length && (
+              <details>
+                <summary>Модели, агенты и общие лимиты</summary>
                 <p>
-                  Общий лимит: {item.sharedPoolIds.join(', ')}. Включённые
-                  агенты не являются отдельными покупками.
+                  Модели:{' '}
+                  {item.modelIds.length
+                    ? item.modelIds
+                        .map(
+                          (id) =>
+                            catalog.models.find((m) => m.id === id)?.name ??
+                            `Неизвестная модель (${id})`,
+                        )
+                        .join(', ')
+                    : 'Доступ не подтверждён'}
                 </p>
-              )}
+                <p>
+                  Включённые агенты:{' '}
+                  {item.includedAgentIds.length
+                    ? item.includedAgentIds
+                        .map(
+                          (id) =>
+                            catalog.agents.find((a) => a.id === id)?.name ??
+                            `Неизвестный агент (${id})`,
+                        )
+                        .join(', ')
+                    : 'Доступ не подтверждён'}
+                </p>
+                {!!item.sharedPoolIds.length && (
+                  <p>
+                    Общий лимит: {item.sharedPoolIds.join(', ')}. Включённые
+                    агенты не являются отдельными покупками.
+                  </p>
+                )}
+              </details>
             </li>
           );
         })}
       </ul>
-      <h3>Покрытие потребностей и требований</h3>
+      <h3>Для твоих целей</h3>
       <p>
         Выбраны:{' '}
         {profile.needs
@@ -317,12 +290,72 @@ function BundleCard({
             : b.usageFit}
         .
       </p>
-      <h3>Почему выбран этот набор</h3>
+      <h3>Почему этот набор</h3>
       <ReasonList rows={b.factualReasons} />
-      <ReasonList rows={b.policyReasons} />
+      {!!b.policyReasons.length && (
+        <details className={styles.sources}>
+          <summary>Правила сравнения</summary>
+          <ReasonList rows={b.policyReasons} />
+        </details>
+      )}
+      <h3>Стоимость набора</h3>
+      <dl className={styles.money}>
+        {[
+          ['К оплате сейчас', c.cashDueNow],
+          ['Полная предоплата', c.upfront],
+          ['Регулярно в месяц (эквивалент)', c.recurringMonthly],
+          [`Всего за ${profile.horizonMonths} мес.`, c.horizonTotal],
+        ].map(([label, value]) => (
+          <div key={label}>
+            <dt>{label}</dt>
+            <dd>{money(value, c.currency)}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className={styles.muted}>
+        Месячный эквивалент — не помесячный платёж. Неизвестные налоги и
+        комиссии не равны нулю.
+      </p>
+      {!c.confirmedBudgetFit && (
+        <p className={styles.notice}>
+          Известные суммы — нижняя граница расходов. Полная стоимость может быть
+          выше.
+        </p>
+      )}
+      <details className={styles.sources}>
+        <summary>Подробнее о расходах и экономии</summary>
+        <dl className={styles.money}>
+          {[
+            ['В месяц после изменений', c.futureMonthly],
+            [
+              'Текущие сопоставимые расходы / мес.',
+              c.comparableBaselineMonthly,
+            ],
+            ['Потенциальная разница / мес.', c.potentialNetMonthlySavings],
+            ['Плата Compass / мес.', c.compassFeeMonthly],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{money(value, c.currency)}</dd>
+            </div>
+          ))}
+          <div>
+            <dt>Годовая стоимость</dt>
+            <dd>
+              {profile.horizonMonths === 12
+                ? money(c.horizonTotal, c.currency)
+                : 'Выберите период 12 месяцев для годового расчёта'}
+            </dd>
+          </div>
+        </dl>
+        <p className={styles.muted}>
+          Положительная разница — снижение сопоставимых расходов, отрицательная
+          — рост. Применимая плата Compass включена в полный бюджет.
+        </p>
+      </details>
       {!!b.conditions.length && (
         <>
-          <h3>Условия и ограничения</h3>
+          <h3>Что важно проверить</h3>
           <ul className={styles.list}>
             {b.conditions.map((s, i) => (
               <li key={i}>{s}</li>
@@ -377,7 +410,6 @@ export function ResultsPage() {
         </section>
       ) : (
         <>
-          <SavePanel key={completed.response.requestId} />
           <div className={styles.actions}>
             <Link className={styles.primary} to="/onboarding">
               Изменить параметры
@@ -400,10 +432,14 @@ export function ResultsPage() {
           )}
           {!completed.response.bundles.length && (
             <section className={styles.notice} role="status">
-              <h2>Подходящий подтверждённый набор не найден</h2>
+              <h2>
+                {completed.response.status === 'CONDITIONAL_ONLY'
+                  ? 'Есть варианты, но условия нужно проверить.'
+                  : 'Пока не нашли подходящий вариант.'}
+              </h2>
               <p>
-                Проверьте непокрытые требования и неизвестные данные ниже. Можно
-                изменить параметры; ограничения не снимаются автоматически.
+                Попробуй изменить бюджет или требования. Непокрытые цели и
+                неизвестные данные показаны ниже.
               </p>
             </section>
           )}
@@ -460,6 +496,7 @@ export function ResultsPage() {
               </section>
             ))}
           </details>
+          <SavePanel key={completed.response.requestId} />
           <EvidenceList completed={completed} />
           <details className={styles.sources}>
             <summary>Данные расчёта</summary>

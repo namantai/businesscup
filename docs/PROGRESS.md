@@ -2,8 +2,8 @@
 
 **План:** `../CODEX_PROMPT.md`, версия 1.0, 14.11.2026.
 **Текущее состояние:** P01–P07 = DONE; P08 и P10.a приняты владельцем для локальной beta, локальные QA P11 также приняты (15.11.2026). Публичный запуск не разрешён.
-**Текущий этап:** финальное локальное закрытие. P08 = ACCEPTED (local beta); P09 = DEFERRED; P10.a = ACCEPTED (local beta); P10.b = DEFERRED; P11 local QA = ACCEPTED. Общий локальный статус — ACCEPTED. Independent-review, coverage и production gates остаются OPEN / NOT_RUN / NOT_VERIFIED, не объявлены DONE.
-**Следующее действие:** локальная демонстрация по `docs/DEMO_GUIDE.md`. Проверки closeout завершены; кандидат подготовлен к единственному разрешённому commit `feat: complete ai compass local beta candidate`. После фиксации работа остановлена. Дальнейшие изменения только по отдельному поручению; push/PR/merge/deployment и P12–P14 запрещены. Принятый локальный scope отделён от открытых production gates.
+**Текущая задача:** FINAL GIT COMMIT & PUSH — владелец разрешил фиксацию проверенного UI Redesign поверх принятой локальной beta. CE остаётся IN_PROGRESS и исключается из коммита; P12–P14 NOT_STARTED. Production gates открыты.
+**Следующее действие:** точечный staging только frontend redesign и его документов, проверка отдельного кандидата без CE, один commit и обычный push в подтверждённый origin. После push остановиться. Никаких новых функций, merge, force push или deployment.
 **Источник состояния:** этот файл + фактический Git/code/test evidence, не обещания агента.
 
 ## 1. Маршрут
@@ -46,6 +46,7 @@
 
 | Действие | Текущее разрешение |
 |---|---|
+| FINAL GIT COMMIT & PUSH | Владелец 15.11.2026 разрешил один commit `feat: redesign ai compass frontend and simplify onboarding` и `git push -u origin codex/p01-scaffold` после проверки origin. Только проверенный redesign; CE сохранить незакоммиченным. Предыдущий запрет commit/push заменён только в этом scope. |
 | FINAL LOCAL BETA CLOSEOUT | Владелец 15.11.2026 принял P08/P10.a и локальный QA P11; разрешил один локальный commit всего кандидата P07–P11 после проверок. Без новых зависимостей, изменения применённых миграций, push/PR/merge/deployment. Прежние запреты commit ниже исторические и заменены только этим разрешением; production/review/coverage gates открыты |
 | P00 read-only аудит в рабочем репозитории | Выполнен и принят 14.11.2026 |
 | Локальные изменения кода | Владелец 15.11.2026 подтвердил P07 DONE и разрешил P08 → P09 → P10.a → P11 по доступному AI_COMPASS_BATCH_P08_P11.md без промежуточных остановок. Новые фазы получают IMPLEMENTED_PENDING_OWNER_REVIEW/AWAITING_REVIEW, не DONE. P09 допускает обоснованный DEFERRED; P10 только локальные права/beta. Новые прямые зависимости требуют отдельного разрешения. Commit до итоговой приёмки, push/PR/deployment, платные API, реальные платежи/email, неразрешённый scraping, global installs и P12 запрещены |
@@ -1550,3 +1551,55 @@ Read-only браузерная проверка рабочей БД (`.runtime/c
 Финальный closeout replay: `bash scripts/test-e2e.sh --grep 'import stays private|student with several needs|no match is honest|limited real catalog|guest result survives|UI add, actual price|admin publishes semantic|beta grants are server'` → **exit0, 8/8 PASS, 8.1 min**, `.runtime/closeout-demo-e2e.log`, artifacts `.runtime/e2e-a14693ac3b28/`. Это целевой повтор восьми существующих сценариев, не восемь новых тестов и не замена сохранённой полной suite40. Реально проверены все восемь запрошенных групп demo: live главная/каталог, несколько потребностей, backend preview, NO_MATCH/UNKNOWN, регистрация/сохранение, подписки/расходы, изолированные admin/notifications, Free/Premium без оплаты. Новых ошибок приложения не найдено, исходный код не менялся; обязательные сборки не перезапускались согласно разрешению владельца.
 
 Перед фиксацией повторные `check-secrets.sh`, `git diff --check` PASS/exit0. В commit включается точный набор85 путей; служебный manifest списка и SHA256 остаётся ignored, применённые миграции неизменны. Сообщение commit: `feat: complete ai compass local beta candidate`. Hash и итоговый чистый Git status фиксируются в финальном ответе и истории Git, без дополнительного commit ради собственного hash. Работа на этом завершена; принятие относится только к локальному MVP.
+
+
+## FINAL UI/UX REDESIGN — 15.11.2026 — AWAITING_REVIEW
+
+Frontend redesign завершён и передан владельцу. Незавершённые изменения CE сохраняются отдельно; dev-каталог остаётся r2.
+
+Вдохновение: официальный https://zimran.io/ (просмотрены сайт и композиция). Использованы самостоятельные CSS-композиция/геометрия, типографика и фиолетовая палитра; ассеты, логотип и тексты референса не копировались. Новых зависимостей/шрифтов/изображений не загружалось.
+
+Изменения frontend:
+
+- Главная: новый hero, два CTA, три коротких шага, явно помеченная иллюстрация без цен/рейтингов, реальный health/retry. Общая навигация: Подбор, Каталог, Мои подписки, Аккаунт; дополнительные маршруты в «Ещё».
+- Builder: роль → несколько целей → бюджет/предпочтения. Восемь редактируемых пресетов; IDs пересекаются с текущей серверной taxonomy. Роль не подтверждает student eligibility. В r2 доступны только development/research; отсутствие других целей явно показано. Сохранённый профиль открывает свои цели сразу, без повторного выбора роли и без автоподбора.
+- Общая частота меняет частоту всех выбранных целей только после явного выбора. Индивидуальные частоты/веса/required остаются в «Настроить цель». Валюта, upfront, язык, канал покупки не подставляются: ошибки раскрывают дополнительные настройки. Все прежние input IDs, state setters и select values сохранены; добавлен globalFrequency. Данные остаются в памяти вкладки.
+- Результаты: состав → покрытие/причины → расходы → условия. Модели/агенты, правила сравнения, подробная экономика и источники в раскрываемых блоках. Порядок и число наборов остаются серверными. UNKNOWN не FREE; conditional-only отличается от пустого результата; неполная известная стоимость обозначена нижней границей. Annual/upfront/Compass fee и все источники доступны.
+- Каталог: обновлены карточки/фильтры/вкладки, сохранены настоящие API, поиск, типы/возможности, пагинация, модели/агенты, version-pinned детали и источники. Ценовые фильтры CE в этот commit не входят: они зависят от исключённых backend-изменений. Версия snapshot раскрывается отдельно.
+- Login/register получили компактную форму. Dashboard, optimizer, pricing, notifications, account и admin используют обновлённые общие CSS Modules: поля, карточки, кнопки, отступы, статусы. Серверные права/CSRF/сессии/финансовые вычисления не изменялись.
+
+Проверки окончательного frontend (команды npm выполнялись в frontend после `source scripts/common.sh`, без npm ci):
+
+| Проверка | Результат |
+|---|---|
+| `npm run format:check` | PASS, exit0; `.runtime/redesign-format.log` |
+| `npm run lint` | PASS, exit0; `.runtime/redesign-lint.log` |
+| `npm run typecheck` | PASS, exit0; `.runtime/redesign-typecheck.log` |
+| `npm run build` | PASS, exit0;182 modules; `.runtime/redesign-build.log` |
+| `npm test` | PASS, exit0;80 tests/9 files,0 FAIL/0 SKIP; `.runtime/redesign-ui.log` |
+| `bash scripts/test-e2e.sh stack-builder.spec.ts --grep 'student with several needs\|no match is honest\|responsive keyboard flow'` | PASS, exit0;5/5,0 FAIL/0 SKIP,1.4min; `.runtime/redesign-e2e.log` |
+| Финальный повтор `bash scripts/test-e2e.sh stack-builder.spec.ts --grep 'responsive keyboard flow'` | PASS, exit0;3/3,0 FAIL/0 SKIP,1.3min; `.runtime/redesign-responsive-final.log` |
+| `bash scripts/status.sh` | PASS, exit0;frontend5173/backend18080/PG15432;readiness+HTML3/3;V1–V11 success;PG healthy |
+| `bash scripts/check-secrets.sh` | PASS, exit0;поиск паттернов, не полный аудит секретов |
+| `git diff --check` | PASS, exit0 |
+
+Пять уникальных целевых E2E проверили multi-need, sources/pinned links, NO_MATCH → изменение бюджета → новый настоящий Java preview и keyboard/responsive home/form/results/catalog на360/768/1440. После визуального обнаружения плохого переноса длинных названий шагов на360px подписи сокращены до Роль/Цели/Бюджет с полным accessible name. После этой правки повторены все80 UI, format/lint/typecheck/build и три responsive E2E. Добавлено5 UI-regression tests относительно75: три пресета/пересечение/сохранение настроек, один полный editable-role flow без выдуманных значений/льгот, один conditional-only presentation. Старые тесты адаптированы к новым шагам/текстам без удаления финансовых/security assertions.
+
+Manual review: просмотрены финальные desktop/mobile screenshots, проверены отсутствие горизонтального overflow и console errors в responsive E2E. Снимки: `.runtime/e2e-5a1c2739db8f/` (ignored), включая p05-home-1440.png, p05-home-360.png, redesign-roles-1440.png, redesign-roles-360.png. Изолированные E2E используют синтетический каталог; его результаты и цены не являются рыночными. Снимок каталога снимается сразу после перехода, поэтому не доказывает окончательную загрузку карточек; их поведение отдельно покрывают UI tests. Встроенный браузер подтвердил живые home/role DOM, но capture/click возвращали timeouts; screenshots и интерактивный regression проверены штатным проектным Playwright. Бесконечных повторов браузера нет.
+
+Read-only dev verification: GET `/`200, `/api/v1/catalog/meta`200 → REVIEWED, version `03000000-0000-4000-8000-000000000002`,revision2,3products,needs development/research; readiness200. SHA256110 защищённых backend/resource/data файлов совпали с началом redesign (`.runtime/redesign-protected.json`); CE и r2 не менялись. Миграции, manifests/lockfiles, generated contracts, серверный алгоритм и личные данные в этой задаче не менялись. Все прежние dirty CE сохранены.
+
+NOT_RUN: полная backend-suite, полная50-case E2E, benchmarks и повторные live auth/admin/optimizer flows — намеренно вне быстрого frontend scope. Текущий каталог недостаточен для полного подбора учёбы/видео/дизайна; CE publication отдельно не разрешена в этом задании. Production readiness не заявляется. Browser matrix вне Chromium не проверялась. Скриншоты/логи/сборка остаются ignored.
+
+Git: branch `codex/p01-scaffold`; HEAD `b9256e0` без нового commit; индекс пуст. Итоговый worktree33 modified +8 untracked (включая прежние CE). Новые frontend-файлы — roles.ts и roles.test.ts. Никаких commit/push/PR/deployment/новых этапов. Следующее действие — только приёмка владельцем.
+
+
+## FINAL GIT COMMIT & PUSH — 15.11.2026
+
+Владелец разрешил один frontend-only commit и обычный push текущей ветки. Origin без изменений: https://github.com/namantai/businesscup.git. Локальный GitHub CLI подтверждает login namantai, repository namantai/businesscup, viewerPermission ADMIN; remote пока пуст, первый push отправит принятую историю beta и новый UI commit. Подключённый GitHub App использует другую read-only учётную запись, поэтому для Git используется уже настроенная локальная авторизация владельца; credentials не выводились и не менялись.
+
+Кандидат построен из HEAD b9256e0 +23 явно выбранных путей. CatalogList включает только текст/раскрытие версии; новые priceKind/region/currency filters, generated OpenAPI изменения и их test остаются CE. ARCHITECTURE/DEMO_GUIDE/PROGRESS разделены по смыслу; CE source matrix/новый manifest/benchmark/engine fixes/backend tests не включены. Рабочие исходники не перезаписывались, контрольные суммы исходных dirty файлов сохранены; менялся только текущий журнал PROGRESS.
+
+Проверена отдельная сборка ровно этого кандидата в ignored .runtime/ui-push-candidate с прежними node_modules, без установки. npm run format:check, lint, typecheck, build — PASS/exit0; npm test —79 PASS/0 FAIL/0 SKIP в9files (7.18s). Один из прежних80 тестов принадлежит исключённым CE-фильтрам. Сохранённые целевые E2E5/5 и окончательный responsive replay3/3 переиспользованы: их UI-код/тесты не менялись; повтор E2E на кандидате без CE NOT_RUN согласно ограничению на долгие проверки. Backend/full50-case E2E/benchmark NOT_RUN. Рабочий каталог остаётсяr2, только данные snapshot из принятой beta входят в Git-историю.
+
+Проверка секретов рабочего дерева PASS; проверка истории, списка и точного staged tree выполняется перед commit. Скриншоты, логи, .env, кеши, build artifacts, временный candidate и CE не включаются. Финальный hash/push/status фиксируются в Git и отчёте, без дополнительного коммита ради собственного hash. После обычного push остановиться; никакого force/merge/main/deployment.

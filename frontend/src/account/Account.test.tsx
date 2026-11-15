@@ -194,7 +194,7 @@ test('account deletion needs explicit confirmation and password; logout leaves n
     screen.getByLabelText('Подтверждаю удаление аккаунта и личных данных'),
   );
   await u.click(button);
-  await screen.findByRole('heading', { name: /Ваш набор AI/ });
+  await screen.findByRole('heading', { name: /Найди AI/ });
   expect(requests[0].body).toEqual({ password, confirm: true });
 });
 test('saved profile opens the real builder without auto-submitting or automatic save', async () => {

@@ -9,15 +9,15 @@
   gap: 16px;
   align-items: center;
   padding: 28px 0;
-  border-bottom: 1px solid #d9ded4;
+  border-bottom: 1px solid var(--line);
 }
 .brand {
   font-size: 22px;
   font-weight: 750;
   text-decoration: none;
 }
-.page a {
-  color: #245d48;
+:where(.page) a {
+  color: var(--purple);
   text-underline-offset: 4px;
   overflow-wrap: anywhere;
 }
@@ -56,24 +56,24 @@
 .lead {
   max-width: 730px;
   font-size: 18px;
-  color: #4a6056;
+  color: var(--muted);
 }
 .eyebrow {
   letter-spacing: 0.12em;
   font-size: 11px;
   font-weight: 750;
-  color: #526849;
+  color: var(--purple);
 }
 .coverage {
-  background: #e7eddb;
-  border: 1px solid #c6d2b6;
+  background: var(--lavender);
+  border: 1px solid var(--line);
   padding: 14px 18px;
   border-radius: 12px;
 }
 .small,
 .version {
   font-size: 13px;
-  color: #536358;
+  color: var(--muted);
   overflow-wrap: anywhere;
 }
 .tabs {
@@ -86,20 +86,20 @@
 .page input,
 .page select {
   font: inherit;
-  border: 1px solid #9fab98;
+  border: 1px solid #c3bbd1;
   border-radius: 8px;
   padding: 11px 14px;
   background: #fff;
-  color: #173c35;
+  color: var(--ink);
   min-height: 44px;
 }
 .page button {
   cursor: pointer;
 }
 .page button[aria-pressed='true'] {
-  background: #183f35;
+  background: var(--purple);
   color: white;
-  border-color: #183f35;
+  border-color: var(--purple);
 }
 .page button:disabled {
   opacity: 0.55;
@@ -135,7 +135,7 @@
 .card {
   background: #fff;
   padding: 24px;
-  border: 1px solid #d8e0d0;
+  border: 1px solid var(--line);
   border-radius: 16px;
   min-width: 0;
 }
@@ -156,9 +156,9 @@
   line-height: 1.5;
   padding: 4px 8px;
   border-radius: 6px;
-  border: 1px solid #a8b89c;
-  color: #2a4c33;
-  background: #edf3e3;
+  border: 1px solid var(--line);
+  color: #463365;
+  background: var(--lavender);
 }
 .badge[data-status='UNKNOWN'],
 .badge[data-status='STALE'],
@@ -180,7 +180,7 @@
 .section {
   margin-top: 44px;
   padding-top: 16px;
-  border-top: 1px solid #d9ded4;
+  border-top: 1px solid var(--line);
 }
 .region {
   max-width: 350px;
@@ -190,11 +190,11 @@
   padding: 24px;
   border-radius: 16px;
   background: #fff;
-  border: 1px solid #d8e0d0;
+  border: 1px solid var(--line);
 }
 .offer {
-  background: #f6f7f0;
-  border: 1px solid #d6dfcc;
+  background: #f7f4fc;
+  border: 1px solid var(--line);
   padding: 20px;
   border-radius: 12px;
   min-width: 0;
@@ -210,18 +210,18 @@
   font-size: 13px;
 }
 .facts dt {
-  color: #52634f;
+  color: var(--muted);
 }
 .facts dd {
   margin: 0;
 }
 .limit {
-  border-top: 1px solid #d6dfcc;
+  border-top: 1px solid var(--line);
   margin-top: 20px;
 }
 .evidence {
   padding: 20px 0;
-  border-bottom: 1px solid #d9ded4;
+  border-bottom: 1px solid var(--line);
   scroll-margin-top: 16px;
 }
 .evidence p {
@@ -229,9 +229,9 @@
 }
 .footer {
   padding: 24px 0;
-  border-top: 1px solid #d9ded4;
+  border-top: 1px solid var(--line);
   font-size: 12px;
-  color: #536358;
+  color: var(--muted);
 }
 .skip {
   position: absolute;
@@ -278,4 +278,102 @@
 .header {
   flex-wrap: wrap;
   gap: 18px;
+}
+
+.page {
+  max-width: 1320px;
+  padding: 0 48px;
+}
+.header {
+  min-height: 94px;
+  padding: 24px 0;
+}
+.header .brand {
+  color: var(--ink);
+  letter-spacing: -0.7px;
+  white-space: nowrap;
+}
+.main {
+  padding-top: 36px;
+  min-height: 65vh;
+}
+.card {
+  transition:
+    border-color 0.16s,
+    box-shadow 0.16s;
+}
+.card:hover {
+  border-color: #c8b9e4;
+  box-shadow: 0 8px 24px #26104008;
+}
+.card h2 a {
+  text-decoration: none;
+  color: var(--ink);
+}
+.tabs {
+  background: var(--lavender);
+  border-radius: 12px;
+  padding: 5px;
+  width: fit-content;
+}
+.tabs button {
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+}
+.tabs button[aria-pressed='true'] {
+  background: white;
+  color: var(--purple);
+  box-shadow: 0 2px 6px #2610400a;
+}
+.filters {
+  background: white;
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  gap: 16px;
+}
+.filters label:first-child {
+  flex-basis: 260px;
+}
+.coverage {
+  font-size: 14px;
+}
+@media (max-width: 800px) {
+  .page {
+    padding: 0 24px;
+  }
+}
+@media (max-width: 600px) {
+  .page {
+    padding: 0 16px;
+  }
+  .header {
+    padding: 20px 0;
+    gap: 14px;
+  }
+  .main {
+    padding-top: 24px;
+  }
+  .filters {
+    padding: 16px;
+  }
+  .lead {
+    font-size: 16px;
+  }
+}
+
+.brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.mark {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  background: var(--purple);
+  color: white;
+  border-radius: 12px;
 }

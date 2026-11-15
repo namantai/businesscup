@@ -56,11 +56,19 @@ afterEach(() => {
 const user = () => userEvent.setup();
 async function start() {
   render(<App />);
+  await user().click(
+    await screen.findByRole('button', { name: /Настроить самому/ }),
+  );
   await screen.findByLabelText('Synthetic study');
 }
 async function need(name = 'Synthetic study') {
   const u = user();
   await u.click(screen.getByLabelText(name));
+  await u.click(
+    within(screen.getByLabelText(name).closest('div')!).getByText(
+      'Настроить цель',
+    ),
+  );
   await u.selectOptions(screen.getByLabelText(`Частота: ${name}`), 'WEEKLY');
 }
 async function next() {
@@ -70,16 +78,16 @@ async function finish(budget = '20') {
   await next();
   const u = user();
   await u.type(screen.getByLabelText('Страна покупки (код)'), 'KZ');
+  await u.click(screen.getByText('Дополнительные настройки'));
   await u.type(screen.getByLabelText('Язык интерфейса (код)'), 'ru');
   await u.type(screen.getByLabelText('Способ покупки'), 'WEB');
-  await next();
   await u.type(screen.getByLabelText('Валюта бюджета'), 'USD');
   await u.type(screen.getByLabelText('Месячный бюджет на весь AI'), budget);
   await u.type(screen.getByLabelText('Доступная предоплата'), '0');
 }
 async function submit() {
   await user().click(
-    screen.getByRole('button', { name: 'Подобрать мой AI-набор' }),
+    screen.getByRole('button', { name: 'Подобрать AI-набор' }),
   );
 }
 
@@ -148,8 +156,10 @@ test('existing subscription, unknown amount and mustKeep remain explicit, draft 
   await u.type(screen.getByLabelText('Следующее продление'), '2026-12-14');
   await u.type(screen.getByLabelText('Часовой пояс платежа'), 'Asia/Almaty');
   await u.click(screen.getByLabelText('Обязательно сохранить (mustKeep)'));
+  await u.click(screen.getByText('Ещё'));
   await u.click(screen.getByRole('link', { name: 'Как это работает' }));
-  await u.click(screen.getByRole('link', { name: 'Собрать набор' }));
+  await u.click(screen.getByRole('link', { name: 'Подбор' }));
+  await u.click(await screen.findByText('Дополнительные настройки'));
   expect(
     await screen.findByLabelText('Обязательно сохранить (mustKeep)'),
   ).toBeChecked();
@@ -197,7 +207,7 @@ test('429 honours Retry-After and disables repeated sends', async () => {
   await submit();
   await screen.findByText(/Повторный запрос доступен через/);
   expect(
-    screen.getByRole('button', { name: 'Подобрать мой AI-набор' }),
+    screen.getByRole('button', { name: 'Подобрать AI-набор' }),
   ).toBeDisabled();
   expect(sent).toHaveLength(1);
 });
@@ -213,7 +223,7 @@ test('loading prevents duplicate submissions and cancelled responses cannot repl
   await submit();
   await screen.findByText('Подбираем набор по опубликованному каталогу…');
   expect(
-    screen.getByRole('button', { name: 'Подобрать мой AI-набор' }),
+    screen.getByRole('button', { name: 'Подобрать AI-набор' }),
   ).toBeDisabled();
   await user().click(screen.getByRole('button', { name: 'Отменить запрос' }));
   resolve(json(result()));
@@ -293,7 +303,7 @@ test('no-match, unknown, conditional, costs and annual horizon are not fabricate
   await finish();
   await submit();
   await screen.findByRole('heading', {
-    name: 'Подходящий подтверждённый набор не найден',
+    name: 'Пока не нашли подходящий вариант.',
   });
   expect(screen.getAllByText('Цена не подтверждена').length).toBeGreaterThan(2);
   expect(screen.queryByText(/FREE ·/)).not.toBeInTheDocument();
@@ -357,6 +367,7 @@ test('features, platform, language, privacy and annual upfront are explicit prof
   await next();
   const u = user();
   await u.type(screen.getByLabelText('Страна покупки (код)'), 'KZ');
+  await u.click(screen.getByText('Дополнительные настройки'));
   await u.type(screen.getByLabelText('Язык интерфейса (код)'), 'ru');
   await u.type(
     screen.getByLabelText('Языки ответов (необязательно)'),
@@ -375,7 +386,6 @@ test('features, platform, language, privacy and annual upfront are explicit prof
     screen.getByLabelText(`Важность: ${feature.name}`),
     '5',
   );
-  await next();
   await u.type(screen.getByLabelText('Валюта бюджета'), 'USD');
   await u.type(screen.getByLabelText('Месячный бюджет на весь AI'), '10,25');
   await u.type(screen.getByLabelText('Доступная предоплата'), '123');
@@ -431,7 +441,7 @@ test('an empty catalog never enables fake recommendations', async () => {
   );
   await startEmpty();
   expect(
-    screen.queryByRole('button', { name: 'Подобрать мой AI-набор' }),
+    screen.queryByRole('button', { name: 'Подобрать AI-набор' }),
   ).not.toBeInTheDocument();
 });
 async function startEmpty() {
@@ -444,11 +454,13 @@ test('reset clears the whole local draft and result without browser persistence'
   await need();
   await finish();
   await user().click(screen.getByRole('button', { name: 'Очистить анкету' }));
+  await user().click(screen.getByRole('button', { name: /Настроить самому/ }));
   expect(screen.getByLabelText('Synthetic study')).not.toBeChecked();
   await user().click(
-    screen.getByRole('button', { name: '3. Бюджет и подписки' }),
+    screen.getByRole('button', { name: '3. Бюджет и предпочтения' }),
   );
   expect(screen.getByLabelText('Месячный бюджет на весь AI')).toHaveValue('');
+  await user().click(screen.getByText('Ещё'));
   await user().click(screen.getByRole('link', { name: 'Результаты' }));
   expect(screen.getByText('Сначала расскажите о потребностях')).toBeVisible();
 });
@@ -466,4 +478,71 @@ test('continue does not submit the newly mounted budget step; corrected fields c
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   expect(screen.getByLabelText('Месячный бюджет на весь AI')).toHaveFocus();
   expect(screen.getByLabelText('Месячный бюджет на весь AI')).toHaveValue('20');
+});
+
+test('role presets are editable and do not imply student eligibility or missing values', async () => {
+  render(<App />);
+  await user().click(
+    await screen.findByRole('button', { name: /Студент-разработчик/ }),
+  );
+  expect(screen.getByLabelText('Synthetic study')).toBeChecked();
+  expect(screen.getByLabelText('Synthetic coding')).not.toBeChecked();
+  // Fixture uses coding, not development: the preset must not invent a mapping.
+  await need('Synthetic coding');
+  await next();
+  expect(screen.getByLabelText('Страна покупки (код)')).toHaveValue('');
+  expect(screen.getByLabelText('Месячный бюджет на весь AI')).toHaveValue('');
+  await user().selectOptions(
+    screen.getByLabelText('Частота использования'),
+    'DAILY',
+  );
+  await user().type(screen.getByLabelText('Страна покупки (код)'), 'KZ');
+  await user().type(screen.getByLabelText('Месячный бюджет на весь AI'), '0');
+  await submit();
+  expect(sent).toHaveLength(0);
+  expect(screen.getByLabelText('Валюта бюджета')).toBeVisible();
+  expect(screen.getByLabelText('Валюта бюджета')).toHaveValue('');
+  expect(screen.getByLabelText('Доступная предоплата')).toHaveValue('');
+  expect(screen.getByLabelText('Студенческий статус')).toHaveValue('NONE');
+  await user().type(screen.getByLabelText('Валюта бюджета'), 'USD');
+  await user().type(screen.getByLabelText('Доступная предоплата'), '0');
+  await user().type(screen.getByLabelText('Язык интерфейса (код)'), 'ru');
+  await user().type(screen.getByLabelText('Способ покупки'), 'WEB');
+  await submit();
+  await screen.findByRole('heading', { name: 'Результаты подбора' });
+  expect(sent[0].needs.map((n) => n.id)).toEqual([
+    'study',
+    'presentations',
+    'coding',
+  ]);
+  expect(sent[0].needs.map((n) => n.intensity)).toEqual([
+    'DAILY',
+    'DAILY',
+    'DAILY',
+  ]);
+  expect(sent[0].studentStatus).toBe('NONE');
+});
+
+test('conditional-only response is not presented as either a confirmed match or an empty search', async () => {
+  const response = result(0);
+  response.status = 'CONDITIONAL_ONLY';
+  const b = result().bundles[0];
+  b.eligibility = 'CONDITIONAL';
+  b.strategies = [];
+  b.costs.confirmedBudgetFit = false;
+  b.costs.confidence = 'INCOMPLETE';
+  response.conditionalAlternatives = [b];
+  answer = async () => json(response);
+  await start();
+  await need();
+  await finish();
+  await submit();
+  expect(
+    await screen.findByText('Есть варианты, но условия нужно проверить.'),
+  ).toBeVisible();
+  expect(
+    screen.queryByText('Пока не нашли подходящий вариант.'),
+  ).not.toBeInTheDocument();
+  expect(screen.queryByText(/FREE ·/)).not.toBeInTheDocument();
+  expect(screen.getAllByTestId('bundle-card')).toHaveLength(1);
 });

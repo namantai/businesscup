@@ -11,7 +11,10 @@ export function CatalogLayout({ children }: { children: ReactNode }) {
       </a>
       <header className={styles.header}>
         <Link className={styles.brand} to="/">
-          ↗ AI Compass
+          <span className={styles.mark} aria-hidden="true">
+            ↗
+          </span>{' '}
+          AI Compass
         </Link>
         <Navigation />
       </header>
@@ -19,7 +22,7 @@ export function CatalogLayout({ children }: { children: ReactNode }) {
         {children}
       </main>
       <footer className={styles.footer}>
-        Осознанный выбор инструментов. Без обязательного задания или промпта.
+        AI Compass · Осознанный выбор. Без промпта.
       </footer>
     </div>
   );

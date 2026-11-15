@@ -68,147 +68,156 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
   }
   return (
     <CatalogLayout>
-      <h1 tabIndex={-1} ref={heading}>
-        {titles[mode]}
-      </h1>
-      <p>
-        Гостевой подбор остаётся доступным. Регистрация сама по себе не
-        сохраняет анкету и результат.
-      </p>
-      {builder.completed && (
-        <p className={styles.notice}>
-          Ваш результат остаётся в памяти этой вкладки. Для сохранения после
-          входа потребуется отдельное подтверждение. Не перезагружайте эту
-          вкладку.
+      <div className={styles.authPage}>
+        <h1 tabIndex={-1} ref={heading}>
+          {titles[mode]}
+        </h1>
+        <p>
+          Подбор доступен без аккаунта. Сохранение — только с твоего согласия.
         </p>
-      )}
-      <form
-        className={styles.panel}
-        onSubmit={(e) => {
-          e.preventDefault();
-          void run(async () => {
-            const guard = await protection();
-            if (mode === 'login') {
-              const account = await checked(
-                login({ ...guard, body: { email, password } }),
-              );
-              auth.accept(account);
-              navigate(builder.completed ? '/results' : '/dashboard');
-            } else if (mode === 'register') {
-              await checked(register({ ...guard, body: { email, password } }));
-              setMessage(
-                'Если адрес подходит, письмо доступно в локальном почтовом ящике. Подтвердите email, затем войдите.',
-              );
-            } else if (mode === 'verify') {
-              await checked(verify({ ...guard, body: { token } }));
-              setToken('');
-              setMessage('Email подтверждён. Теперь можно войти.');
-            } else if (mode === 'forgot') {
-              await checked(forgot({ ...guard, body: { email } }));
-              setMessage(
-                'Если адрес подходит, инструкция доступна в локальном почтовом ящике.',
-              );
-            } else {
-              await checked(reset({ ...guard, body: { token, password } }));
-              auth.accept(null);
-              setToken('');
-              setMessage('Пароль изменён. Войдите заново на всех устройствах.');
-            }
-          });
-        }}
-      >
-        <fieldset
-          disabled={busy}
-          style={{ border: 0, padding: 0, minWidth: 0 }}
-        >
-          {(mode === 'login' || mode === 'register' || mode === 'forgot') && (
-            <label className={styles.field}>
-              Email
-              <input
-                type="email"
-                autoComplete="email"
-                required
-                maxLength={254}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </label>
-          )}
-          {(mode === 'verify' || mode === 'reset') && (
-            <label className={styles.field}>
-              Код из письма
-              <input
-                type="password"
-                autoComplete="off"
-                required
-                value={token}
-                onChange={(e) => setToken(e.target.value.trim())}
-              />
-            </label>
-          )}
-          {(mode === 'login' || mode === 'register' || mode === 'reset') && (
-            <label className={styles.field}>
-              Пароль
-              <input
-                type="password"
-                autoComplete={
-                  mode === 'login' ? 'current-password' : 'new-password'
-                }
-                minLength={12}
-                maxLength={128}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <span>От 12 до 128 символов.</span>
-            </label>
-          )}
-          <button className={styles.primary} type="submit" disabled={busy}>
-            {busy ? 'Выполняем…' : titles[mode]}
-          </button>
-        </fieldset>
-        {error !== null && (
-          <div className={styles.error} role="alert" tabIndex={-1} ref={alert}>
-            {accountError(error)}
-          </div>
-        )}
-        {message && (
-          <p role="status" className={styles.notice}>
-            {message}
+        {builder.completed && (
+          <p className={styles.notice}>
+            Не перезагружай вкладку: здесь твой результат. После входа подтверди
+            его сохранение.
           </p>
         )}
-      </form>
-      <div className={styles.actions}>
-        <Link to="/login">Войти в аккаунт</Link>
-        <Link to="/register">Регистрация</Link>
-        <Link to="/verify-email">Подтверждение email</Link>
-        <Link to="/forgot-password">Забыли пароль?</Link>
-        <Link to="/onboarding">Продолжить без аккаунта</Link>
-      </div>
-      {(mode === 'register' || mode === 'forgot') && (
-        <p>
-          После подтверждения email вернитесь в эту вкладку: здесь остаётся ваш
-          гостевой результат.
-        </p>
-      )}
-      {(mode === 'login' || mode === 'register') && (
-        <button
-          className={styles.secondary}
-          disabled={busy || !email}
-          onClick={() =>
+        <form
+          className={styles.panel}
+          onSubmit={(e) => {
+            e.preventDefault();
             void run(async () => {
-              await checked(
-                resend({ ...(await protection()), body: { email } }),
-              );
-              setMessage(
-                'Если адрес подходит, новое письмо доступно в локальном почтовом ящике.',
-              );
-            })
-          }
+              const guard = await protection();
+              if (mode === 'login') {
+                const account = await checked(
+                  login({ ...guard, body: { email, password } }),
+                );
+                auth.accept(account);
+                navigate(builder.completed ? '/results' : '/dashboard');
+              } else if (mode === 'register') {
+                await checked(
+                  register({ ...guard, body: { email, password } }),
+                );
+                setMessage(
+                  'Если адрес подходит, письмо доступно в локальном почтовом ящике. Подтвердите email, затем войдите.',
+                );
+              } else if (mode === 'verify') {
+                await checked(verify({ ...guard, body: { token } }));
+                setToken('');
+                setMessage('Email подтверждён. Теперь можно войти.');
+              } else if (mode === 'forgot') {
+                await checked(forgot({ ...guard, body: { email } }));
+                setMessage(
+                  'Если адрес подходит, инструкция доступна в локальном почтовом ящике.',
+                );
+              } else {
+                await checked(reset({ ...guard, body: { token, password } }));
+                auth.accept(null);
+                setToken('');
+                setMessage(
+                  'Пароль изменён. Войдите заново на всех устройствах.',
+                );
+              }
+            });
+          }}
         >
-          Отправить подтверждение ещё раз
-        </button>
-      )}
+          <fieldset
+            disabled={busy}
+            style={{ border: 0, padding: 0, minWidth: 0 }}
+          >
+            {(mode === 'login' || mode === 'register' || mode === 'forgot') && (
+              <label className={styles.field}>
+                Email
+                <input
+                  type="email"
+                  autoComplete="email"
+                  required
+                  maxLength={254}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </label>
+            )}
+            {(mode === 'verify' || mode === 'reset') && (
+              <label className={styles.field}>
+                Код из письма
+                <input
+                  type="password"
+                  autoComplete="off"
+                  required
+                  value={token}
+                  onChange={(e) => setToken(e.target.value.trim())}
+                />
+              </label>
+            )}
+            {(mode === 'login' || mode === 'register' || mode === 'reset') && (
+              <label className={styles.field}>
+                Пароль
+                <input
+                  type="password"
+                  autoComplete={
+                    mode === 'login' ? 'current-password' : 'new-password'
+                  }
+                  minLength={12}
+                  maxLength={128}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <span>От 12 до 128 символов.</span>
+              </label>
+            )}
+            <button className={styles.primary} type="submit" disabled={busy}>
+              {busy ? 'Выполняем…' : titles[mode]}
+            </button>
+          </fieldset>
+          {error !== null && (
+            <div
+              className={styles.error}
+              role="alert"
+              tabIndex={-1}
+              ref={alert}
+            >
+              {accountError(error)}
+            </div>
+          )}
+          {message && (
+            <p role="status" className={styles.notice}>
+              {message}
+            </p>
+          )}
+        </form>
+        <div className={styles.actions}>
+          <Link to="/login">Войти в аккаунт</Link>
+          <Link to="/register">Регистрация</Link>
+          <Link to="/verify-email">Подтверждение email</Link>
+          <Link to="/forgot-password">Забыли пароль?</Link>
+          <Link to="/onboarding">Продолжить без аккаунта</Link>
+        </div>
+        {(mode === 'register' || mode === 'forgot') && (
+          <p>
+            После подтверждения email вернитесь в эту вкладку: здесь остаётся
+            ваш гостевой результат.
+          </p>
+        )}
+        {(mode === 'login' || mode === 'register') && (
+          <button
+            className={styles.secondary}
+            disabled={busy || !email}
+            onClick={() =>
+              void run(async () => {
+                await checked(
+                  resend({ ...(await protection()), body: { email } }),
+                );
+                setMessage(
+                  'Если адрес подходит, новое письмо доступно в локальном почтовом ящике.',
+                );
+              })
+            }
+          >
+            Отправить подтверждение ещё раз
+          </button>
+        )}
+      </div>
     </CatalogLayout>
   );
 }
